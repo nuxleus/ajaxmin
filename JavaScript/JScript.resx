@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    JScript.resx
+
+    Copyright 2010 Microsoft Corporation
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+  -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="51" xml:space="preserve">
+    <value>Internal error</value>
+  </data>
+  <data name="1002" xml:space="preserve">
+    <value>Syntax error</value>
+  </data>
+  <data name="1003" xml:space="preserve">
+    <value>Expected ':'</value>
+  </data>
+  <data name="1004" xml:space="preserve">
+    <value>Expected ';'</value>
+  </data>
+  <data name="1005" xml:space="preserve">
+    <value>Expected '('</value>
+  </data>
+  <data name="1006" xml:space="preserve">
+    <value>Expected ')'</value>
+  </data>
+  <data name="1007" xml:space="preserve">
+    <value>Expected ']'</value>
+  </data>
+  <data name="1008" xml:space="preserve">
+    <value>Expected '{'</value>
+  </data>
+  <data name="1009" xml:space="preserve">
+    <value>Expected '}'</value>
+  </data>
+  <data name="1010" xml:space="preserve">
+    <value>Expected identifier</value>
+  </data>
+  <data name="1011" xml:space="preserve">
+    <value>Expected '='</value>
+  </data>
+  <data name="1014" xml:space="preserve">
+    <value>Invalid character</value>
+  </data>
+  <data name="1015" xml:space="preserve">
+    <value>Unterminated string constant</value>
+  </data>
+  <data name="1016" xml:space="preserve">
+    <value>Unterminated comment</value>
+  </data>
+  <data name="1018" xml:space="preserve">
+    <value>'return' statement outside of function</value>
+  </data>
+  <data name="1019" xml:space="preserve">
+    <value>Can't have 'break' outside of loop</value>
+  </data>
+  <data name="1020" xml:space="preserve">
+    <value>Can't have 'continue' outside of loop</value>
+  </data>
+  <data name="1023" xml:space="preserve">
+    <value>Expected hexadecimal digit</value>
+  </data>
+  <data name="1024" xml:space="preserve">
+    <value>Expected 'while'</value>
+  </data>
+  <data name="1025" xml:space="preserve">
+    <value>Label redefined</value>
+  </data>
+  <data name="1026" xml:space="preserve">
+    <value>Label not found</value>
+  </data>
+  <data name="1027" xml:space="preserve">
+    <value>'default' can only appear once in a 'switch' statement</value>
+  </data>
+  <data name="1028" xml:space="preserve">
+    <value>Expected identifier or string</value>
+  </data>
+  <data name="1029" xml:space="preserve">
+    <value>Expected '@end'</value>
+  </data>
+  <data name="1030" xml:space="preserve">
+    <value>Conditional compilation is turned off</value>
+  </data>
+  <data name="1031" xml:space="preserve">
+    <value>Expected constant</value>
+  </data>
+  <data name="1032" xml:space="preserve">
+    <value>Expected '@'</value>
+  </data>
+  <data name="1033" xml:space="preserve">
+    <value>Expected 'catch'</value>
+  </data>
+  <data name="1034" xml:space="preserve">
+    <value>Unmatched 'else'; no 'if' defined</value>
+  </data>
+  <data name="1100" xml:space="preserve">
+    <value>Expected ','</value>
+  </data>
+  <data name="1103" xml:space="preserve">
+    <value>Missing 'case' or 'default' statement</value>
+  </data>
+  <data name="1104" xml:space="preserve">
+    <value>Unmatched '@end'; no '@if' defined</value>
+  </data>
+  <data name="1105" xml:space="preserve">
+    <value>Unmatched '@else'; no '@if' defined</value>
+  </data>
+  <data name="1106" xml:space="preserve">
+    <value>Unmatched '@elif'; no '@if' defined</value>
+  </data>
+  <data name="1107" xml:space="preserve">
+    <value>Expecting more source characters</value>
+  </data>
+  <data name="1111" xml:space="preserve">
+    <value>Identifier already in use;;'{0}' is already defined</value>
+  </data>
+  <data name="1114" xml:space="preserve">
+    <value>Unknown position directive</value>
+  </data>
+  <data name="1115" xml:space="preserve">
+    <value>Directive may not be followed by other code on the same line</value>
+  </data>
+  <data name="1118" xml:space="preserve">
+    <value>Wrong debugger directive or wrong position for the directive</value>
+  </data>
+  <data name="1119" xml:space="preserve">
+    <value>Position directives cannot be nested</value>
+  </data>
+  <data name="1135" xml:space="preserve">
+    <value>Variable has not been declared;;Variable '{0}' has not been declared</value>
+  </data>
+  <data name="1136" xml:space="preserve">
+    <value>Leaving variables uninitialized is dangerous and makes them slow to use. Did you intend to leave this variable uninitialized?;;Leaving variables uninitialized is dangerous and makes them slow to use. Did you intend to leave '{0}' uninitialized?</value>
+  </data>
+  <data name="1137" xml:space="preserve">
+    <value>This is a new reserved word and should not be used as an identifier;;'{0}' is a new reserved word and should not be used as an identifier</value>
+  </data>
+  <data name="1191" xml:space="preserve">
+    <value>Expected ','. Write 'identifier : Type' rather than 'Type identifier' to declare a typed parameter</value>
+  </data>
+  <data name="1193" xml:space="preserve">
+    <value>Expected ',' or ')'</value>
+  </data>
+  <data name="1194" xml:space="preserve">
+    <value>Expected ',' or ']'</value>
+  </data>
+  <data name="1195" xml:space="preserve">
+    <value>Expected expression</value>
+  </data>
+  <data name="1196" xml:space="preserve">
+    <value>Unexpected ';'</value>
+  </data>
+  <data name="1197" xml:space="preserve">
+    <value>Too many errors. The file might not be a JScript .NET file</value>
+  </data>
+  <data name="1203" xml:space="preserve">
+    <value>Expression does not have an address</value>
+  </data>
+  <data name="1206" xml:space="preserve">
+    <value>Did you intend to write an assignment here?</value>
+  </data>
+  <data name="1207" xml:space="preserve">
+    <value>Did you intend to have an empty statement for this branch of the if statement?</value>
+  </data>
+  <data name="1240" xml:space="preserve">
+    <value>A variable argument list must be the last argument</value>
+  </data>
+  <data name="1256" xml:space="preserve">
+    <value>Conditional compilation directives and variables cannot be used in the debugger</value>
+  </data>
+  <data name="1264" xml:space="preserve">
+    <value>The specified type is not CLS compliant</value>
+  </data>
+  <data name="1265" xml:space="preserve">
+    <value>Class member cannot be marked CLS compliant because the class is not marked as CLS compliant</value>
+  </data>
+  <data name="1266" xml:space="preserve">
+    <value>Type cannot be marked CLS compliant because the assembly is not marked as CLS compliant</value>
+  </data>
+  <data name="5008" xml:space="preserve">
+    <value>Illegal assignment</value>
+  </data>
+  <data name="5017" xml:space="preserve">
+    <value>Syntax error in regular expression</value>
+  </data>
+  <data name="5022" xml:space="preserve">
+    <value>Exception thrown and not caught</value>
+  </data>
+  <data name="Resource not found" xml:space="preserve">
+    <value>Win32 resource not found;;Win32 resource '{0}' was not found</value>
+  </data>
+  <data name="InternalCompilerError" xml:space="preserve">
+    <value>***INTERNAL COMPILER ERROR***</value>
+  </data>
+  <data name="Target" xml:space="preserve">
+    <value>Target</value>
+  </data>
+  <data name="Referenced assemblies" xml:space="preserve">
+    <value>Referenced assemblies</value>
+  </data>
+  <data name="1267" xml:space="preserve">
+    <value>Always use full statement blocks</value>
+  </data>
+  <data name="1138" xml:space="preserve">
+    <value>Function has not been defined;;Function '{0}' has not been defined</value>
+  </data>
+  <data name="1268" xml:space="preserve">
+    <value>Variable defined but not referenced;;Variable '{0}' defined but not referenced</value>
+  </data>
+  <data name="1270" xml:space="preserve">
+    <value>Argument defined but not referenced;;Argument '{0}' defined but not referenced</value>
+  </data>
+  <data name="1271" xml:space="preserve">
+    <value>'with' statement not recommended</value>
+  </data>
+  <data name="1272" xml:space="preserve">
+    <value>Function defined but not referenced;;Function '{0}' defined but not referenced</value>
+  </data>
+  <data name="1273" xml:space="preserve">
+    <value>Ambiguous catch identifier;;Ambiguous catch identifier '{0}'. Cross-browser behavior difference. </value>
+  </data>
+  <data name="1274" xml:space="preserve">
+    <value>Function expression expected</value>
+  </data>
+  <data name="1275" xml:space="preserve">
+    <value>Object constructor should take no arguments</value>
+  </data>
+  <data name="1276" xml:space="preserve">
+    <value>JSParser Exception</value>
+  </data>
+  <data name="1277" xml:space="preserve">
+    <value>Numeric literal evaluates to Number.POSITIVE_INFINITY or Number.NEGATIVE_INFINITY</value>
+  </data>
+  <data name="1278" xml:space="preserve">
+    <value>Consider replacing maximum numeric literal with Number.MAX_VALUE</value>
+  </data>
+  <data name="1279" xml:space="preserve">
+    <value>Consider replacing minimum numeric literal with Number.MIN_VALUE</value>
+  </data>
+  <data name="1280" xml:space="preserve">
+    <value>Resource reference must be single constant argument</value>
+  </data>
+  <data name="1281" xml:space="preserve">
+    <value>Ambiguous reference to named function expression;;Ambiguous reference to named function expression '{0}'. Cross-browser behavior difference.</value>
+  </data>
+  <data name="1282" xml:space="preserve">
+    <value>Conditional compilation expression not supported. Comment ignored</value>
+  </data>
+</root>

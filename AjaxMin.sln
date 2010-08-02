@@ -1,0 +1,49 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TFS Build", "TFS Build", "{86A91B41-D071-4ED6-AEDA-82C3C5440F5F}"
+	ProjectSection(SolutionItems) = preProject
+		Microsoft.Sdc.Tasks.dll = Microsoft.Sdc.Tasks.dll
+		MSBuild.ExtensionPack.dll = MSBuild.ExtensionPack.dll
+		TFSBuild.proj = TFSBuild.proj
+		TFSBuild.rsp = TFSBuild.rsp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{6230F461-F1B5-4F5C-8C59-0051A0413F76}"
+	ProjectSection(SolutionItems) = preProject
+		ajaxmin.doc = ajaxmin.doc
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AjaxMin", "AjaxMin.csproj", "{5A0F7031-4728-4E10-BD0C-E07EDDBF5963}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AjaxMinDll", "AjaxMinDll\AjaxMinDll.csproj", "{DFDB930E-1162-4514-A91D-C8595A807F13}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 3
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs02
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = AjaxMin.csproj
+		SccLocalPath1 = .
+		SccProjectUniqueName2 = AjaxMinDll\\AjaxMinDll.csproj
+		SccProjectName2 = AjaxMinDll
+		SccLocalPath2 = AjaxMinDll
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A0F7031-4728-4E10-BD0C-E07EDDBF5963}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A0F7031-4728-4E10-BD0C-E07EDDBF5963}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A0F7031-4728-4E10-BD0C-E07EDDBF5963}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A0F7031-4728-4E10-BD0C-E07EDDBF5963}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFDB930E-1162-4514-A91D-C8595A807F13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFDB930E-1162-4514-A91D-C8595A807F13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFDB930E-1162-4514-A91D-C8595A807F13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFDB930E-1162-4514-A91D-C8595A807F13}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

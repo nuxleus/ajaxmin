@@ -1,0 +1,137 @@
+// while.cs
+//
+// Copyright 2010 Microsoft Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+using System.Collections.Generic;
+using System.Text;
+
+namespace Microsoft.Ajax.Utilities
+{
+    public sealed class WhileNode : AstNode
+    {
+        public AstNode Condition { get; private set; }
+        public Block Body { get; private set; }
+
+        public WhileNode(Context context, JSParser parser, AstNode condition, AstNode body)
+            : base(context, parser)
+        {
+            Condition = condition;
+            Body = ForceToBlock(body);
+            if (Condition != null) Condition.Parent = this;
+            if (Body != null) Body.Parent = this;
+        }
+
+        public override AstNode Clone()
+        {
+            return new WhileNode(
+              (Context == null ? null : Context.Clone()),
+              Parser,
+              (Condition == null ? null : Condition.Clone()),
+              (Body == null ? null : Body.Clone())
+              );
+        }
+
+        internal override void AnalyzeNode()
+        {
+            if (Parser.Settings.StripDebugStatements
+                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
+                 && Body != null 
+                 && Body.IsDebuggerStatement)
+            {
+                Body = null;
+            }
+
+            // recurse
+            base.AnalyzeNode();
+
+            // if the body is now empty, make it null
+            if (Body != null && Body.Count == 0)
+            {
+                Body = null;
+            }
+        }
+
+        public override IEnumerable<AstNode> Children
+        {
+            get
+            {
+                if (Condition != null)
+                {
+                    yield return Condition;
+                }
+                if (Body != null)
+                {
+                    yield return Body;
+                }
+            }
+        }
+
+        public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
+        {
+            if (Condition == oldNode)
+            {
+                Condition = newNode;
+                if (newNode != null) { newNode.Parent = this; }
+                return true;
+            }
+            if (Body == oldNode)
+            {
+                Body = ForceToBlock(newNode);
+                if (Body != null) { Body.Parent = this; }
+                return true;
+            }
+            return false;
+        }
+
+        internal override bool RequiresSeparator
+        {
+            get
+            {
+                // requires a separator if the body does
+                return Body == null ? true : Body.RequiresSeparator;
+            }
+        }
+
+        internal override bool EndsWithEmptyBlock
+        {
+            get
+            {
+                return Body == null ? true : Body.EndsWithEmptyBlock;
+            }
+        }
+
+        internal override bool EncloseBlock(EncloseBlockType type)
+        {
+            // pass the query on to the body
+            return Body == null ? false : Body.EncloseBlock(type);
+        }
+
+        public override string ToCode(ToCodeFormat format)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.Append("while(");
+            sb.Append(Condition.ToCode());
+            sb.Append(')');
+
+            string bodyString = (
+              Body == null
+              ? string.Empty
+              : Body.ToCode()
+              );
+            sb.Append(bodyString);
+            return sb.ToString();
+        }
+    }
+}
