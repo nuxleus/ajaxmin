@@ -212,13 +212,17 @@ namespace Microsoft.Ajax.Utilities
             }
 
             // and finally, if this is a backets call and the argument is a constantwrapper that can
-            // be an identifier, just change us to a member node:  obj["prop"] to obj.prop
+            // be an identifier, just change us to a member node:  obj["prop"] to obj.prop.
+            // but ONLY if the string value is "safe" to be an identifier. Even though the ECMA-262
+            // spec says certain Unicode categories are okay, in practice the various major browsers
+            // all seem to have problems with certain characters in identifiers. Rather than risking
+            // some browsers breaking when we change this syntax, don't do it for those "danger" categories.
             if (m_inBrackets && m_args != null
                 && Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember))
             {
                 string argText = m_args.SingleConstantArgument;
                 if (argText != null
-                    && JSScanner.IsValidIdentifier(argText)
+                    && JSScanner.IsSafeIdentifier(argText)
                     && !JSScanner.IsKeyword(argText))
                 {
                     Member replacementMember = new Member(Context, Parser, m_func, argText);

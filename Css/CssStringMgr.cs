@@ -57,6 +57,7 @@ namespace Microsoft.Ajax.Utilities
         ExpectedSelector,
         ExpectedIdentifierOrString,
         ExpectedClosingBracket,
+        ExpectedClosingParen,
         ExpectedColon,
         ExpectedExpression,
         HashAfterUnaryNotAllowed,
@@ -75,7 +76,11 @@ namespace Microsoft.Ajax.Utilities
         ExpectedEndOfFile,
         DuplicateNamespaceDeclaration,
         UndeclaredNamespace,
-        InvalidUnicodeRange
+        InvalidUnicodeRange,
+        ExpressionError,
+        ExpectedMediaQueryExpression,
+        ExpectedMediaFeature,
+        ExpectedMediaQuery
     };
 
     internal class CssStringMgr

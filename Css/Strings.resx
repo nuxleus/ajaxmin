@@ -276,4 +276,19 @@
   <data name="InvalidUnicodeRange" xml:space="preserve">
     <value>Invalid Unicode Range Token: '{0}'</value>
   </data>
+  <data name="ExpressionError" xml:space="preserve">
+    <value>JavaScript error in expression property: {0}</value>
+  </data>
+  <data name="ExpectedClosingParen" xml:space="preserve">
+    <value>Expected closing parenthesis, found '{0}'</value>
+  </data>
+  <data name="ExpectedMediaFeature" xml:space="preserve">
+    <value>Expected media feature, found '{0}'</value>
+  </data>
+  <data name="ExpectedMediaQuery" xml:space="preserve">
+    <value>Expected media query, found '{0}'</value>
+  </data>
+  <data name="ExpectedMediaQueryExpression" xml:space="preserve">
+    <value>Expected media-query expression, found '{0}'</value>
+  </data>
 </root>

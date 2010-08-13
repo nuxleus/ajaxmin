@@ -32,6 +32,7 @@ namespace Microsoft.Ajax.Utilities
             IndentSpaces = 4;
             Severity = 1;
             TermSemicolons = false;
+            MinifyExpressions = true;
         }
 
         /// <summary>
@@ -78,6 +79,14 @@ namespace Microsoft.Ajax.Utilities
         /// Gets or sets a value indicating whether to ensure all declarations are terminated with semicolons, even if not necessary.
         /// </summary>
         public bool TermSemicolons
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to minify the javascript within expression functions
+        /// </summary>
+        public bool MinifyExpressions
         {
             get; set;
         }

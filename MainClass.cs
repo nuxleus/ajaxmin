@@ -420,6 +420,24 @@ namespace Microsoft.Ajax.Utilities
                             JavaScriptOnly();
                             break;
 
+                        case "EXPR":
+                            // two options: minify (default) or raw
+                            if (paramPart == "MINIFY")
+                            {
+                                m_minifyExpressions = true;
+                            }
+                            else if (paramPart == "RAW")
+                            {
+                                m_minifyExpressions = false;
+                            }
+                            else
+                            {
+                                throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
+                            }
+
+                            CssOnly();
+                            break;
+
                         case "FNAMES":
                             // three options: 
                             // LOCK    -> keep all NFE names, don't allow renaming of function names

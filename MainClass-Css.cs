@@ -34,6 +34,10 @@ namespace Microsoft.Ajax.Utilities
         // (rather than always using #rrggbb or #rgb)
         private CssColor m_colorNames;// = CssColor.Strict;
 
+        // how to treat content of expression functions
+        // default is to try to minify it.
+        private bool m_minifyExpressions = true;
+
         #endregion
 
         #region ProcessCssFile method
@@ -100,6 +104,7 @@ namespace Microsoft.Ajax.Utilities
                 parser.Settings.Severity = m_warningLevel;
                 parser.Settings.TermSemicolons = m_terminateWithSemicolon;
                 parser.Settings.ColorNames = m_colorNames;
+                parser.Settings.MinifyExpressions = m_minifyExpressions;
                 parser.ValueReplacements = resourceStrings;
 
                 // if the kill switch was set to 1 (don't preserve important comments), then

@@ -451,6 +451,70 @@ namespace Microsoft.Ajax.Utilities
                         tokenType = TokenType.NamespaceSymbol;
                         break;
 
+                    case "TOP-LEFT-CORNER":
+                        tokenType = TokenType.TopLeftCornerSymbol;
+                        break;
+
+                    case "TOP-LEFT":
+                        tokenType = TokenType.TopLeftSymbol;
+                        break;
+
+                    case "TOP-CENTER":
+                        tokenType = TokenType.TopCenterSymbol;
+                        break;
+
+                    case "TOP-RIGHT":
+                        tokenType = TokenType.TopRightSymbol;
+                        break;
+
+                    case "TOP-RIGHT-CORNER":
+                        tokenType = TokenType.TopRightCornerSymbol;
+                        break;
+
+                    case "BOTTOM-LEFT-CORNER":
+                        tokenType = TokenType.BottomLeftCornerSymbol;
+                        break;
+
+                    case "BOTTOM-LEFT":
+                        tokenType = TokenType.BottomLeftSymbol;
+                        break;
+
+                    case "BOTTOM-CENTER":
+                        tokenType = TokenType.BottomCenterSymbol;
+                        break;
+
+                    case "BOTTOM-RIGHT":
+                        tokenType = TokenType.BottomRightSymbol;
+                        break;
+
+                    case "BOTTOM-RIGHT-CORNER":
+                        tokenType = TokenType.BottomRightCornerSymbol;
+                        break;
+
+                    case "LEFT-TOP":
+                        tokenType = TokenType.LeftTopSymbol;
+                        break;
+
+                    case "LEFT-MIDDLE":
+                        tokenType = TokenType.LeftMiddleSymbol;
+                        break;
+
+                    case "LEFT-BOTTOM":
+                        tokenType = TokenType.LeftBottomSymbol;
+                        break;
+
+                    case "RIGHT-TOP":
+                        tokenType = TokenType.RightTopSymbol;
+                        break;
+
+                    case "RIGHT-MIDDLE":
+                        tokenType = TokenType.RightMiddleSymbol;
+                        break;
+
+                    case "RIGHT-BOTTOM":
+                        tokenType = TokenType.RightBottomSymbol;
+                        break;
+
                     default:
                         tokenType = TokenType.AtKeyword;
                         break;
@@ -730,6 +794,11 @@ namespace Microsoft.Ajax.Utilities
                             case "MS":
                             case "S":
                                 tokenType = TokenType.Time;
+                                break;
+
+                            case "DPI":
+                            case "DPCM":
+                                tokenType = TokenType.Resolution;
                                 break;
 
                             case "HZ":

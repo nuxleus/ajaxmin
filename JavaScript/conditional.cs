@@ -104,29 +104,32 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        private static bool NeedsParens(AstNode node)
+        private static bool NeedsParens(AstNode node, JSToken refToken)
         {
             bool needsParens = false;
+
             // assignments and commas are the only operators that need parens
             // around them. Conditional is pretty low down the list
             BinaryOperator binaryOp = node as BinaryOperator;
             if (binaryOp != null)
             {
-                OpPrec thisPrecedence = JSScanner.GetOperatorPrecedence(JSToken.ConditionalIf);
+                OpPrec thisPrecedence = JSScanner.GetOperatorPrecedence(refToken);
                 OpPrec nodePrecedence = JSScanner.GetOperatorPrecedence(binaryOp.OperatorToken);
                 needsParens = (nodePrecedence < thisPrecedence);
             }
+
             return needsParens;
         }
 
         public override string ToCode(ToCodeFormat format)
         {
             StringBuilder sb = new StringBuilder();
-            bool parens = NeedsParens(m_condition);
+            bool parens = NeedsParens(m_condition, JSToken.ConditionalIf);
             if (parens)
             {
                 sb.Append('(');
             }
+
             sb.Append(m_condition.ToCode());
             if (parens)
             {
@@ -142,11 +145,15 @@ namespace Microsoft.Ajax.Utilities
             {
                 sb.Append('?');
             }
-            parens = NeedsParens(m_trueExpression);
+
+            // the true and false operands are parsed as assignment operators, so use that token as the
+            // reference token to compare against for operator precedence to determine if we need parens
+            parens = NeedsParens(m_trueExpression, JSToken.Assign);
             if (parens)
             {
                 sb.Append('(');
             }
+
             sb.Append(m_trueExpression.ToCode());
             if (parens)
             {
@@ -161,11 +168,13 @@ namespace Microsoft.Ajax.Utilities
             {
                 sb.Append(':');
             }
-            parens = NeedsParens(m_falseExpression);
+
+            parens = NeedsParens(m_falseExpression, JSToken.Assign);
             if (parens)
             {
                 sb.Append('(');
             }
+
             sb.Append(m_falseExpression.ToCode());
             if (parens)
             {

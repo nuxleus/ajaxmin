@@ -39,6 +39,7 @@ namespace Microsoft.Ajax.Utilities
         private bool m_noOutput;
         private string m_lastOutputString;
         private bool m_mightNeedSpace;
+        private bool m_expressionContainsErrors;
 
         private int m_indentLevel;// = 0;
 
@@ -47,7 +48,7 @@ namespace Microsoft.Ajax.Utilities
             get; set;
         }
 
-        private List<string> m_namespaces;
+        private readonly List<string> m_namespaces;
 
         public string FileContext { get; set; }
 
@@ -595,46 +596,20 @@ namespace Microsoft.Ajax.Utilities
                 }
                 else
                 {
-                    Append(' ');
+                    // only need a space if this is a Uri -- a string starts with a quote delimiter
+                    // and won't get parsed as teh end of the @import token
+                    if (CurrentTokenType == TokenType.Uri || Settings.ExpandOutput)
+                    {
+                        Append(' ');
+                    }
+
+                    // append the file (string or uri)
                     AppendCurrent();
                     SkipSpace();
 
-                    // comma-separated list of media types
-                    if (CurrentTokenType == TokenType.Identifier)
-                    {
-                        Append(' ');
-                        AppendCurrent();
-                        SkipSpace();
-
-                        while (!m_scanner.EndOfFile
-                            && (CurrentTokenType != TokenType.Character || CurrentTokenText != ";"))
-                        {
-                            // after a media identifier, only a comma or a semicolon are allowed
-                            if (CurrentTokenType != TokenType.Character
-                              || (CurrentTokenText != "," && CurrentTokenText != ";"))
-                            {
-                                ReportError(0, StringEnum.ExpectedCommaOrSemicolon, CurrentTokenText);
-                                SkipToEndOfStatement();
-                                break;
-                            }
-
-                            if (CurrentTokenText == ",")
-                            {
-                                Append(',');
-                                SkipSpace();
-
-                                // after a comma, only an identifier is allowed
-                                if (CurrentTokenType != TokenType.Identifier)
-                                {
-                                    ReportError(0, StringEnum.ExpectedMediaIdentifier, CurrentTokenText);
-                                    SkipToEndOfStatement();
-                                    break;
-                                }
-                                AppendCurrent();
-                                SkipSpace();
-                            }
-                        }
-                    }
+                    // optional comma-separated list of media queries
+                    // won't need a space because the ending is either a quote or a paren
+                    ParseMediaQueryList(false);
 
                     if (CurrentTokenType == TokenType.Character && CurrentTokenText == ";")
                     {
@@ -663,36 +638,9 @@ namespace Microsoft.Ajax.Utilities
                 AppendCurrent();
                 SkipSpace();
 
-                if (CurrentTokenType != TokenType.Identifier)
+                // might need a space because the last token was @media
+                if (ParseMediaQueryList(true) == Parsed.True)
                 {
-                    ReportError(0, StringEnum.ExpectedMediaIdentifier, CurrentTokenText);
-                    SkipToEndOfStatement();
-                    AppendCurrent();
-                    SkipSpace();
-                }
-                else
-                {
-                    Append(' ');
-                    AppendCurrent();
-                    SkipSpace();
-
-                    // comma-separated list of media types
-                    while (CurrentTokenType == TokenType.Character && CurrentTokenText == ",")
-                    {
-                        AppendCurrent();
-                        SkipSpace();
-
-                        if (CurrentTokenType == TokenType.Identifier)
-                        {
-                            AppendCurrent();
-                            SkipSpace();
-                        }
-                        else
-                        {
-                            SkipToEndOfStatement();
-                        }
-                    }
-
                     if (CurrentTokenType == TokenType.Character && CurrentTokenText == "{")
                     {
                         AppendCurrent();
@@ -738,14 +686,230 @@ namespace Microsoft.Ajax.Utilities
                         SkipToEndOfStatement();
                         AppendCurrent();
                     }
+
                     SkipSpace();
                     parsed = Parsed.True;
                 }
+                else
+                {
+                    SkipToEndOfStatement();
+                }
             }
+
             return parsed;
         }
 
-        private Parsed ParseDeclarationBlock()
+        private Parsed ParseMediaQueryList(bool mightNeedSpace)
+        {
+            // see if we have a media query
+            Parsed parsed = ParseMediaQuery(mightNeedSpace);
+
+            // it's a comma-separated list, so as long as we find a comma, keep parsing queries
+            while(CurrentTokenType == TokenType.Character && CurrentTokenText == ",")
+            {
+                // output the comma and skip any space
+                AppendCurrent();
+                SkipSpace();
+
+                if (ParseMediaQuery(false) != Parsed.True)
+                {
+                    // fail
+                    ReportError(0, StringEnum.ExpectedMediaQuery, CurrentTokenText);
+                }
+            }
+
+            return parsed;
+        }
+
+        private Parsed ParseMediaQuery(bool firstQuery)
+        {
+            var parsed = Parsed.False;
+            var mightNeedSpace = firstQuery;
+
+            // we have an optional word ONLY or NOT -- they will show up as identifiers here
+            if (CurrentTokenType == TokenType.Identifier &&
+                (string.Compare(CurrentTokenText, "ONLY", StringComparison.InvariantCultureIgnoreCase) == 0
+                || string.Compare(CurrentTokenText, "NOT", StringComparison.InvariantCultureIgnoreCase) == 0))
+            {
+                // if this is the first query, the last thing we output was @media, which will need a separator.
+                // if it's not the first, the last thing was a comma, so no space is needed.
+                // but if we're expanding the output, we always want a space
+                if (firstQuery || Settings.ExpandOutput)
+                {
+                    Append(' ');
+                }
+
+                // output the only/not string and skip any subsequent space
+                AppendCurrent();
+                SkipSpace();
+                
+                // we might need a space since the last thing was the only/not
+                mightNeedSpace = true;
+            }
+
+            // we should be at a either a media type or an expression
+            if (CurrentTokenType == TokenType.Identifier)
+            {
+                // media type
+                // if we might need a space, output it now
+                if (mightNeedSpace || Settings.ExpandOutput)
+                {
+                    Append(' ');
+                }
+
+                // output the media type
+                AppendCurrent();
+                SkipSpace();
+
+                // the media type is an identifier, so we might need a space
+                mightNeedSpace = true;
+
+                // the next item should be either AND or the start of the block
+                parsed = Parsed.True;
+            }
+            else if (CurrentTokenType == TokenType.Character && CurrentTokenText == "(")
+            {
+                // no media type -- straight to an expression
+                ParseMediaQueryExpression();
+
+                // the expression ends in a close paren, so we don't need the space
+                mightNeedSpace = false;
+
+                // the next item should be either AND or the start of the block
+                parsed = Parsed.True;
+            }
+            else
+            {
+                // expected a media type
+                ReportError(0, StringEnum.ExpectedMediaIdentifier, CurrentTokenText);
+            }
+
+            // either we have no more and-delimited expressions,
+            // OR we have an *identifier* AND (and followed by space)
+            // OR we have a *function* AND (and followed by the opening paren, scanned as a function)
+            while ((CurrentTokenType == TokenType.Identifier
+                && string.Compare(CurrentTokenText, "AND", StringComparison.InvariantCultureIgnoreCase) == 0)
+                || (CurrentTokenType == TokenType.Function
+                && string.Compare(CurrentTokenText, "AND(", StringComparison.InvariantCultureIgnoreCase) == 0))
+            {
+                // if we might need a space, output it now
+                if (mightNeedSpace || Settings.ExpandOutput)
+                {
+                    Append(' ');
+
+                    // the media expression ends in a close-paren, so we never need another space
+                    mightNeedSpace = false;
+                }
+
+                // output the AND text.
+                // MIGHT be AND( if it was a function, so first set a flag so we will know
+                // wether or not to expect the opening paren
+                var includedParen = CurrentTokenType == TokenType.Function;
+                AppendCurrent();
+                SkipSpace();
+
+                // AND should always be followed by one or more expressions, and it was explicitly
+                // if the token included the paren
+                if (includedParen)
+                {
+                    // included the paren
+                    ParseMediaQueryExpression();
+                }
+                else
+                {
+                    // didn't include the paren -- it BETTER be the next token
+                    if (CurrentTokenType == TokenType.Character
+                        && CurrentTokenText == "(")
+                    {
+                        // if we are expanding the output, put a space between the AND and the (
+                        if (Settings.ExpandOutput)
+                        {
+                            Append(' ');
+                        }
+
+                        ParseMediaQueryExpression();
+                    }
+                    else
+                    {
+                        // error -- we expected another media query expression
+                        ReportError(0, StringEnum.ExpectedMediaQueryExpression, CurrentTokenText);
+
+                        // break out of the loop so we can exit
+                        break;
+                    }
+                }
+            }
+
+            return parsed;
+        }
+
+        private void ParseMediaQueryExpression()
+        {
+            // expect current token to be the opening paren when calling
+            if (CurrentTokenType == TokenType.Character && CurrentTokenText == "(")
+            {
+                // output the paren and skip any space
+                AppendCurrent();
+                SkipSpace();
+            }
+
+            // media feature is required, and it's an ident
+            if (CurrentTokenType == TokenType.Identifier)
+            {
+                // output the media feature and skip any space
+                AppendCurrent();
+                SkipSpace();
+
+                // the next token should either be a colon (followed by an expression) or the closing paren
+                if (CurrentTokenType == TokenType.Character && CurrentTokenText == ":")
+                {
+                    // got an expression.
+                    // output the colon and skip any whitespace
+                    AppendCurrent();
+                    SkipSpace();
+
+                    // if we are expanding the output, we want a space after the colon
+                    if (Settings.ExpandOutput)
+                    {
+                        Append(' ');
+                    }
+
+                    // parse the expression -- it's not optional
+                    if (ParseExpr() != Parsed.True)
+                    {
+                        ReportError(0, StringEnum.ExpectedExpression, CurrentTokenText);
+                    }
+
+                    // better be the closing paren
+                    if (CurrentTokenType == TokenType.Character && CurrentTokenText == ")")
+                    {
+                        // output the closing paren and skip any whitespace
+                        AppendCurrent();
+                        SkipSpace();
+                    }
+                    else
+                    {
+                        ReportError(0, StringEnum.ExpectedClosingParen, CurrentTokenText);
+                    }
+                }
+                else if (CurrentTokenType == TokenType.Character && CurrentTokenText == ")")
+                {
+                    // end of the expressions -- output the closing paren and skip any whitespace
+                    AppendCurrent();
+                    SkipSpace();
+                }
+                else
+                {
+                    ReportError(0, StringEnum.ExpectedClosingParen, CurrentTokenText);
+                }
+            }
+            else
+            {
+                ReportError(0, StringEnum.ExpectedMediaFeature, CurrentTokenText);
+            }
+        }
+
+        private Parsed ParseDeclarationBlock(bool allowMargins)
         {
             Parsed parsed = Parsed.False;
             // expect current token to be the opening brace when calling
@@ -770,14 +934,27 @@ namespace Microsoft.Ajax.Utilities
                     {
                         Parsed parsedDecl = ParseDeclaration();
 
-                        if (CurrentTokenType != TokenType.Character
-                          || (CurrentTokenText != ";" && CurrentTokenText != "}"))
+                        // if we are allowed to have margin at-keywords in this block, and
+                        // we didn't find a declaration, check to see if it's a margin
+                        var parsedMargin = false;
+                        if (allowMargins && parsedDecl == Parsed.Empty)
                         {
-                            ReportError(0, StringEnum.ExpectedSemicolonOrOpenBrace, CurrentTokenText);
+                            parsedMargin = ParseMargin() == Parsed.True;
+                        }
+                        
+                        // if we parsed a margin, we DON'T expect there to be a semi-colon.
+                        // if we didn't parse a margin, then there better be either a semicolon or a closing brace.
+                        if (!parsedMargin)
+                        {
+                            if (CurrentTokenType != TokenType.Character
+                              || (CurrentTokenText != ";" && CurrentTokenText != "}"))
+                            {
+                                ReportError(0, StringEnum.ExpectedSemicolonOrOpenBrace, CurrentTokenText);
 
-                            // we'll get here if we decide to ignore the error and keep trudging along. But we still
-                            // need to skip to the end of the declaration.
-                            SkipToEndOfDeclaration();
+                                // we'll get here if we decide to ignore the error and keep trudging along. But we still
+                                // need to skip to the end of the declaration.
+                                SkipToEndOfDeclaration();
+                            }
                         }
 
                         // if we're at the end, close it out
@@ -927,7 +1104,9 @@ namespace Microsoft.Ajax.Utilities
 
                 if (CurrentTokenType == TokenType.Character && CurrentTokenText == "{")
                 {
-                    parsed = ParseDeclarationBlock();
+                    // allow margin at-keywords
+                    parsed = ParseDeclarationBlock(true);
+
                     // if we parsed a declaration block, then the block
                     // ends with its own newline. But if we haven't, we
                     // need to add our own.
@@ -966,6 +1145,42 @@ namespace Microsoft.Ajax.Utilities
             return parsed;
         }
 
+        private Parsed ParseMargin()
+        {
+            Parsed parsed = Parsed.Empty;
+            switch (CurrentTokenType)
+            {
+                case TokenType.TopLeftCornerSymbol:
+                case TokenType.TopLeftSymbol:
+                case TokenType.TopCenterSymbol:
+                case TokenType.TopRightSymbol:
+                case TokenType.TopRightCornerSymbol:
+                case TokenType.BottomLeftCornerSymbol:
+                case TokenType.BottomLeftSymbol:
+                case TokenType.BottomCenterSymbol:
+                case TokenType.BottomRightSymbol:
+                case TokenType.BottomRightCornerSymbol:
+                case TokenType.LeftTopSymbol:
+                case TokenType.LeftMiddleSymbol:
+                case TokenType.LeftBottomSymbol:
+                case TokenType.RightTopSymbol:
+                case TokenType.RightMiddleSymbol:
+                case TokenType.RightBottomSymbol:
+                    // these are the margin at-keywords
+                    AppendCurrent();
+                    SkipSpace();
+
+                    // don't allow margin at-keywords
+                    parsed = ParseDeclarationBlock(false);
+                    break;
+
+                default:
+                    // we're not interested
+                    break;
+            }
+            return parsed;
+        }
+
         private Parsed ParseFontFace()
         {
             Parsed parsed = Parsed.False;
@@ -975,7 +1190,9 @@ namespace Microsoft.Ajax.Utilities
                 AppendCurrent();
                 SkipSpace();
 
-                parsed = ParseDeclarationBlock();
+                // don't allow margin at-keywords
+                parsed = ParseDeclarationBlock(false);
+
                 // if we parsed a declaration block, then the block
                 // ends with its own newline. But if we haven't, we
                 // need to add our own.
@@ -1044,7 +1261,9 @@ namespace Microsoft.Ajax.Utilities
                             {
                                 Append(' ');
                             }
-                            parsed = ParseDeclarationBlock();
+
+                            // don't allow margin at-keywords
+                            parsed = ParseDeclarationBlock(false);
                             break;
                         }
 
@@ -1684,6 +1903,7 @@ namespace Microsoft.Ajax.Utilities
                 case TokenType.Angle:
                 case TokenType.Time:
                 case TokenType.Frequency:
+                case TokenType.Resolution:
                     if (wasEmpty)
                     {
                         Append(' ');
@@ -1937,13 +2157,20 @@ namespace Microsoft.Ajax.Utilities
                 }
                 else if (CurrentTokenText == "expression(")
                 {
+                    AppendCurrent();
+                    NextToken();
+
                     // for now, just echo out everything up to the matching closing paren, 
                     // taking into account that there will probably be other nested paren pairs. 
                     // The content of the expression is JavaScript, so we'd really
                     // need a full-blown JS-parser to crunch it properly. Kinda scary.
-                    // Start the parenLevel at -1 so the first iteration (which has the current
-                    // token as the Function "expression(", will initialize the paren level to 0.
-                    int parenLevel = -1;
+                    // Start the parenLevel at 0 because the "expression(" token contains the first paren.
+                    var jsBuilder = new StringBuilder();
+                    int parenLevel = 0;
+
+                    // save the position of the start of the expression
+                    Position startOfExpression = m_currentToken.Context.Start;
+
                     while (!m_scanner.EndOfFile
                       && (CurrentTokenType != TokenType.Character
                         || CurrentTokenText != ")"
@@ -1975,8 +2202,47 @@ namespace Microsoft.Ajax.Utilities
                                     break;
                             }
                         }
-                        AppendCurrent();
+                        jsBuilder.Append(CurrentTokenText);
                         NextToken();
+                    }
+
+                    // create a JSParser object with the source we found, crunch it, and send 
+                    // the minified script to the output
+                    var expressionCode = jsBuilder.ToString();
+                    if (Settings.MinifyExpressions)
+                    {
+                        // we want to minify the javascript expressions.
+                        // create a JSParser object from the code we parsed.
+                        JSParser jsParser = new JSParser(expressionCode, null);
+
+                        // copy the file context
+                        jsParser.FileContext = this.FileContext;
+
+                        // hook the error handler and set the "contains errors" flag to false.
+                        // the handler will set the value to true if it encounters any errors
+                        jsParser.CompilerError += OnScriptError;
+                        m_expressionContainsErrors = false;
+
+                        // parse the source with default settings
+                        Block block = jsParser.Parse(null);
+
+                        // if we got back a parsed block and there were no errors, output the minified code.
+                        // if we didn't get back the block, or if there were any errors at all, just output
+                        // the raw expression source.
+                        if (block != null && !m_expressionContainsErrors)
+                        {
+                            Append(block.ToCode());
+                        }
+                        else
+                        {
+                            Append(expressionCode);
+                        }
+                    }
+                    else
+                    {
+                        // we don't want to minify expression code for some reason.
+                        // just output the code exactly as we parsed it
+                        Append(expressionCode);
                     }
                 }
                 else
@@ -2007,6 +2273,12 @@ namespace Microsoft.Ajax.Utilities
                 parsed = Parsed.True;
             }
             return parsed;
+        }
+
+        private void OnScriptError(object sender, JScriptExceptionEventArgs ea)
+        {
+            ReportError(0, StringEnum.ExpressionError, ea.Exception.Message);
+            m_expressionContainsErrors = true;
         }
 
         private Parsed ParseHexcolor()

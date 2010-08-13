@@ -1764,6 +1764,33 @@ namespace Microsoft.Ajax.Utilities
             return isValid;
         }
 
+        // assumes all unicode characters in the string -- NO escape sequences
+        public static bool IsSafeIdentifier(string name)
+        {
+            bool isValid = false;
+            if (!string.IsNullOrEmpty(name))
+            {
+                if (IsSafeIdentifierStart(name[0]))
+                {
+                    // loop through all the rest
+                    for (int ndx = 1; ndx < name.Length; ++ndx)
+                    {
+                        char ch = name[ndx];
+                        if (!IsSafeIdentifierPart(ch))
+                        {
+                            // fail!
+                            return false;
+                        }
+                    }
+
+                    // if we get here, everything is okay
+                    isValid = true;
+                }
+            }
+
+            return isValid;
+        }
+
         // unescaped unicode characters
         public static bool IsValidIdentifierStart(char letter)
         {
@@ -1773,44 +1800,53 @@ namespace Microsoft.Ajax.Utilities
                 return true;
             }
 
-            if (letter < 128)
+            if (letter >= 128)
             {
-                // not good
-                return false;
+                // check the unicode category
+                UnicodeCategory cat = char.GetUnicodeCategory(letter);
+                switch (cat)
+                {
+                    case UnicodeCategory.UppercaseLetter:
+                    case UnicodeCategory.LowercaseLetter:
+                    case UnicodeCategory.TitlecaseLetter:
+                    case UnicodeCategory.ModifierLetter:
+                    case UnicodeCategory.OtherLetter:
+                    case UnicodeCategory.LetterNumber:
+                        // okay
+                        return true;
+                }
             }
 
-            // check the unicode category
-            UnicodeCategory cat = char.GetUnicodeCategory(letter);
-            switch (cat)
-            {
-                case UnicodeCategory.UppercaseLetter:
-                case UnicodeCategory.LowercaseLetter:
-                case UnicodeCategory.TitlecaseLetter:
-                case UnicodeCategory.ModifierLetter:
-                case UnicodeCategory.OtherLetter:
-                case UnicodeCategory.LetterNumber:
-                    // okay
-                    return true;
+            return false;
+        }
 
-                default:
-                    // nothing else is good
-                    return false;
+        // unescaped unicode characters.
+        // the same as the "IsValid" method, except various browsers have problems with some
+        // of the Unicode characters in the ModifierLetter, OtherLetter, and LetterNumber categories.
+        public static bool IsSafeIdentifierStart(char letter)
+        {
+            if (('a' <= letter && letter <= 'z') || ('A' <= letter && letter <= 'Z') || letter == '_' || letter == '$')
+            {
+                // good
+                return true;
             }
+
+            return false;
         }
 
         // unescaped unicode characters
         public static bool IsValidIdentifierPart(char letter)
         {
             // look for valid ranges
-            if (('a' <= letter && letter <= 'z') 
+            if (('a' <= letter && letter <= 'z')
                 || ('A' <= letter && letter <= 'Z')
                 || ('0' <= letter && letter <= '9')
-                || letter == '_' 
+                || letter == '_'
                 || letter == '$')
             {
                 return true;
             }
-            
+
             if (letter >= 128)
             {
                 UnicodeCategory unicodeCategory = Char.GetUnicodeCategory(letter);
@@ -1828,6 +1864,25 @@ namespace Microsoft.Ajax.Utilities
                     case UnicodeCategory.ConnectorPunctuation:
                         return true;
                 }
+            }
+
+            return false;
+        }
+
+        // unescaped unicode characters.
+        // the same as the "IsValid" method, except various browsers have problems with some
+        // of the Unicode characters in the ModifierLetter, OtherLetter, LetterNumber,
+        // NonSpacingMark, SpacingCombiningMark, DecimalDigitNumber, and ConnectorPunctuation categories.
+        public static bool IsSafeIdentifierPart(char letter)
+        {
+            // look for valid ranges
+            if (('a' <= letter && letter <= 'z')
+                || ('A' <= letter && letter <= 'Z')
+                || ('0' <= letter && letter <= '9')
+                || letter == '_'
+                || letter == '$')
+            {
+                return true;
             }
 
             return false;

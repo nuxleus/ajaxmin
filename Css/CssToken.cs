@@ -155,6 +155,7 @@ namespace Microsoft.Ajax.Utilities
         NamespaceSymbol,
         RelativeLength,
         AbsoluteLength,
+        Resolution,
         Angle,
         Time,
         Frequency,
@@ -168,6 +169,25 @@ namespace Microsoft.Ajax.Utilities
         ProgId,
         Character,
         Comment,
+
+        // CSS3 paged media at-symbols
+        TopLeftCornerSymbol,
+        TopLeftSymbol,
+        TopCenterSymbol,
+        TopRightSymbol,
+        TopRightCornerSymbol,
+        BottomLeftCornerSymbol,
+        BottomLeftSymbol,
+        BottomCenterSymbol,
+        BottomRightSymbol,
+        BottomRightCornerSymbol,
+        LeftTopSymbol,
+        LeftMiddleSymbol,
+        LeftBottomSymbol,
+        RightTopSymbol,
+        RightMiddleSymbol,
+        RightBottomSymbol,
+
         Error = -1
     }
 }
