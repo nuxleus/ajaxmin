@@ -1,0 +1,1 @@
+function Func(){var _a=1,$b=1,C=1,d=1,\u4f60\u597d=2;\u4f60\u597d+=18}

@@ -1,0 +1,1 @@
+function Func(){var a,l;a=[0,1,2,3,4];l=a.reverse();return l}

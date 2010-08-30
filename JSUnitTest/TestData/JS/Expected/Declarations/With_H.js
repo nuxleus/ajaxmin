@@ -1,0 +1,1 @@
+var someGlobal=12,unreferencedGlobal=42;function Func(a){var x,y,b=16;with(Math){x=cos(3*PI)+sin(LN10);y=tan(14*E);function d(){return y}}function c(){with(a){var toodles=goodbye;foo=x;bar=someGlobal*2;with(toodles)var tart=treacle}}}

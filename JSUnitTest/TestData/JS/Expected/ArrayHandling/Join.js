@@ -1,0 +1,1 @@
+function Func(){var a,b;a=[0,1,2,3,4];b=a.join("-");return b}

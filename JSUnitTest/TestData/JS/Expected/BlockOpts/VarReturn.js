@@ -1,0 +1,1 @@
+﻿function foo(){return window.location}function bar(x,y){return(3+x)*y}function arf(){var foo="bar";return}function gag(a,b){var foo=a*b;return foo+a}

@@ -1,0 +1,28 @@
+function Func(p1)
+{
+    var obj = new Object(1);    // argument causes not to crunch to object literal
+    var foo = new Object();     // no argument; crunch to {}
+    
+    var ack = {
+      "bar" : "bar",            // string name; not identifier - will remove quotes
+      "while" : "bar",          // string name; identifier, so quotes will always remain
+      ack : "bar",              // identifier literal name, so won't be quoted
+      42 : 16,                  // integer name
+      get foo() {return 1},     // mozilla getter
+      set foo(x) {this.ack=x;}  // mozilla setter
+    };
+    
+    // force another reference to obj so hypercrunch will crunch obj to "b"
+    // (most-often referenced variables get the lower names, and the generated
+    //  variable pointing to "bar" will be referenced the most, so it will be "a"
+    //  and the obj value will be the next-referenced and get "b")
+    obj.foo = "bar";
+
+    // this is NOT mozilla getter/setter. It should still parse properly.
+    // but because get and set are reserved words, they should always be quoted
+    var b = 
+    {
+      get : 42,
+      set:  "x"
+    };
+}

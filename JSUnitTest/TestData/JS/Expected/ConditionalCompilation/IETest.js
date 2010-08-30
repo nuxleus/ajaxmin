@@ -1,0 +1,1 @@
+﻿/*@cc_on@*/var o={IsIE:function(){var a=false;/*@ a=true@*/;return a}}

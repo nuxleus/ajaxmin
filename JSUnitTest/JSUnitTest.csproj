@@ -1,0 +1,390 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5A58F1C4-28B9-4ABC-B020-0C059DE691F8}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>JSUnitTest</RootNamespace>
+    <AssemblyName>JSUnitTest</AssemblyName>
+    <WarningLevel>4</WarningLevel>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <SignAssembly>false</SignAssembly>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>.\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>.\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ArrayHandling.cs" />
+    <Compile Include="Assignments.cs" />
+    <Compile Include="AstMods.cs" />
+    <Compile Include="BlockOpts.cs" />
+    <Compile Include="Booleans.cs" />
+    <Compile Include="CatchVariable.cs" />
+    <Compile Include="CommandLine.cs" />
+    <Compile Include="Comments.cs" />
+    <Compile Include="Common\TestHelper.cs" />
+    <Compile Include="ConditionalCompilation.cs" />
+    <Compile Include="ControlFlow.cs" />
+    <Compile Include="Declarations.cs" />
+    <Compile Include="FunctionCreation.cs" />
+    <Compile Include="GlobalMethods.cs" />
+    <Compile Include="Literals.cs" />
+    <Compile Include="ObjectCreation.cs" />
+    <Compile Include="Operators.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResourceMerge.cs" />
+    <Compile Include="ScannerErrors.cs" />
+    <Compile Include="Switch.cs" />
+    <Compile Include="Syntax.cs" />
+    <Compile Include="UnknownScope.cs" />
+    <Compile Include="VSCodeGenAccessors.cs" />
+    <Compile Include="XmlInput.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="TestData\JS\Expected\ArrayHandling\Array.js" />
+    <Content Include="TestData\JS\Expected\ArrayHandling\Array_L.js" />
+    <Content Include="TestData\JS\Expected\ArrayHandling\Join.js" />
+    <Content Include="TestData\JS\Expected\ArrayHandling\Length.js" />
+    <Content Include="TestData\JS\Expected\ArrayHandling\Reverse.js" />
+    <Content Include="TestData\JS\Expected\ArrayHandling\Sort.js" />
+    <Content Include="TestData\JS\Expected\Assignments\Assign.js" />
+    <Content Include="TestData\JS\Expected\Assignments\Assign_utf8.js" />
+    <Content Include="TestData\JS\Expected\Assignments\CompoundAssign.js" />
+    <Content Include="TestData\JS\Expected\Assignments\MultiVars.js" />
+    <Content Include="TestData\JS\Expected\AstMods\CallToMember.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\ReturnIfs.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\VarReturn.js" />
+    <Content Include="TestData\JS\Expected\Booleans\Boolean.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\Ambiguous.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\Ambiguous_h.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\NoOuter.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\NoOuter_h.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\OuterIsGlobal.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\OuterNotRef.js" />
+    <Content Include="TestData\JS\Expected\CatchVariable\OuterNotRef_h.js" />
+    <Content Include="TestData\JS\Expected\CommandLine\Globals.js" />
+    <Content Include="TestData\JS\Expected\CommandLine\TermSemi1.js" />
+    <Content Include="TestData\JS\Expected\CommandLine\TermSemi2.js" />
+    <Content Include="TestData\JS\Expected\Comments\Comment.js" />
+    <Content Include="TestData\JS\Expected\Comments\ImportantComment.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\DoubleStart.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\IETest.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\IfElse.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\MultipleOn.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\MultipleOn_kill.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\NoEnd.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\PPConstant.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\PPOps.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\Set.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\SpecialCase.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\SpecialCase2.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\StartWithIf.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\StartWithSet.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Break.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\CatchScope.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\CatchScope_Local.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Continue.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Debugger.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Debugger_D.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\DoWhile.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\DoWhile_3.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\EncloseBlock.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\ForIn.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\ForVar.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\ForWhile.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\If.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Labels.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Labels_H.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Return.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Switch.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Switch_h.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Throw.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Throw_M.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\TryCatch.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\TryCatch_m.js" />
+    <Content Include="TestData\JS\Expected\Declarations\Function.js" />
+    <Content Include="TestData\JS\Expected\Declarations\Identifiers.js" />
+    <Content Include="TestData\JS\Expected\Declarations\LocalizationVars.js" />
+    <Content Include="TestData\JS\Expected\Declarations\LocalizationVars_H.js" />
+    <Content Include="TestData\JS\Expected\Declarations\LocalizationVars_HL.js" />
+    <Content Include="TestData\JS\Expected\Declarations\New.js" />
+    <Content Include="TestData\JS\Expected\Declarations\This.js" />
+    <Content Include="TestData\JS\Expected\Declarations\Var.js" />
+    <Content Include="TestData\JS\Expected\Declarations\With.js" />
+    <Content Include="TestData\JS\Expected\Declarations\With_H.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\Arguments.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\BadSemicolon.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\FuncExpr.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_h.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_hlock.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_hnfe.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_nfe.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NewFunction.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\VarArgList.js" />
+    <Content Include="TestData\JS\Expected\GlobalMethods\Eval.js" />
+    <Content Include="TestData\JS\Expected\GlobalMethods\GlobalObject.js" />
+    <Content Include="TestData\JS\Expected\Literals\ArrayLiteral.js" />
+    <Content Include="TestData\JS\Expected\Literals\Boolean.js" />
+    <Content Include="TestData\JS\Expected\Literals\Combined_h.js" />
+    <Content Include="TestData\JS\Expected\Literals\Combined_hc.js" />
+    <Content Include="TestData\JS\Expected\Literals\InlineSafe.js" />
+    <Content Include="TestData\JS\Expected\Literals\InlineSafe_no.js" />
+    <Content Include="TestData\JS\Expected\Literals\NestedCombine.js" />
+    <Content Include="TestData\JS\Expected\Literals\Number.js" />
+    <Content Include="TestData\JS\Expected\Literals\ObjectLiteral.js" />
+    <Content Include="TestData\JS\Expected\Literals\Strings.js" />
+    <Content Include="TestData\JS\Expected\Literals\Strings_3.js" />
+    <Content Include="TestData\JS\Expected\Literals\Strings_h.js" />
+    <Content Include="TestData\JS\Expected\Literals\strings_k.js" />
+    <Content Include="TestData\JS\Expected\Literals\Strings_utf.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\CompareObjects.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Constructor.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Constructor_H.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Constructor_hc.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\InstanceOf.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Object_hc.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Object_L.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Object_H.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\RegularExpressions.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Object.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Prototype.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Strings.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\Strings_Utf8.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\ToStr.js" />
+    <Content Include="TestData\JS\Expected\ObjectCreation\TypeOf.js" />
+    <Content Include="TestData\JS\Expected\Operators\Assign.js" />
+    <Content Include="TestData\JS\Expected\Operators\Associative.js" />
+    <Content Include="TestData\JS\Expected\Operators\Comma.js" />
+    <Content Include="TestData\JS\Expected\Operators\Conditional.js" />
+    <Content Include="TestData\JS\Expected\Operators\In.js" />
+    <Content Include="TestData\JS\Expected\Operators\InstanceOf.js" />
+    <Content Include="TestData\JS\Expected\Operators\Member.js" />
+    <Content Include="TestData\JS\Expected\Operators\New.js" />
+    <Content Include="TestData\JS\Expected\Operators\NewPrecedence.js" />
+    <Content Include="TestData\JS\Expected\Operators\Unary.js" />
+    <Content Include="TestData\JS\Expected\Operators\Void.js" />
+    <Content Include="TestData\JS\Expected\ResourceMerge\ResourceJS.js" />
+    <Content Include="TestData\JS\Expected\ResourceMerge\ResourceResx.js" />
+    <Content Include="TestData\JS\Expected\ResourceMerge\ResourceResx_I.js" />
+    <Content Include="TestData\JS\Expected\ResourceMerge\Resources.js" />
+    <Content Include="TestData\JS\Expected\ScannerErrors\BadHexDigit.js" />
+    <Content Include="TestData\JS\Expected\ScannerErrors\StringEOF.js" />
+    <Content Include="TestData\JS\Expected\ScannerErrors\StringEOL.js" />
+    <Content Include="TestData\JS\Expected\Switch\EmptyDefault.js" />
+    <Content Include="TestData\JS\Expected\Switch\EmptyDefault_h.js" />
+    <Content Include="TestData\JS\Expected\Switch\MacQuirks.js" />
+    <Content Include="TestData\JS\Expected\Switch\MacQuirks_M.js" />
+    <Content Include="TestData\JS\Expected\Switch\NoDefaultEmptyCases.js" />
+    <Content Include="TestData\JS\Expected\Switch\NoDefaultEmptyCases_h.js" />
+    <Content Include="TestData\JS\Expected\Switch\PrettyPrint.js" />
+    <Content Include="TestData\JS\Expected\Switch\PrettyPrint_P.js" />
+    <Content Include="TestData\JS\Expected\Switch\PromoteBreak.js" />
+    <Content Include="TestData\JS\Expected\Switch\PromoteBreak_h.js" />
+    <Content Include="TestData\JS\Expected\Switch\SwitchLabels.js" />
+    <Content Include="TestData\JS\Expected\Switch\SwitchLabels_h.js" />
+    <Content Include="TestData\JS\Expected\Syntax\NestedBlocks.js" />
+    <Content Include="TestData\JS\Expected\UnknownScope\Eval.js" />
+    <Content Include="TestData\JS\Expected\UnknownScope\Eval_Immediate.js" />
+    <Content Include="TestData\JS\Expected\UnknownScope\Eval_J.js" />
+    <Content Include="TestData\JS\Expected\UnknownScope\WindowEval.js" />
+    <Content Include="TestData\JS\Expected\UnknownScope\With.js" />
+    <Content Include="TestData\JS\Expected\XmlInput\FirstOutputFile.js" />
+    <Content Include="TestData\JS\Expected\XmlInput\OneOutputFile.js" />
+    <Content Include="TestData\JS\Expected\XmlInput\SecondOutputFile.js" />
+    <Content Include="TestData\JS\Input\ArrayHandling\Array.js" />
+    <Content Include="TestData\JS\Input\ArrayHandling\Join.js" />
+    <Content Include="TestData\JS\Input\ArrayHandling\Length.js" />
+    <Content Include="TestData\JS\Input\ArrayHandling\Reverse.js" />
+    <Content Include="TestData\JS\Input\ArrayHandling\Sort.js" />
+    <Content Include="TestData\JS\Input\Assignments\Assign.js" />
+    <Content Include="TestData\JS\Input\Assignments\CompoundAssign.js" />
+    <Content Include="TestData\JS\Input\Assignments\MultiVars.js" />
+    <Content Include="TestData\JS\Input\AstMods\CallToMember.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\ReturnIfs.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\VarReturn.js" />
+    <Content Include="TestData\JS\Input\Booleans\Boolean.js" />
+    <Content Include="TestData\JS\Input\CatchVariable\Ambiguous.js" />
+    <Content Include="TestData\JS\Input\CatchVariable\NoOuter.js" />
+    <Content Include="TestData\JS\Input\CatchVariable\OuterIsGlobal.js" />
+    <Content Include="TestData\JS\Input\CatchVariable\OuterNotRef.js" />
+    <Content Include="TestData\JS\Input\CommandLine\Globals.js" />
+    <Content Include="TestData\JS\Input\CommandLine\TermSemi1.js" />
+    <Content Include="TestData\JS\Input\CommandLine\TermSemi2.js" />
+    <Content Include="TestData\JS\Input\Comments\Comment.js" />
+    <Content Include="TestData\JS\Input\Comments\ImportantComment.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\DoubleStart.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\IETest.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\IfElse.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\MultipleOn.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\NoEnd.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\PPConstant.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\PPOps.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\Set.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\SpecialCase.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\SpecialCase2.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\StartWithIf.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\StartWithSet.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Break.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\CatchScope.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Continue.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Debugger.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\EncloseBlock.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\ForVar.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Labels.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\DoWhile.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\ForIn.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\ForWhile.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\If.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Return.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Switch.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\Throw.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\TryCatch.js" />
+    <Content Include="TestData\JS\Input\Declarations\Function.js" />
+    <Content Include="TestData\JS\Input\Declarations\Identifiers.js" />
+    <Content Include="TestData\JS\Input\Declarations\LocalizationVars.js" />
+    <Content Include="TestData\JS\Input\Declarations\New.js" />
+    <Content Include="TestData\JS\Input\Declarations\This.js" />
+    <Content Include="TestData\JS\Input\Declarations\Var.js" />
+    <Content Include="TestData\JS\Input\Declarations\With.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\Arguments.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\BadSemicolon.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\FuncExpr.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\NamedFuncExpr.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\NewFunction.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\VarArgList.js" />
+    <Content Include="TestData\JS\Input\GlobalMethods\Eval.js" />
+    <Content Include="TestData\JS\Input\GlobalMethods\GlobalObject.js" />
+    <Content Include="TestData\JS\Input\Literals\ArrayLiteral.js" />
+    <Content Include="TestData\JS\Input\Literals\Boolean.js" />
+    <Content Include="TestData\JS\Input\Literals\Combined.js" />
+    <Content Include="TestData\JS\Input\Literals\InlineSafe.js" />
+    <Content Include="TestData\JS\Input\Literals\NestedCombine.js" />
+    <Content Include="TestData\JS\Input\Literals\Number.js" />
+    <Content Include="TestData\JS\Input\Literals\ObjectLiteral.js" />
+    <Content Include="TestData\JS\Input\Literals\Strings.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\CompareObjects.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\Constructor.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\InstanceOf.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\Object.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\Prototype.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\RegularExpressions.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\Strings.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\ToStr.js" />
+    <Content Include="TestData\JS\Input\ObjectCreation\TypeOf.js" />
+    <Content Include="TestData\JS\Input\Operators\Assign.js" />
+    <Content Include="TestData\JS\Input\Operators\Associative.js" />
+    <Content Include="TestData\JS\Input\Operators\Comma.js" />
+    <Content Include="TestData\JS\Input\Operators\Conditional.js" />
+    <Content Include="TestData\JS\Input\Operators\In.js" />
+    <Content Include="TestData\JS\Input\Operators\InstanceOf.js" />
+    <Content Include="TestData\JS\Input\Operators\Member.js" />
+    <Content Include="TestData\JS\Input\Operators\New.js" />
+    <Content Include="TestData\JS\Input\Operators\NewPrecedence.js" />
+    <Content Include="TestData\JS\Input\Operators\Unary.js" />
+    <Content Include="TestData\JS\Input\Operators\Void.js" />
+    <Content Include="TestData\JS\Input\ResourceMerge\ResourceResx.js" />
+    <Content Include="TestData\JS\Input\ResourceMerge\ResourceJS.js" />
+    <Content Include="TestData\JS\Input\ResourceMerge\ResourceJS_res.js" />
+    <Content Include="TestData\JS\Input\ResourceMerge\Resources.js" />
+    <Content Include="TestData\JS\Input\ScannerErrors\BadHexDigit.js" />
+    <Content Include="TestData\JS\Input\ScannerErrors\StringEOF.js" />
+    <Content Include="TestData\JS\Input\ScannerErrors\StringEOL.js" />
+    <Content Include="TestData\JS\Input\Switch\EmptyDefault.js" />
+    <Content Include="TestData\JS\Input\Switch\MacQuirks.js" />
+    <Content Include="TestData\JS\Input\Switch\NoDefaultEmptyCases.js" />
+    <Content Include="TestData\JS\Input\Switch\PrettyPrint.js" />
+    <Content Include="TestData\JS\Input\Switch\PromoteBreak.js" />
+    <Content Include="TestData\JS\Input\Switch\SwitchLabels.js" />
+    <Content Include="TestData\JS\Input\Syntax\NestedBlocks.js" />
+    <Content Include="TestData\JS\Input\UnknownScope\Eval.js" />
+    <Content Include="TestData\JS\Input\UnknownScope\WindowEval.js" />
+    <Content Include="TestData\JS\Input\UnknownScope\With.js" />
+    <Content Include="TestData\JS\Input\XmlInput\Input1.js" />
+    <Content Include="TestData\JS\Input\XmlInput\Input2.js" />
+    <Content Include="TestData\JS\Input\XmlInput\XmlTwoOutputFiles.xml" />
+    <Content Include="TestData\JS\Input\XmlInput\XmlOneOutputFile.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AjaxMin.csproj">
+      <Project>{5A0F7031-4728-4E10-BD0C-E07EDDBF5963}</Project>
+      <Name>AjaxMin</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestData\JS\Input\ResourceMerge\ResourceResx.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestData\JS\Input\ResourceMerge\Resources.resources" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TestData\JS\Output\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+</Project>

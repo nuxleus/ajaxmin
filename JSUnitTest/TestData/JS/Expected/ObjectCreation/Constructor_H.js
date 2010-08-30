@@ -1,0 +1,1 @@
+function Func(a){a=new String("Hi");a.constructor==String&&alert("Hi")}function MyFunc(){this.Foo="1";this.Bar="2";this.Ack="3";this.Gag="4";function a(){this.Ralph="first";this.Cramden="last"}this.Barf=new a}var y=new MyFunc;y.constructor==MyFunc&&alert("My")

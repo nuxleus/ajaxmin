@@ -1,0 +1,1 @@
+for(var \while=10,\for=function(){},i=0;i<10;++i)\for(\while);while(\while<200)\while+=90

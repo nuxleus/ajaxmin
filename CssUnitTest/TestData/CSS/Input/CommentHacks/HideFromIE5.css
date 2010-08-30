@@ -1,0 +1,13 @@
+/* this comment should be stripped */
+
+/* this rule is for everyone */
+div
+{
+  background: url(ie6.gif);
+  background:/* hide from IE5 */url(all.gif);
+  background: /* hide from IE5 */url(all.gif);
+  background:/* hide from IE5 */ url(all.gif);
+  background:   /* hide from IE5 */ url(all.gif);
+  background/* */:   /* hide from IE5 */ url(all.gif);
+  background/* nothing to be stripped */:   /* hide from IE5 */ url(all.gif);
+}

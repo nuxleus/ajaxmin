@@ -1,0 +1,1 @@
+﻿function foo(c){var b="foobar",a=65535;function d(d){c&=a;function e(c){return c+b+a}return d==b?e(d):b}function e(d){function c(c){return c.indexOf(b)&a}return c(d)}if(c>a)c-=a;return d(c).substring(e(c))}function globalFunc(){return"foobar"}

@@ -1,0 +1,1 @@
+function Func(){var a=new Object(1),c={},b={bar:"bar","while":"bar",ack:"bar",42:16,get foo(){return 1},set foo(a){this.ack=a}};a.foo="bar";var e={"get":42,"set":"x"}}

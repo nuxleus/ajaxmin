@@ -1,0 +1,1 @@
+function foo(){var bar=7;function bar(){return 42}with(bar){function arf(){return 21}arf(5,6,,8)}function ack(){alert("no one calls")}}

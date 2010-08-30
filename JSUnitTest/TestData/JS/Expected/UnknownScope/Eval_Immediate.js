@@ -1,0 +1,1 @@
+﻿(function(){var d="bar",c="gag";function b(txt){var suffix=";";eval(txt+suffix)}function a(){var a=" boy-howdy! ";return d+a+c}b("alert('"+a()+"')")})()

@@ -1,0 +1,1 @@
+a:for(var a=0;a<10;++a){b:switch(a){case 1:a*=1;break;case 2:a*=2;break b;case 5:break a;case 99:a/=10}switch(a){case 2:a*=2;break;default:break a}b:switch(a){case 3:a*=3;break b;default:break a}}

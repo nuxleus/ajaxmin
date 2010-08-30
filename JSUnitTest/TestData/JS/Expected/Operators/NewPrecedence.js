@@ -1,0 +1,1 @@
+﻿function test(oType){var arr=new Array(Array,Function,Boolean),foo=new arr[0](1,2,3);return new(Type.getType(oType.sObjectType))(oType.sTypeName,oType.iVersion,oType.sRootElementType,oType.sRootElementName)}

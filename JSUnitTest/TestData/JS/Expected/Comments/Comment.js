@@ -1,0 +1,1 @@
+function Func(){/*@if(true)alert("Hi");true&&alert("Hi")@*/}

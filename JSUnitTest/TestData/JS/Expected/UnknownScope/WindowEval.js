@@ -1,0 +1,1 @@
+﻿(function(){var foo="bar",ack="gag";function doIt(txt){var suffix=";";window.eval(txt+suffix)}function another(){var a=" boy-howdy! ";return foo+a+ack}doIt("alert('"+another()+"')")})()

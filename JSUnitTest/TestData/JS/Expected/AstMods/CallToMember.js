@@ -1,0 +1,1 @@
+﻿var obj;alert(obj.property);alert(obj["while"]);alert(obj.property);alert(obj.property);alert(obj[p+"roperty"]);alert(obj["while"]);alert(obj["1world"]);var a=window.obj.foo.bar();alert(obj["get"]);obj["\u00e3\u0ae9\u0ae9"]

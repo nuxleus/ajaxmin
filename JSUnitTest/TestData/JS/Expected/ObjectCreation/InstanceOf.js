@@ -1,0 +1,1 @@
+function Func(obj){var i,t,s="";t=[];t.Date=Date;t.Object=Object;t.Array=Array;for(i in t)if(obj instanceof t[i])s+="obj is an instance of "+i+"\n";else s+="obj is not an instance of "+i+"\n";return s}

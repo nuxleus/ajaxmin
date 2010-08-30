@@ -1,0 +1,1 @@
+function foo(c){for(var b="now is the time",a=0;a<c.length;++a)!c[a]&&b&&bar(function(){alert(b)})}
