@@ -2496,10 +2496,18 @@ namespace Microsoft.Ajax.Utilities
                 {
                     if (!inExpression)
                     {
-                        identifier = m_currentToken.Code;
+                        // if this isn't a function expression, then we need to throw an error because
+                        // function DECLARATIONS always need a valid identifier name
                         ReportError(JSError.NoIdentifier, true);
-                        name = new Lookup(identifier, CurrentPositionContext(), this);
-                        GetNextToken();
+
+                        // BUT if the current token is a left paren, we don't want to use it as the name.
+                        // (fix for issue #14152)
+                        if (m_currentToken.Token != JSToken.LeftParenthesis)
+                        {
+                            identifier = m_currentToken.Code;
+                            name = new Lookup(identifier, CurrentPositionContext(), this);
+                            GetNextToken();
+                        }
                     }
                 }
             }
