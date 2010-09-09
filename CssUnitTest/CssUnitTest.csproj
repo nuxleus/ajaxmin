@@ -140,6 +140,7 @@
     <Content Include="TestData\CSS\Expected\Selectors\PseudoClass.css" />
     <Content Include="TestData\CSS\Expected\Selectors\Simple.css" />
     <Content Include="TestData\CSS\Expected\Selectors\Universal.css" />
+    <Content Include="TestData\CSS\Expected\Syntax\AlphaHash.css" />
     <Content Include="TestData\CSS\Expected\Syntax\CDO.css" />
     <Content Include="TestData\CSS\Expected\Syntax\Escapes.css" />
     <Content Include="TestData\CSS\Expected\Syntax\Expr.css" />
@@ -205,6 +206,7 @@
     <Content Include="TestData\CSS\Input\Syntax\Important.css" />
     <Content Include="TestData\CSS\Input\Errors\ParsingErrors.css" />
     <Content Include="TestData\CSS\Input\Syntax\Strings.css" />
+    <Content Include="TestData\CSS\Input\Syntax\AlphaHash.css" />
     <Content Include="TestData\CSS\Input\Syntax\Term.css" />
     <Content Include="TestData\CSS\Input\Syntax\UnicodeRange.css" />
     <Content Include="TestData\CSS\Input\Syntax\uri.css" />

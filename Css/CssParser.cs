@@ -1868,6 +1868,11 @@ namespace Microsoft.Ajax.Utilities
                     if (ParseHexcolor() == Parsed.False)
                     {
                         ReportError(0, StringEnum.ExpectedHexColor, CurrentTokenText);
+
+                        // we expected the hash token to be a proper color -- but it's not.
+                        // we threw an error -- go ahead and output the token as-is and keep going.
+                        AppendCurrent();
+                        NextToken();
                     }
                     parsed = Parsed.True;
                     break;
@@ -2284,8 +2289,11 @@ namespace Microsoft.Ajax.Utilities
         private Parsed ParseHexcolor()
         {
             Parsed parsed = Parsed.False;
+
+            // valid hash colors are #rgb, #rrggbb, and #aarrggbb.
+            // we won't do any conversion on the #aarrggbb formats to make them smaller.
             if (CurrentTokenType == TokenType.Hash
-              && (CurrentTokenText.Length == 4 || CurrentTokenText.Length == 7))
+              && (CurrentTokenText.Length == 4 || CurrentTokenText.Length == 7 || CurrentTokenText.Length == 9))
             {
                 parsed = Parsed.True;
 

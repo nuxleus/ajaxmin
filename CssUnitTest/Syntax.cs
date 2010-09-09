@@ -83,5 +83,11 @@ namespace CssUnitTest
     {
         TestHelper.Instance.RunTest();
     }
+
+    [TestMethod]
+    public void AlphaHash()
+    {
+        TestHelper.Instance.RunTest();
+    }
   }
 }
