@@ -453,6 +453,16 @@ namespace Microsoft.Ajax.Utilities
                         // otherwise, we're going to output the character as-is, so just keep going
                         break;
 
+                    case '\x2028':
+                    case '\x2029':
+                        // issue #14398 - unescaped, these characters (Unicode LineSeparator and ParagraphSeparator)
+                        // would introduce a line-break in the string.  they ALWAYS need to be escaped, 
+                        // no matter what output encoding we may use.
+                        AddEscape(text.Substring(startOfStretch, ndx - startOfStretch), @"\u", ref sb);
+                        sb.AppendFormat(CultureInfo.InvariantCulture, "{0:x}", (int)c);
+                        startOfStretch = ndx + 1;
+                        break;
+
                     default:
                         if (' ' <= c && c <= 0x7e)
                         {

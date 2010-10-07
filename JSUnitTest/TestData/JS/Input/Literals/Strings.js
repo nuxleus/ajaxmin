@@ -25,6 +25,11 @@ for all good men";
   var copyrights = "\251\xa9\u00a9\xA9\u00A9";  // depends on encoding sequence whether these will remain escaped
   var hexEsc = "\x39\xae\xAE";        // exercise numeric, lower, and upper digits for both digits
   var uniEsc = "\u328B\ubaaa\uFDF2";  // exercise numeric, lower, and upper digits for all four digits
+
+  // these two characters (\u2028 and \u2029) should never be allowed unescaped in a string literal
+  // because they will cause linebreaks in the string and throw script errors.
+  // always make sure they are escaped, no matter what encoding we are using!
+  var uniBreaks = "foo\u2028\u2029bar";
   
   function argWithDefault( arg, def )
   {
