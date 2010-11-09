@@ -101,5 +101,11 @@ namespace JSUnitTest
     {
         TestHelper.Instance.RunTest("-inline:no");
     }
+
+    [TestMethod]
+    public void CombineNegs()
+    {
+        TestHelper.Instance.RunTest("-literals:combine -rename:all");
+    }
   }
 }

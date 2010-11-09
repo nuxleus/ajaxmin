@@ -1,0 +1,1 @@
+﻿(function(){var a=12345;function b(e,c,b,d){var a=this;a.top=e;a.right=c;a.bottom=b;a.left=d}var c=new b(a,a,-a,-a)})();(function(){var a=12345;function b(e,c,b,d){var a=this;a.top=e;a.right=c;a.bottom=b;a.left=d}var c=new b(-a,-a,a,a)})();(function(){var a=-12345;function b(e,c,b,d){var a=this;a.top=e;a.right=c;a.bottom=b;a.left=d}var c=new b(-a,a,a,a)})()
