@@ -23,7 +23,11 @@ namespace Microsoft.Ajax.Utilities
         public ImportantComment(Context context, JSParser parser)
             : base(context, parser)
         {
-            m_comment = "/*" + Context.Code.Substring(3).Replace("\r\n", "\n") + '\n';
+            // replace all internal CR-LF pairs with just a single LF
+            // and get rid of the ! in /*! so it's just a normal comment.
+            // The context might contain multiple adjacent important comments, so 
+            // there may be more /*! than just the first one.
+            m_comment = Context.Code.Replace("\r\n", "\n").Replace("/*!", "/*");
         }
 
         public override AstNode Clone()
@@ -33,7 +37,8 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToCode(ToCodeFormat format)
         {
-            return m_comment;
+            // make sure important comments start a new line afterwards
+            return m_comment + '\n';
         }
 
         internal override bool RequiresSeparator

@@ -1587,8 +1587,16 @@ namespace Microsoft.Ajax.Utilities
 
         private void SaveImportantComment()
         {
+            // if we already found one important comment, we need to append this one 
+            // to the end of the existing one(s) so we don't lose them. So if we don't
+            // have one already, clone the current context. Otherwise continue with what
+            // we have already found.
+            if (ImportantComment == null)
+            {
+                ImportantComment = m_currentToken.Clone();
+            }
+
             // save the context of the important comment
-            ImportantComment = m_currentToken.Clone();
             ImportantComment.EndPosition = m_currentPos;
             ImportantComment.EndLineNumber = m_currentLine;
             ImportantComment.EndLinePosition = m_startLinePos;

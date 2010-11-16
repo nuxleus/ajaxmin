@@ -295,6 +295,14 @@ namespace Microsoft.Ajax.Utilities
                             m_program.Append(ast);
                     }
 
+                    if (m_scanner.ImportantComment != null && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
+                    {
+                        // we have an important comment before the EOF. Add the comment to the program.
+                        m_program.Append(new ImportantComment(m_scanner.ImportantComment, this));
+
+                        // don't forget to clear it 
+                        m_scanner.ImportantComment = null;
+                    }
                 }
                 finally
                 {

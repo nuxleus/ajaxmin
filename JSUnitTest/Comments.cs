@@ -25,16 +25,32 @@ namespace JSUnitTest
     [TestClass()]
     public class Comments
     {
-        [DeploymentItem("AjaxMin.exe")]
         [TestMethod()]
         public void Comment()
         {
             TestHelper.Instance.RunTest();
         }
 
-        [DeploymentItem("AjaxMin.exe")]
         [TestMethod()]
         public void ImportantComment()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod()]
+        public void OnlyImportantComment()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod()]
+        public void EndWithImportantComment()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod()]
+        public void TwoImportantComments()
         {
             TestHelper.Instance.RunTest();
         }
