@@ -291,4 +291,7 @@
   <data name="ExpectedMediaQueryExpression" xml:space="preserve">
     <value>Expected media-query expression, found '{0}'</value>
   </data>
+  <data name="MediaQueryRequiresSpace" xml:space="preserve">
+    <value>Media queries require a space between 'and' and the opening parenthesis: '{0}'</value>
+  </data>
 </root>

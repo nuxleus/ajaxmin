@@ -80,7 +80,8 @@ namespace Microsoft.Ajax.Utilities
         ExpressionError,
         ExpectedMediaQueryExpression,
         ExpectedMediaFeature,
-        ExpectedMediaQuery
+        ExpectedMediaQuery,
+        MediaQueryRequiresSpace
     };
 
     internal class CssStringMgr

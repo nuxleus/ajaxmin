@@ -778,7 +778,7 @@ namespace Microsoft.Ajax.Utilities
                 // the next item should be either AND or the start of the block
                 parsed = Parsed.True;
             }
-            else
+            else if (CurrentTokenType != TokenType.Character || CurrentTokenText != ";")
             {
                 // expected a media type
                 ReportError(0, StringEnum.ExpectedMediaIdentifier, CurrentTokenText);
@@ -804,28 +804,32 @@ namespace Microsoft.Ajax.Utilities
                 // output the AND text.
                 // MIGHT be AND( if it was a function, so first set a flag so we will know
                 // wether or not to expect the opening paren
-                var includedParen = CurrentTokenType == TokenType.Function;
-                AppendCurrent();
-                SkipSpace();
-
-                // AND should always be followed by one or more expressions, and it was explicitly
-                // if the token included the paren
-                if (includedParen)
+                if (CurrentTokenType == TokenType.Function)
                 {
+                    // this is not strictly allowed by the CSS3 spec!
+                    // we are going to throw an error
+                    ReportError(1, StringEnum.MediaQueryRequiresSpace, CurrentTokenText);
+
+                    //and then fix what the developer wrote and make sure there is a space
+                    // between the AND and the (. The CSS3 spec says it is invalid to not have a
+                    // space there.
+                    Append("and (");
+                    SkipSpace();
+
                     // included the paren
                     ParseMediaQueryExpression();
                 }
                 else
                 {
-                    // didn't include the paren -- it BETTER be the next token
+                    // didn't include the paren -- it BETTER be the next token 
+                    // (after we output the AND token)
+                    AppendCurrent();
+                    SkipSpace();
                     if (CurrentTokenType == TokenType.Character
                         && CurrentTokenText == "(")
                     {
-                        // if we are expanding the output, put a space between the AND and the (
-                        if (Settings.ExpandOutput)
-                        {
-                            Append(' ');
-                        }
+                        // put a space between the AND and the (
+                        Append(' ');
 
                         ParseMediaQueryExpression();
                     }
@@ -1811,7 +1815,7 @@ namespace Microsoft.Ajax.Utilities
                       && CurrentTokenText == "=")
                     {
                         AppendCurrent();
-                        NextToken();
+                        SkipSpace();
                         ParseTerm(false);
                     }
 

@@ -1,4 +1,4 @@
-@import "bar2.css" print and(orientation: landscape) and (color);
+@import "bar2.css" print and (orientation: landscape) and (color);
 .foo
 {
     background: #fff
