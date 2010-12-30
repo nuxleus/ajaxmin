@@ -56,7 +56,17 @@ namespace Microsoft.Ajax.Utilities
             this.RemoveFunctionExpressionNames = true;
             this.RemoveUnneededCode = true;
             this.StripDebugStatements = true;
+			this.AllowEmbeddedAspNetBlocks = false;
         }
+
+		/// <summary>
+		/// Whether to allow embedded asp.net blocks.
+		/// </summary>
+		public bool AllowEmbeddedAspNetBlocks
+		{
+			get;
+			set;
+		}
 
         /// <summary>
         /// deprecated setting

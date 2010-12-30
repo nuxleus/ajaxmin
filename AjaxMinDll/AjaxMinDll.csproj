@@ -139,6 +139,9 @@
     <Compile Include="..\JavaScript\arrayliteral.cs">
       <Link>JavaScript\arrayliteral.cs</Link>
     </Compile>
+    <Compile Include="..\JavaScript\aspnetblocknode.cs">
+      <Link>JavaScript\aspnetblocknode.cs</Link>
+    </Compile>
     <Compile Include="..\JavaScript\ast.cs">
       <Link>JavaScript\ast.cs</Link>
     </Compile>

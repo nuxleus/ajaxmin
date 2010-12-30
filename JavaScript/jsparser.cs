@@ -186,6 +186,8 @@ namespace Microsoft.Ajax.Utilities
             // reset the cc_on flag
             EncounteredCCOn = false;
 
+			m_scanner.AllowEmbeddedAspNetBlocks = m_settings.AllowEmbeddedAspNetBlocks;
+
             // set the skip-debug-blocks flag on the scanner if we are stripping debug statements
             m_scanner.SkipDebugBlocks = m_settings.StripDebugStatements
                  && m_settings.IsModificationAllowed(TreeModifications.StripDebugStatements);
@@ -463,6 +465,9 @@ namespace Microsoft.Ajax.Utilities
                             return endStatement;
                         }
 
+					case JSToken.AspNetBlock:
+						return ParseAspNetBlock(consumeSemicolonIfPossible: true);
+
                     default:
                         m_noSkipTokenSet.Add(NoSkipTokenSet.s_EndOfStatementNoSkipTokenSet);
                         bool exprError = false;
@@ -731,6 +736,29 @@ namespace Microsoft.Ajax.Utilities
             GetNextToken();
             return codeBlock;
         }
+
+		private AstNode ParseAspNetBlock(bool consumeSemicolonIfPossible)
+		{
+			Context context = m_currentToken.Clone();
+			GetNextToken();
+			string aspNetBlockText = context.Code;
+			bool blockTerminatedByExplicitSemicolon = false;
+
+			// This token may have a semi-colon after it or the semi-colon may come from the asp.net 
+			// block. If we have one consume it.
+			if (JSToken.Semicolon == m_currentToken.Token &&
+				consumeSemicolonIfPossible)
+			{
+				// add the semicolon to the cloned context
+				context.UpdateWith(m_currentToken);
+				// and skip it
+				GetNextToken();
+				blockTerminatedByExplicitSemicolon = true;
+			}
+
+			// return the new AST object
+			return new AspNetBlockNode(context, this, aspNetBlockText, blockTerminatedByExplicitSemicolon);
+		}
 
         //---------------------------------------------------------------------------------------
         // ParseDebuggerStatement
@@ -3582,6 +3610,10 @@ namespace Microsoft.Ajax.Utilities
                     ast = ParseFunction(FunctionType.Expression, m_currentToken.Clone());
                     isFunction = true;
                     break;
+
+				case JSToken.AspNetBlock:
+					ast = ParseAspNetBlock(consumeSemicolonIfPossible: false);
+					break;
 
                 default:
                     string identifier = JSKeyword.CanBeIdentifier(m_currentToken.Token);

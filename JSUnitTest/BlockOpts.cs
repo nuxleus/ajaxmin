@@ -86,5 +86,11 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest();
         }
+
+		[TestMethod]
+		public void AspNetBlock()
+		{
+			TestHelper.Instance.RunTest("-aspnet:true");
+		}
     }
 }

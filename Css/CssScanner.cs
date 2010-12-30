@@ -66,6 +66,8 @@ namespace Microsoft.Ajax.Utilities
             , RegexOptions.Compiled
 #endif
             );
+		
+		public bool AllowEmbeddedAspNetBlocks { get; set; }
 
         private bool m_isAtEOF;// = false;
         public bool EndOfFile
@@ -117,7 +119,14 @@ namespace Microsoft.Ajax.Utilities
                     break;
 
                 case '<':
-                    token = ScanCDO();
+					if (AllowEmbeddedAspNetBlocks && PeekChar() == '%')
+					{
+						token = ScanAspNetBlock();
+					}
+					else
+					{
+						token = ScanCDO();
+					}
                     break;
 
                 case '-':
@@ -259,7 +268,28 @@ namespace Microsoft.Ajax.Utilities
             return token;
         }
 
-        private CssToken ScanCDO()
+		private CssToken ScanAspNetBlock()
+		{
+			StringBuilder sb = new StringBuilder();
+			char prev = ' ';
+			while (m_currentChar != '\0' &&
+				   !(m_currentChar == '>' &&
+					 prev == '%'))
+			{
+				sb.Append(m_currentChar);
+				prev = m_currentChar;
+				NextChar();
+			}
+			if (m_currentChar != '\0')
+			{
+				sb.Append(m_currentChar);
+				// Read the last '>'
+				NextChar();
+			}
+			return new CssToken(TokenType.AspNetBlock, sb.ToString(), m_context);
+		}
+		
+		private CssToken ScanCDO()
         {
             CssToken token = null;
             NextChar(); // points to !?

@@ -112,6 +112,7 @@
   <ItemGroup>
     <Content Include="App.ico" />
     <Compile Include="Css\CssSettings.cs" />
+    <Compile Include="JavaScript\aspnetblocknode.cs" />
     <Compile Include="JavaScript\cccomment.cs" />
     <Compile Include="JavaScript\ccelif.cs" />
     <Compile Include="JavaScript\ccelse.cs" />

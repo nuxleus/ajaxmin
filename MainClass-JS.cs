@@ -156,6 +156,7 @@ namespace Microsoft.Ajax.Utilities
             settings.RemoveFunctionExpressionNames = m_removeFunctionExpressionNames;
             settings.RemoveUnneededCode = m_removeUnneededCode;
             settings.StripDebugStatements = m_stripDebugStatements;
+			settings.AllowEmbeddedAspNetBlocks = m_allowAspNet;
 
             // cast the kill switch numeric value to the appropriate TreeModifications enumeration
             settings.KillSwitch = (TreeModifications)m_killSwitch;

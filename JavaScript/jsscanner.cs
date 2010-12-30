@@ -83,6 +83,8 @@ namespace Microsoft.Ajax.Utilities
 
         public bool EatUnnecessaryCCOn { get; set; }
 
+		public bool AllowEmbeddedAspNetBlocks { get; set; }
+
         public JSScanner(Context sourceContext)
         {
             m_keywords = s_Keywords;
@@ -267,25 +269,34 @@ namespace Microsoft.Ajax.Utilities
                         break;
 
                     case '<':
-                        token = JSToken.LessThan;
-                        if ('<' == GetChar(m_currentPos))
-                        {
-                            m_currentPos++;
-                            token = JSToken.LeftShift;
-                        }
+						if (AllowEmbeddedAspNetBlocks &&
+							'%' == GetChar(m_currentPos))
+						{
+							token = JSToken.AspNetBlock;
+							ScanAspNetBlock();
+						}
+						else
+						{
+							token = JSToken.LessThan;
+							if ('<' == GetChar(m_currentPos))
+							{
+								m_currentPos++;
+								token = JSToken.LeftShift;
+							}
 
-                        if ('=' == GetChar(m_currentPos))
-                        {
-                            m_currentPos++;
-                            if (token == JSToken.LessThan)
-                            {
-                                token = JSToken.LessThanEqual;
-                            }
-                            else
-                            {
-                                token = JSToken.LeftShiftAssign;
-                            }
-                        }
+							if ('=' == GetChar(m_currentPos))
+							{
+								m_currentPos++;
+								if (token == JSToken.LessThan)
+								{
+									token = JSToken.LessThanEqual;
+								}
+								else
+								{
+									token = JSToken.LeftShiftAssign;
+								}
+							}
+						}
 
                         break;
 
@@ -1145,6 +1156,34 @@ namespace Microsoft.Ajax.Utilities
 
             return null;
         }
+
+		/// <summary>
+		/// Scans for the end of an Asp.Net block.
+		///  On exit this.currentPos will be at the next char to scan after the asp.net block.
+		/// </summary>
+		private void ScanAspNetBlock()
+		{
+			while (!(this.GetChar(this.m_currentPos - 1) == '%' &&
+					 this.GetChar(this.m_currentPos) == '>') ||
+					 (m_currentPos >= m_endPos))
+			{
+				this.m_currentPos++;
+			}
+
+			m_currentToken.EndPosition = m_currentPos;
+			m_currentToken.EndLineNumber = m_currentLine;
+			m_currentToken.EndLinePosition = m_startLinePos;
+
+			if (m_currentPos >= m_endPos)
+			{
+				HandleError(JSError.UnterminatedAspNetBlock);
+			}
+			else
+			{
+				// Eat the last >.
+				this.m_currentPos++;
+			}
+		}
 
         //--------------------------------------------------------------------------------------------------
         // ScanString

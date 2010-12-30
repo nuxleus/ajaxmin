@@ -292,6 +292,7 @@ namespace Microsoft.Ajax.Utilities
             using (StringReader reader = new StringReader(source))
             {
                 m_scanner = new CssScanner(reader);
+				m_scanner.AllowEmbeddedAspNetBlocks = this.Settings.AllowEmbeddedAspNetBlocks;
                 m_scanner.ScannerError += new EventHandler<CssScannerErrorEventArgs>(OnScannerError);
 
                 // set some options
@@ -397,7 +398,8 @@ namespace Microsoft.Ajax.Utilities
               || ParseMedia() == Parsed.True
               || ParsePage() == Parsed.True
               || ParseFontFace() == Parsed.True
-              || ParseAtKeyword() == Parsed.True)
+              || ParseAtKeyword() == Parsed.True
+			  || ParseAspNetBlock() == Parsed.True)
             {
                 // any number of S, Comment, CDO or CDC elements
                 ParseSCDOCDCComments();
@@ -421,7 +423,8 @@ namespace Microsoft.Ajax.Utilities
                   || ParseMedia() == Parsed.True
                   || ParsePage() == Parsed.True
                   || ParseFontFace() == Parsed.True
-                  || ParseAtKeyword() == Parsed.True)
+                  || ParseAtKeyword() == Parsed.True
+				  || ParseAspNetBlock() == Parsed.True)
                 {
                     // any number of S, Comment, CDO or CDC elements
                     ParseSCDOCDCComments();
@@ -504,6 +507,19 @@ namespace Microsoft.Ajax.Utilities
             }
             return parsed;
         }
+
+		private Parsed ParseAspNetBlock()
+		{
+			Parsed parsed = Parsed.False;
+			if (Settings.AllowEmbeddedAspNetBlocks &&
+				CurrentTokenType == TokenType.AspNetBlock)
+			{
+				AppendCurrent();
+				SkipSpace();
+				parsed = Parsed.True;
+			}
+			return parsed;
+		}
 
         private Parsed ParseNamespace()
         {

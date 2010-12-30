@@ -105,6 +105,7 @@ namespace Microsoft.Ajax.Utilities
                 parser.Settings.TermSemicolons = m_terminateWithSemicolon;
                 parser.Settings.ColorNames = m_colorNames;
                 parser.Settings.MinifyExpressions = m_minifyExpressions;
+				parser.Settings.AllowEmbeddedAspNetBlocks = m_allowAspNet;
                 parser.ValueReplacements = resourceStrings;
 
                 // if the kill switch was set to 1 (don't preserve important comments), then

@@ -60,6 +60,9 @@ namespace Microsoft.Ajax.Utilities
         // whether to clobber existing output files
         private bool m_clobber; // = false
 
+		// Whether to allow embedded asp.net blocks.
+		private bool m_allowAspNet; // = false
+
         /// <summary>
         /// Bitfield for turning off individual AST modifications if so desired
         /// </summary>
@@ -263,6 +266,10 @@ namespace Microsoft.Ajax.Utilities
                             // ignore any arguments
                             m_analyze = true;
                             break;
+
+						case "ASPNET":
+							BooleanSwitch(paramPart, switchPart, false, out m_allowAspNet);
+							break;
 
                         case "CLOBBER":
                             // just putting the clobber switch on the command line without any arguments

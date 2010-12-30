@@ -52,5 +52,12 @@ namespace JSUnitTest
     {
       TestHelper.Instance.RunTest();
     }
+
+	[DeploymentItem("AjaxMin.exe")]
+	[TestMethod()]
+	public void AssignAspNetBlock()
+	{
+		TestHelper.Instance.RunTest("-aspnet:true");
+	}
   }
 }

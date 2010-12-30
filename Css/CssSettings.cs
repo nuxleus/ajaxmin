@@ -33,6 +33,7 @@ namespace Microsoft.Ajax.Utilities
             Severity = 1;
             TermSemicolons = false;
             MinifyExpressions = true;
+			AllowEmbeddedAspNetBlocks = false;
         }
 
         /// <summary>
@@ -90,5 +91,14 @@ namespace Microsoft.Ajax.Utilities
         {
             get; set;
         }
+
+		/// <summary>
+		/// Gets or sets whether embedded asp.net blocks (&lt;% %>) should be recognized and output as is.
+		/// </summary>
+		public bool AllowEmbeddedAspNetBlocks
+		{
+			get;
+			set;
+		}
     }
 }

@@ -183,5 +183,7 @@ namespace Microsoft.Ajax.Utilities
         ConditionalCompilationElseIf,   // @elif
         ConditionalCompilationElse,     // @else
         ConditionalCompilationEnd,      // @end
+
+		AspNetBlock,
     }
 }

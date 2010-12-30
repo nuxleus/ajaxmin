@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="AtRules.cs" />
     <Compile Include="Common\TestHelper.cs" />
+    <Compile Include="EmbeddedAspNetBlock.cs" />
     <Compile Include="Encoding.cs" />
     <Compile Include="Errors.cs" />
     <Compile Include="TestData\CSS\Input\Replacements\ValueReplacement.Designer.cs">
@@ -119,6 +120,7 @@
     <Content Include="TestData\CSS\Expected\CommentHacks\ImportantComment_None.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\OnlyNS4_nc.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\OnlyNS4.css" />
+    <Content Include="TestData\CSS\Expected\EmbeddedAspNetBlock\TopLevel.css" />
     <Content Include="TestData\CSS\Expected\Encoding\escaped.css" />
     <Content Include="TestData\CSS\Expected\Encoding\escaped_utf8.css" />
     <Content Include="TestData\CSS\Expected\Errors\UnterminatedString.css" />
@@ -182,6 +184,7 @@
     <Content Include="TestData\CSS\Input\CommentHacks\ImportantComment.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\ImportantCommentHacks.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\OnlyNS4.css" />
+    <Content Include="TestData\CSS\Input\EmbeddedAspNetBlock\TopLevel.css" />
     <Content Include="TestData\CSS\Input\Encoding\escaped.css" />
     <Content Include="TestData\CSS\Input\Errors\UnterminatedString.css" />
     <Content Include="TestData\CSS\Input\Replacements\ColorNames.css" />

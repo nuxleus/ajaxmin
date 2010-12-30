@@ -188,6 +188,8 @@ namespace Microsoft.Ajax.Utilities
         RightMiddleSymbol,
         RightBottomSymbol,
 
+		AspNetBlock,
+
         Error = -1
     }
 }
