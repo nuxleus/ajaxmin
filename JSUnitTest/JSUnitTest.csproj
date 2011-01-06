@@ -122,6 +122,7 @@
     <Content Include="TestData\JS\Expected\Comments\ImportantComment.js" />
     <Content Include="TestData\JS\Expected\Comments\OnlyImportantComment.js" />
     <Content Include="TestData\JS\Expected\Comments\TwoImportantComments.js" />
+    <Content Include="TestData\JS\Expected\ConditionalCompilation\TypeComments.js" />
     <Content Include="TestData\JS\Expected\ConditionalCompilation\DoubleStart.js" />
     <Content Include="TestData\JS\Expected\ConditionalCompilation\IETest.js" />
     <Content Include="TestData\JS\Expected\ConditionalCompilation\IfElse.js" />
@@ -275,6 +276,7 @@
     <Content Include="TestData\JS\Input\Comments\ImportantComment.js" />
     <Content Include="TestData\JS\Input\Comments\OnlyImportantComment.js" />
     <Content Include="TestData\JS\Input\Comments\TwoImportantComments.js" />
+    <Content Include="TestData\JS\Input\ConditionalCompilation\TypeComments.js" />
     <Content Include="TestData\JS\Input\ConditionalCompilation\DoubleStart.js" />
     <Content Include="TestData\JS\Input\ConditionalCompilation\IETest.js" />
     <Content Include="TestData\JS\Input\ConditionalCompilation\IfElse.js" />

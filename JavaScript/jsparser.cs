@@ -885,7 +885,10 @@ namespace Microsoft.Ajax.Utilities
                 break;
             }
 
-            varList.Context.UpdateWith(vdecl.Context);
+            if (vdecl != null)
+            {
+                varList.Context.UpdateWith(vdecl.Context);
+            }
             return varList;
         }
 

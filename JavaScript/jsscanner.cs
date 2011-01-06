@@ -480,8 +480,13 @@ namespace Microsoft.Ajax.Utilities
                                         ++m_currentPos;
                                     }
 
+                                    if (CheckForTypeComments())
+                                    {
+                                        // this is a type-declaration style comment -- just skip it
+                                        SkipSingleLineComment();
+                                    }
                                     // if we aren't already in a conditional comment
-                                    if (!m_inConditionalComment)
+                                    else if (!m_inConditionalComment)
                                     {
                                         // we are now
                                         m_inConditionalComment = true;
@@ -494,13 +499,7 @@ namespace Microsoft.Ajax.Utilities
                                     goto nextToken;
                                 }
                                 
-                                if (c == '/' &&
-                                    '#' == GetChar(++m_currentPos) &&
-                                    'D' == GetChar(++m_currentPos) &&
-                                    'E' == GetChar(++m_currentPos) &&
-                                    'B' == GetChar(++m_currentPos) &&
-                                    'U' == GetChar(++m_currentPos) &&
-                                    'G' == GetChar(++m_currentPos))
+                                if (c == '/' && CheckSubstring(++m_currentPos, "#DEBUG"))
                                 {
                                     if (m_skipDebugBlocks)
                                     {
@@ -536,8 +535,12 @@ namespace Microsoft.Ajax.Utilities
                                         ++m_currentPos;
                                     }
 
+                                    if (CheckForTypeComments())
+                                    {
+                                        SkipMultilineComment(false);
+                                    }
                                     // if we aren't already in a conditional comment
-                                    if (!m_inConditionalComment)
+                                    else if (!m_inConditionalComment)
                                     {
                                         // we are in one now
                                         m_inConditionalComment = true;
@@ -695,8 +698,7 @@ namespace Microsoft.Ajax.Utilities
                                 goto nextToken;
 
                             case 2:
-                                if ('i' == m_strSourceCode[startPosition] &&
-                                    'f' == m_strSourceCode[startPosition + 1])
+                                if (CheckSubstring(startPosition, "if"))
                                 {
                                     token = JSToken.ConditionalCompilationIf;
 
@@ -719,9 +721,7 @@ namespace Microsoft.Ajax.Utilities
                                 goto default;
 
                             case 3:
-                                if ('s' == m_strSourceCode[startPosition] &&
-                                    'e' == m_strSourceCode[startPosition + 1] &&
-                                    't' == m_strSourceCode[startPosition + 2])
+                                if (CheckSubstring(startPosition, "set"))
                                 {
                                     token = JSToken.ConditionalCompilationSet;
 
@@ -736,9 +736,7 @@ namespace Microsoft.Ajax.Utilities
                                     break;
                                 }
 
-                                if ('e' == m_strSourceCode[startPosition] &&
-                                    'n' == m_strSourceCode[startPosition + 1] &&
-                                    'd' == m_strSourceCode[startPosition + 2])
+                                if (CheckSubstring(startPosition, "end"))
                                 {
                                     token = JSToken.ConditionalCompilationEnd;
                                     if (m_ccIfLevel > 0)
@@ -760,10 +758,7 @@ namespace Microsoft.Ajax.Utilities
                                 goto default;
 
                             case 4:
-                                if ('e' == m_strSourceCode[startPosition] &&
-                                    'l' == m_strSourceCode[startPosition + 1] &&
-                                    's' == m_strSourceCode[startPosition + 2] &&
-                                    'e' == m_strSourceCode[startPosition + 3])
+                                if (CheckSubstring(startPosition, "else"))
                                 {
                                     token = JSToken.ConditionalCompilationElse;
 
@@ -777,10 +772,7 @@ namespace Microsoft.Ajax.Utilities
                                     break;
                                 }
 
-                                if ('e' == m_strSourceCode[startPosition] &&
-                                    'l' == m_strSourceCode[startPosition + 1] &&
-                                    'i' == m_strSourceCode[startPosition + 2] &&
-                                    'f' == m_strSourceCode[startPosition + 3])
+                                if (CheckSubstring(startPosition, "elif"))
                                 {
                                     token = JSToken.ConditionalCompilationElseIf;
 
@@ -799,11 +791,7 @@ namespace Microsoft.Ajax.Utilities
                                 goto default;
 
                             case 5:
-                                if ('c' == m_strSourceCode[startPosition] &&
-                                    'c' == m_strSourceCode[startPosition + 1] &&
-                                    '_' == m_strSourceCode[startPosition + 2] &&
-                                    'o' == m_strSourceCode[startPosition + 3] &&
-                                    'n' == m_strSourceCode[startPosition + 4])
+                                if (CheckSubstring(startPosition, "cc_on"))
                                 {
                                     // if we have already turned on conditional compilation....
                                     if (m_preProcessorOn && EatUnnecessaryCCOn)
@@ -900,6 +888,36 @@ namespace Microsoft.Ajax.Utilities
             }
 
             m_currentToken.Token = token;
+        }
+
+        private bool CheckSubstring(int startIndex, string target)
+        {
+            for (int ndx = 0; ndx < target.Length; ++ndx)
+            {
+                if (target[ndx] != GetChar(startIndex + ndx))
+                {
+                    // no match
+                    return false;
+                }
+            }
+            // if we got here, the strings match
+            return true;
+        }
+
+        private bool CheckForTypeComments()
+        {
+            int pos = m_currentPos;
+
+            // skip the @ sign
+            if (GetChar(pos) == '@')
+            {
+                ++pos;
+            }
+
+            // check for "bind(" or "type(" or "returns("
+            return CheckSubstring(pos, "bind(")
+                || CheckSubstring(pos, "type(")
+                || CheckSubstring(pos, "returns(");
         }
 
         private char GetChar(int index)
@@ -2053,19 +2071,10 @@ namespace Microsoft.Ajax.Utilities
 
                     // check for ///#ENDDEBUG
                     case '/':
-                        if (GetChar(m_currentPos) == '/'
-                          && GetChar(++m_currentPos) == '/'
-                          && GetChar(++m_currentPos) == '#'
-                          && GetChar(++m_currentPos) == 'E'
-                          && GetChar(++m_currentPos) == 'N'
-                          && GetChar(++m_currentPos) == 'D'
-                          && GetChar(++m_currentPos) == 'D'
-                          && GetChar(++m_currentPos) == 'E'
-                          && GetChar(++m_currentPos) == 'B'
-                          && GetChar(++m_currentPos) == 'U'
-                          && GetChar(++m_currentPos) == 'G')
+                        if (CheckSubstring(m_currentPos, "//#ENDDEBUG"))
                         {
                             // found it -- bail
+                            m_currentPos += 11;
                             return;
                         }
 

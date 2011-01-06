@@ -109,5 +109,11 @@ namespace JSUnitTest
     {
         TestHelper.Instance.RunTest("-rename:all");
     }
+
+    [TestMethod]
+    public void TypeComments()
+    {
+        TestHelper.Instance.RunTest();
+    }
   }
 }

@@ -1,0 +1,1 @@
+﻿function myobj(foo){this.x=foo}function func1(x){var i=10;return x+i}function func2(x){var i=20;return""+x+i}function construct(foo){this.y=foo}
