@@ -1,0 +1,1 @@
+﻿var ticks=+new Date;function foo(){function a(){}ticks=(new a).getTime()}function bar(b){var c=+new Date(b),a=(new Date).getTime("foo"),d=a+ +new Date}var nextYear=new Date(+new Date+365*24*3.6e6)

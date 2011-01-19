@@ -12,3 +12,8 @@
         oType.sRootElementType,
         oType.sRootElementName);
 }
+
+function foo()
+{
+    return new Date(new Date().ToUTCString()); 
+}

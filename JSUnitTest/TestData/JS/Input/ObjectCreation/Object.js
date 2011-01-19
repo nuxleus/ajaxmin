@@ -2,6 +2,11 @@ function Func(p1)
 {
     var obj = new Object(1);    // argument causes not to crunch to object literal
     var foo = new Object();     // no argument; crunch to {}
+    var bar = new Object({      // one argument that is an object literal.
+        "bar": 42,              // just replace the constructor with the argument
+        "while": 16,            // (the constructor would just pass it through as-is anyway)
+        1     :      "bar"
+    });  
     
     var ack = {
       "bar" : "bar",            // string name; not identifier - will remove quotes

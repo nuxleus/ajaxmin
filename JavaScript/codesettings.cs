@@ -459,5 +459,10 @@ namespace Microsoft.Ajax.Utilities
         /// Remove unnecessary @cc_on statements
         /// </summary>
         RemoveUnnecessaryCCOnStatements             = 0x0000000008000000,
+
+        /// <summary>
+        /// Convert (new Date()).getTime() to +new Date
+        /// </summary>
+        DateGetTimeToUnaryPlus                      = 0x0000000010000000,
     }
 }

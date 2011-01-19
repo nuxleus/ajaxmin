@@ -80,5 +80,17 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest();
         }
+
+        [TestMethod]
+        public void DateGetTimeToUnaryPlus()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void DateGetTimeToUnaryPlus_H()
+        {
+            TestHelper.Instance.RunTest("-rename:all");
+        }
     }
 }

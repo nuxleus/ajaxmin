@@ -105,15 +105,40 @@ namespace Microsoft.Ajax.Utilities
                 Lookup lookup = m_func as Lookup;
                 if (lookup != null)
                 {
-                    if (lookup.Name == "Object" && (m_args == null || m_args.Count == 0)
+                    if (lookup.Name == "Object"
                         && Parser.Settings.IsModificationAllowed(TreeModifications.NewObjectToObjectLiteral))
                     {
-                        // replace our node with an object literal
-                        ObjectLiteral objLiteral = new ObjectLiteral(Context, Parser, null, null);
-                        if (Parent.ReplaceChild(this, objLiteral))
+                        // no arguments -- the Object constructor with no arguments is the exact same as an empty
+                        // object literal
+                        if (m_args == null || m_args.Count == 0)
                         {
-                            // and bail now. No need to recurse -- it's an empty literal
-                            return;
+                            // replace our node with an object literal
+                            ObjectLiteral objLiteral = new ObjectLiteral(Context, Parser, null, null);
+                            if (Parent.ReplaceChild(this, objLiteral))
+                            {
+                                // and bail now. No need to recurse -- it's an empty literal
+                                return;
+                            }
+                        }
+                        else if (m_args.Count == 1)
+                        {
+                            // one argument
+                            // check to see if it's an object literal.
+                            ObjectLiteral objectLiteral = m_args[0] as ObjectLiteral;
+                            if (objectLiteral != null)
+                            {
+                                // the Object constructor with an argument that is a JavaScript object merely returns the
+                                // argument. Since the argument is an object literal, it is by definition a JavaScript object
+                                // and therefore we can replace the constructor call with the object literal
+                                Parent.ReplaceChild(this, objectLiteral);
+
+                                // don't forget to recurse the object now
+                                objectLiteral.AnalyzeNode();
+
+                                // and then bail -- we don't want to process this call
+                                // operation any more; we've gotten rid of it
+                                return;
+                            }
                         }
                     }
                     else if (lookup.Name == "Array"
@@ -235,13 +260,48 @@ namespace Microsoft.Ajax.Utilities
             // call the base class to recurse
             base.AnalyzeNode();
 
-            // if this is a window.eval call, then we need to mark this scope as unknown just as
-            // we would if this was a regular eval call.
-            // (unless, of course, the parser settings say evals are safe)
-            // call AFTER recursing so we know the left-hand side properties have had a chance to
-            // lookup their fields to see if they are local or global
-            if (Parser.Settings.EvalTreatment != EvalTreatment.Ignore)
+            // call this AFTER recursing to give the fields a chance to resolve, because we only
+            // want to make this replacement if we are working on the global Date object.
+            if (!m_inBrackets && !m_isConstructor
+                && (m_args == null || m_args.Count == 0)
+                && member != null && string.CompareOrdinal(member.Name, "getTime") == 0
+                && Parser.Settings.IsModificationAllowed(TreeModifications.DateGetTimeToUnaryPlus))
             {
+                // this is not a constructor and it's not a brackets call, and there are no arguments.
+                // if the function is a member operation to "getTime" and the object of the member is a 
+                // constructor call to the global "Date" object (not a local), then we want to replace the call
+                // with a unary plus on the Date constructor. Converting to numeric type is the same as
+                // calling getTime, so it's the equivalent with much fewer bytes.
+                CallNode dateConstructor = member.Root as CallNode;
+                if (dateConstructor != null
+                    && dateConstructor.IsConstructor)
+                {
+                    // lookup for the predifined (not local) "Date" field
+                    Lookup lookup = dateConstructor.Function as Lookup;
+                    if (lookup != null && string.CompareOrdinal(lookup.Name, "Date") == 0
+                        && lookup.LocalField == null)
+                    {
+                        // this is in the pattern: (new Date()).getTime()
+                        // we want to replace it with +new Date
+                        // use the same date constructor node as the operand
+                        NumericUnary unary = new NumericUnary(Context, Parser, dateConstructor, JSToken.Plus);
+                            
+                        // replace us (the call to the getTime method) with this unary operator
+                        Parent.ReplaceChild(this, unary);
+
+                        // don't need to AnalyzeNode on the unary operator. The operand has already
+                        // been analyzed when we recursed, and the unary operator wouldn't do anything
+                        // special anyway (since the operand is not a numeric constant)
+                    }
+                }
+            }
+            else if (Parser.Settings.EvalTreatment != EvalTreatment.Ignore)
+            {
+                // if this is a window.eval call, then we need to mark this scope as unknown just as
+                // we would if this was a regular eval call.
+                // (unless, of course, the parser settings say evals are safe)
+                // call AFTER recursing so we know the left-hand side properties have had a chance to
+                // lookup their fields to see if they are local or global
                 if (member != null && string.CompareOrdinal(member.Name, "eval") == 0)
                 {
                     if (member.LeftHandSide.IsWindowLookup)
