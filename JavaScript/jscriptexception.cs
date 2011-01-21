@@ -357,6 +357,7 @@ namespace Microsoft.Ajax.Utilities
                         case JSError.NumericOverflow: return 1;
                         case JSError.NumericMaximum: return 4;
                         case JSError.NumericMinimum: return 4;
+                        case JSError.MisplacedFunctionDeclaration: return 2;
                     }
                 }
                 return 0;

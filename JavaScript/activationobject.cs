@@ -615,7 +615,7 @@ namespace Microsoft.Ajax.Utilities
                                         var numberOfNegatives = 0;
                                         foreach (ConstantWrapper constantWrapper in literalReference.ConstantWrapperList)
                                         {
-                                            if (JSConvert.ToNumber(constantWrapper.Value) < 0)
+                                            if (constantWrapper.ToNumber() < 0)
                                             {
                                                 ++numberOfNegatives;
                                             }
@@ -623,7 +623,7 @@ namespace Microsoft.Ajax.Utilities
 
                                         // now if more than half of the references are negative, we will want the generated value
                                         // to also be negative! Otherwise we want to force it to Positive.
-                                        var absoluteValue = Math.Abs(JSConvert.ToNumber(generatedValue));
+                                        var absoluteValue = Math.Abs((double)generatedValue);
                                         if (numberOfNegatives > literalReference.ConstantWrapperList.Count / 2)
                                         {
                                             // force it to negative
@@ -667,7 +667,7 @@ namespace Microsoft.Ajax.Utilities
                                         // operator on the lookup, not just the lookup.
                                         if (constantWrapper.IsNumericLiteral)
                                         {
-                                            if (JSConvert.ToNumber(generatedValue) == -JSConvert.ToNumber(constantWrapper.Value))
+                                            if ((double)generatedValue == -constantWrapper.ToNumber())
                                             {
                                                 // it has been negated! Change the replacement to a unary minus operator
                                                 // with the lookup as its operand

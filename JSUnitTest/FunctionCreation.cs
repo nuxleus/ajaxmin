@@ -94,5 +94,11 @@ namespace JSUnitTest
         {
           TestHelper.Instance.RunTest();
         }
-      }
+
+        [TestMethod()]
+        public void BadLocation()
+        {
+            TestHelper.Instance.RunTest();
+        }
+    }
 }

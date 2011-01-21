@@ -47,7 +47,7 @@ namespace Microsoft.Ajax.Utilities
                 && constantWrapper.IsNumericLiteral)
             {
                 // get the value of the constant
-                double doubleValue = JSConvert.ToNumber(constantWrapper.Value);
+                double doubleValue = constantWrapper.ToNumber();
 
                 // if this is a unary minus...
                 if (OperatorToken == JSToken.Minus

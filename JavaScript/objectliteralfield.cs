@@ -54,7 +54,7 @@ namespace Microsoft.Ajax.Utilities
             //base.AnalyzeNode();
         }
 
-        public override string ToString()
+        public override string ToCode(ToCodeFormat format)
         {
             if (m_canBeIdentifier)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.Ajax.Utilities
             else
             {
                 // doing the normal base class call puts quotes around the strings
-                return base.ToString();
+                return base.ToCode(format);
             }
         }
     }

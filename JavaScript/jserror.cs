@@ -94,6 +94,7 @@ namespace Microsoft.Ajax.Utilities
         AmbiguousNamedFunctionExpression = 1281, // "Ambiguous named function expression"
         ConditionalCompilationTooComplex = 1282, // "Conditiona compilation structure too complex"
 		UnterminatedAspNetBlock = 1283, // Unterminated asp.net block.
+        MisplacedFunctionDeclaration = 1284, // function declaration other than where SourceElements are expected
 
         //5000 - 6000 JScript errors that can occur during execution. Typically (also) used in "throw new JScriptException".
         IllegalAssignment = 5008, // "Illegal assignment"

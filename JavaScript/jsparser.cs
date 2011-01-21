@@ -272,7 +272,10 @@ namespace Microsoft.Ajax.Utilities
                         AstNode ast = null;
                         try
                         {
-                            ast = ParseStatement();
+                            // parse a statement -- pass true because we really want a SourceElement,
+                            // which is a Statement OR a FunctionDeclaration. Technically, FunctionDeclarations
+                            // are not statements!
+                            ast = ParseStatement(true);
                         }
                         catch (RecoveryTokenException exc)
                         {
@@ -359,7 +362,7 @@ namespace Microsoft.Ajax.Utilities
         // ParseStatement deals with the end of statement issue (EOL vs ';') so if any of the
         // ParseXXX routine does it as well, it should return directly from the switch statement
         // without any further execution in the ParseStatement
-        private AstNode ParseStatement()
+        private AstNode ParseStatement(bool fSourceElement)
         {
             AstNode statement = null;
             if (m_scanner.ImportantComment != null && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
@@ -433,13 +436,27 @@ namespace Microsoft.Ajax.Utilities
                     case JSToken.Try:
                         return ParseTryStatement();
                     case JSToken.Function:
-                        return ParseFunction(FunctionType.Declaration, m_currentToken.Clone()); //Parse a function as a statement
+                        // parse a function declaration
+                        FunctionObject function = ParseFunction(FunctionType.Declaration, m_currentToken.Clone());
+
+                        // now, if we aren't parsing source elements (directly in global scope or function body)
+                        // then we want to throw a warning that different browsers will treat this function declaration
+                        // differently. Technically, this location is not allowed. IE and most other browsers will 
+                        // simply treat it like every other function declaration in this scope. Firefox, however, won't
+                        // add this function declaration's name to the containing scope until the function declaration
+                        // is actually "executed." So if you try to call it BEFORE, you will get a "not defined" error.
+                        if (!fSourceElement)
+                        {
+                            ReportError(JSError.MisplacedFunctionDeclaration, function.IdContext, true);
+                        }
+
+                        return function;
                     case JSToken.Else:
                         ReportError(JSError.InvalidElse);
                         SkipTokensAndThrow();
                         break;
                     case JSToken.ConditionalCommentStart:
-                        return ParseStatementLevelConditionalComment();
+                        return ParseStatementLevelConditionalComment(fSourceElement);
                     case JSToken.ConditionalCompilationOn:
                         {
                             ConditionalCompilationOn ccOn = new ConditionalCompilationOn(m_currentToken.Clone(), this);
@@ -514,7 +531,7 @@ namespace Microsoft.Ajax.Utilities
                                                   this,
                                                   id,
                                                   labelNestCount,
-                                                  ParseStatement()
+                                                  ParseStatement(fSourceElement)
                                                   );
                                             }
                                             else
@@ -576,7 +593,7 @@ namespace Microsoft.Ajax.Utilities
             return statement;
         }
 
-        AstNode ParseStatementLevelConditionalComment()
+        AstNode ParseStatementLevelConditionalComment(bool fSourceElement)
         {
             Context context = m_currentToken.Clone();
             ConditionalCompilationComment conditionalComment = new ConditionalCompilationComment(context, this);
@@ -584,7 +601,7 @@ namespace Microsoft.Ajax.Utilities
             GetNextToken();
             while(m_currentToken.Token != JSToken.ConditionalCommentEnd)
             {
-                conditionalComment.Append(ParseStatement());
+                conditionalComment.Append(ParseStatement(fSourceElement));
             }
 
             GetNextToken();
@@ -703,7 +720,9 @@ namespace Microsoft.Ajax.Utilities
                     {
                         try
                         {
-                            codeBlock.Append(ParseStatement());
+                            // pass false because we really only want Statements, and FunctionDeclarations
+                            // are technically not statements. We'll still handle them, but we'll issue a warning.
+                            codeBlock.Append(ParseStatement(false));
                         }
                         catch (RecoveryTokenException exc)
                         {
@@ -1151,7 +1170,8 @@ namespace Microsoft.Ajax.Utilities
 
                 try
                 {
-                    trueBranch = ParseStatement();
+                    // parse a Statement, not a SourceElement
+                    trueBranch = ParseStatement(false);
                 }
                 catch (RecoveryTokenException exc)
                 {
@@ -1187,7 +1207,8 @@ namespace Microsoft.Ajax.Utilities
                     }
                     try
                     {
-                        falseBranch = ParseStatement();
+                        // parse a Statement, not a SourceElement
+                        falseBranch = ParseStatement(false);
                     }
                     catch (RecoveryTokenException exc)
                     {
@@ -1342,7 +1363,8 @@ namespace Microsoft.Ajax.Utilities
                     }
                     try
                     {
-                        body = ParseStatement();
+                        // parse a Statement, not a SourceElement
+                        body = ParseStatement(false);
                     }
                     catch (RecoveryTokenException exc)
                     {
@@ -1435,7 +1457,8 @@ namespace Microsoft.Ajax.Utilities
                     }
                     try
                     {
-                        body = ParseStatement();
+                        // parse a Statement, not a SourceElement
+                        body = ParseStatement(false);
                     }
                     catch (RecoveryTokenException exc)
                     {
@@ -1480,7 +1503,8 @@ namespace Microsoft.Ajax.Utilities
                 }
                 try
                 {
-                    body = ParseStatement();
+                    // parse a Statement, not a SourceElement
+                    body = ParseStatement(false);
                 }
                 catch (RecoveryTokenException exc)
                 {
@@ -1636,7 +1660,8 @@ namespace Microsoft.Ajax.Utilities
                 }
                 try
                 {
-                    body = ParseStatement();
+                    // parse a Statement, not a SourceElement
+                    body = ParseStatement(false);
                 }
                 catch (RecoveryTokenException exc)
                 {
@@ -1945,8 +1970,8 @@ namespace Microsoft.Ajax.Utilities
                 ScopeStack.Push(withScope);
                 try
                 {
-                    // parse a statement
-                    AstNode statement = ParseStatement();
+                    // parse a Statement, not a SourceElement
+                    AstNode statement = ParseStatement(false);
 
                     // but make sure we save it as a block
                     block = statement as Block;
@@ -2164,7 +2189,8 @@ namespace Microsoft.Ajax.Utilities
                                 {
                                     try
                                     {
-                                        statements.Append(ParseStatement());
+                                        // parse a Statement, not a SourceElement
+                                        statements.Append(ParseStatement(false));
                                     }
                                     catch (RecoveryTokenException exc)
                                     {
@@ -2507,7 +2533,7 @@ namespace Microsoft.Ajax.Utilities
         //    <empty> |
         //    Identifier, IdentifierList
         //---------------------------------------------------------------------------------------
-        private AstNode ParseFunction(FunctionType functionType, Context fncCtx)
+        private FunctionObject ParseFunction(FunctionType functionType, Context fncCtx)
         {
             Lookup name = null;
             List<ParameterDeclaration> formalParameters;
@@ -2677,7 +2703,8 @@ namespace Microsoft.Ajax.Utilities
                     {
                         try
                         {
-                            body.Append(ParseStatement());
+                            // function body's are SourceElements (Statements + FunctionDeclarations)
+                            body.Append(ParseStatement(true));
                         }
                         catch (RecoveryTokenException exc)
                         {

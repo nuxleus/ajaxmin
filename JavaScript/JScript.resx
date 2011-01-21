@@ -310,9 +310,15 @@
     <value>Resource reference must be single constant argument</value>
   </data>
   <data name="1281" xml:space="preserve">
-    <value>Ambiguous reference to named function expression;;Ambiguous reference to named function expression '{0}'. Cross-browser behavior difference.</value>
+    <value>Ambiguous reference to named function expression. Cross-browser behavior difference</value>
   </data>
   <data name="1282" xml:space="preserve">
     <value>Conditional compilation expression not supported. Comment ignored</value>
+  </data>
+  <data name="1283" xml:space="preserve">
+    <value>Unterminated ASP.NET block</value>
+  </data>
+  <data name="1284" xml:space="preserve">
+    <value>Function declaration should not be inside a statement. Cross-browser behavior difference</value>
   </data>
 </root>

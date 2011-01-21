@@ -171,6 +171,7 @@
     <Content Include="TestData\JS\Expected\Declarations\With.js" />
     <Content Include="TestData\JS\Expected\Declarations\With_H.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\Arguments.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\BadLocation.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\BadSemicolon.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\FuncExpr.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr.js" />
@@ -315,6 +316,7 @@
     <Content Include="TestData\JS\Input\Declarations\Var.js" />
     <Content Include="TestData\JS\Input\Declarations\With.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\Arguments.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\BadLocation.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\BadSemicolon.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\FuncExpr.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\NamedFuncExpr.js" />

@@ -73,10 +73,5 @@ namespace Microsoft.Ajax.Utilities
           );
       }
     }
-
-    internal static double ToNumber(Object value)
-    {
-      return System.Convert.ToDouble(value, CultureInfo.InvariantCulture);
-    }
   }
 }

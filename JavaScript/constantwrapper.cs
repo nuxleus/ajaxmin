@@ -35,6 +35,16 @@ namespace Microsoft.Ajax.Utilities
  | RegexOptions.Compiled
 #endif
 );
+        // this is a regular expression that we'll use to strip a leading "0x" from
+        // a string if we are trying to parse it into a number. also removes the leading
+        // and trailing spaces, while we're at it.
+        private static Regex s_hexNumberFormat = new Regex(
+          @"^\s*0X(?<hex>[0-9a-f]+)\s*$",
+          RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
+#if !SILVERLIGHT
+ | RegexOptions.Compiled
+#endif
+);
 
         private Object m_value;
         public Object Value
@@ -129,57 +139,7 @@ namespace Microsoft.Ajax.Utilities
             // this node has no children, so don't bother calling the base
         }
 
-        /*
-        private bool BreakStringLiteral(string stringValue, string target, int splitOffset)
-        {
-            int ndxClosing = stringValue.IndexOf(target, StringComparison.OrdinalIgnoreCase);
-            if (ndxClosing >= 0)
-            {
-                // break the string into two parts in the middle of the element
-                ConstantWrapper leftString = new ConstantWrapper(
-                  stringValue.Substring(0, ndxClosing + splitOffset),
-                  false,
-                  Context,
-                  Parser);
-
-                ConstantWrapper rightString = new ConstantWrapper(
-                  stringValue.Substring(ndxClosing + splitOffset),
-                  false,
-                  Context,
-                  Parser);
-
-                // create a binary operator that adds the two strings together
-                BinaryOperator concat = new BinaryOperator(
-                  Context,
-                  Parser,
-                  leftString,
-                  rightString,
-                  JSToken.Plus);
-
-                // replace this literal with the operator tree
-                if (Parent.ReplaceChild(this, concat))
-                {
-                    // analyze the strings separately because if we analyze the binaryop,
-                    // it could see the two string and re-combine them
-                    leftString.AnalyzeNode();
-                    rightString.AnalyzeNode();
-
-                    // successful replace
-                    return true;
-                }
-            }
-
-            // didn't replace it
-            return false;
-        }
-        */
-
         public override string ToCode(ToCodeFormat format)
-        {
-            return ToString();
-        }
-
-        public override String ToString()
         {
             string str;
             if (m_value == null)
@@ -259,7 +219,27 @@ namespace Microsoft.Ajax.Utilities
                 // weird number -- just return the uncrunched source code as-is. 
                 // we've should have already thrown an error alerting the developer 
                 // to the overflow mistake, and it might alter the code to change the value
-                return Context.Code;
+                if (Context != null && !string.IsNullOrEmpty(Context.Code))
+                {
+                    return Context.Code;
+                }
+
+                // Hmmm... don't have a context source. 
+                // Must be generated. Just generate the proper JS literal.
+                //
+                // DANGER! If we just output NaN and Infinity and -Infinity, that assumes
+                // that there aren't any local variables in this scope chain with that
+                // name and we're pulling the global values. Might want to use properties
+                // on the Number object!
+                if (double.IsPositiveInfinity(doubleValue))
+                {
+                    return "Infinity";
+                }
+                if (double.IsNegativeInfinity(doubleValue))
+                {
+                    return "-Infinity";
+                }
+                return "NaN";
             }
             else
             {
@@ -550,6 +530,166 @@ namespace Microsoft.Ajax.Utilities
             }
 
             return numberOfQuotes <= numberOfApostrophes;
+        }
+
+        public double ToNumber()
+        {
+            if (m_isNumericLiteral)
+            {
+                // pass-through the double as-is
+                return (double)m_value;
+            }
+            if (m_value == null)
+            {
+                // converting null to a number returns +0
+                return 0;
+            }
+            if (m_value.GetType() == typeof(bool))
+            {
+                // converting boolean to number: true is 1, false is +0
+                return (bool)m_value ? 1 : 0;
+            }
+            
+            // otherwise this must be a string
+            try
+            {
+                string stringValue = m_value.ToString();
+
+                // see if this is a hex number representation
+                Match match = s_hexNumberFormat.Match(stringValue);
+                if (match.Success)
+                {
+                    // parse the hexadecimal digits portion
+                    return double.Parse(match.Result("${hex}"), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    // not a hex number -- try doing a regular decimal float conversion
+                    return double.Parse(stringValue, NumberStyles.Float, CultureInfo.InvariantCulture);
+                }
+            }
+            catch (FormatException)
+            {
+                // string isn't a number, return NaN
+                return double.NaN;
+            }
+            catch (OverflowException)
+            {
+                // if the string starts with optional white-space followed by a minus sign,
+                // then it's a negative-infinity overflow. Otherwise it's a positive infinity overflow.
+                Regex negativeSign = new Regex(@"^\s*-");
+                return (negativeSign.IsMatch(m_value.ToString())) 
+                    ? double.NegativeInfinity 
+                    : double.PositiveInfinity;
+            }
+        }
+
+        public bool IsInteger()
+        {
+            return m_isNumericLiteral ? ToInteger() == (double)m_value : false;
+        }
+
+        public double ToInteger()
+        {
+            double value = ToNumber();
+            if (double.IsNaN(value))
+            {
+                // NaN returns +0
+                return 0;
+            }
+            if (value == 0 || double.IsInfinity(value))
+            {
+                // +0, -0, +Infinity and -Infinity return themselves unchanged
+                return value;
+            }
+            return Math.Floor(Math.Abs(value)) * Math.Sign(value);
+        }
+
+        public double ToInt32()
+        {
+            double value = ToNumber();
+            if (value == 0 || double.IsNaN(value) || double.IsInfinity(value))
+            {
+                // +0, -0, NaN, +Infinity and -Infinity all return +0
+                return 0;
+            }
+
+            // get the integer value, then MOD it with 2^32 to restrict to an unsigned 32-bit range.
+            // and then check that top bit to see if the value should be negative or not;
+            // if so, subtract 2^32 to get the negative value.
+            double posInt = Math.Floor(Math.Abs(value)) * Math.Sign(value);
+            double int32bit = posInt % 0x100000000;
+            return int32bit >= 0x80000000 ? int32bit - 0x100000000 : int32bit;
+        }
+
+        public double ToUInt32()
+        {
+            double value = ToNumber();
+            if (value == 0 || double.IsNaN(value) || double.IsInfinity(value))
+            {
+                // +0, -0, NaN, +Infinity and -Infinity all return +0
+                return 0;
+            }
+
+            // get the integer value, then MOD it with 2^32 to restrict to an unsigned 32-bit range.
+            double posInt = Math.Floor(Math.Abs(value)) * Math.Sign(value);
+            return posInt % 0x100000000;
+        }
+
+        public double ToUInt16()
+        {
+            double value = ToNumber();
+            if (value == 0 || double.IsNaN(value) || double.IsInfinity(value))
+            {
+                // +0, -0, NaN, +Infinity and -Infinity all return +0
+                return 0;
+            }
+
+            // get the integer value, then MOD it with 2^16 to restrict to an unsigned 16-bit range.
+            double posInt = Math.Floor(Math.Abs(value)) * Math.Sign(value);
+            return posInt % 0x10000;
+        }
+
+        public override string ToString()
+        {
+            // this function returns the STRING representation
+            // of this primitive value -- NOT the same as the CODE representation
+            // of this AST node.
+            if (m_value == null)
+            {
+                // null is just "null"
+                return "null";
+            }
+            if (m_value.GetType() == typeof(bool))
+            {
+                // boolean is "true" or "false"
+                return (bool)m_value ? "true" : "false";
+            }
+            if (m_isNumericLiteral)
+            {
+                // handle some special values, otherwise just fall through
+                // to the default ToString implementation
+                double doubleValue = (double)m_value;
+                if (doubleValue == 0)
+                {
+                    return "0";
+                }
+                if (double.IsNaN(doubleValue))
+                {
+                    return "NaN";
+                }
+                if (double.IsPositiveInfinity(doubleValue))
+                {
+                    return "Infinity";
+                }
+                if (double.IsNegativeInfinity(doubleValue))
+                {
+                    return "-Infinity";
+                }
+            }
+
+            // otherwise this must be a string or a regular double
+            return m_value.ToString();
         }
     }
 }
