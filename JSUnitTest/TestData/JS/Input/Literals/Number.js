@@ -38,3 +38,7 @@ var b = 123456789012345678901 + 12345678901234567891;
 // the index is just Number.POSITIVE_INFINITY.
 var obj = {1e969: "pos inf"};
 
+// this would be formatted to e-notation as 7.2e6 - but we can squeeze another byte out of it
+// by getting rid of the decimal point: 72e5
+var foo = 7200000;
+

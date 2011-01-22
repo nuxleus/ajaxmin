@@ -29,7 +29,17 @@ namespace Microsoft.Ajax.Utilities
         // and they will use a plus-sign after the E that can be left off. And they might have leading
         // zeros for the exponent value. So for instance, 1.23456E+05 can be changed to 1.23456e5. 
         private static Regex s_exponentReplacement = new Regex(
-          "E[+]?(?<s>-?)0*",
+          @"E\+?(?<s>-?)0*",
+          RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
+#if !SILVERLIGHT
+ | RegexOptions.Compiled
+#endif
+);
+        // this is a regular expression that we'll use to minify the exponent by
+        // getting rid of the decimal point and adding (if the exponent is positive)
+        // or subtracting (if the exponent is negative) the number of digits. 
+        private static Regex s_minExp = new Regex(
+          @"^(?<mag>-?\d*)(?<man>\.\d*)e(?<exp>-?\d*)$",
           RegexOptions.IgnoreCase | RegexOptions.CultureInvariant
 #if !SILVERLIGHT
  | RegexOptions.Compiled
@@ -249,13 +259,13 @@ namespace Microsoft.Ajax.Utilities
                 {
                     // already an exponent. If the sign is positive, then we can strip it out.
                     // we want the "E" to be lower-case "e", and we want to leave off the plus in "e+"
-                    normal = s_exponentReplacement.Replace(normal, "e$1");
+                    normal = MinifyExponent(s_exponentReplacement.Replace(normal, "e$1"));
                 }
                 else
                 {
                     // the normal is not an exponent-syntax value already.
                     // check to see if exponent-syntax is shorter
-                    string exp = doubleValue.ToString("#.########################e-0", CultureInfo.InvariantCulture);
+                    string exp = MinifyExponent(doubleValue.ToString("#.########################e-0", CultureInfo.InvariantCulture));
                     if (exp.Length < normal.Length)
                     {
                         normal = exp;
@@ -275,6 +285,38 @@ namespace Microsoft.Ajax.Utilities
                 }
                 return normal;
             }
+        }
+
+        private string MinifyExponent(string exp)
+        {
+            Match match = s_minExp.Match(exp);
+            if (match.Success)
+            {
+                // get the mantissa
+                string mantissa = match.Result("${man}");
+
+                // the number of digits is the length less one (since the decimal point
+                // should be the first character)
+                int numDigits = mantissa.Length - 1;
+
+                // get the exponent (which includes the sign) and try converting to integer.
+                // this SHOULD work, but IF it doesn't, don't change the string.
+                string exponentText = match.Result("${exp}");
+                int exponent;
+                if (int.TryParse(exponentText, NumberStyles.Integer, CultureInfo.InvariantCulture, out exponent))
+                {
+                    // we are going to subtract the number of digits we are going to move the decimal to the left from the
+                    // current exponent, then format the number back together again
+                    string newExp = string.Format(CultureInfo.InvariantCulture, match.Result("${mag}") + mantissa.Substring(1) + "e{0:D}", exponent - numDigits);
+
+                    // only use this new string if it actually gets us anything
+                    if (newExp.Length < exp.Length)
+                    {
+                        exp = newExp;
+                    }
+                }
+            }
+            return exp;
         }
 
         private static string StripLeadingZero(string stringValue)
