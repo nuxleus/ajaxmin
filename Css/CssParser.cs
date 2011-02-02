@@ -276,7 +276,7 @@ namespace Microsoft.Ajax.Utilities
                 // change the various hacks to important comments so they will be kept
                 // in the output
                 source = s_regexHack1.Replace(source, "/*! \\*/${inner}/*!*/");
-                source = s_regexHack2.Replace(source, "/*!/*//*/${inner}/*!*/");
+                source = s_regexHack2.Replace(source, "/*!/*//*/${inner}/**/");
                 source = s_regexHack3.Replace(source, "/*!/*/${inner}/*!*/");
                 source = s_regexHack4.Replace(source, c_hack4SpecialComment); // this one is a bit of a hack
                 source = s_regexHack5.Replace(source, "/*!*/");
@@ -3073,10 +3073,13 @@ namespace Microsoft.Ajax.Utilities
             if (source == c_hack4SpecialComment)
             {
                 // add a whitespace and empty the comment
-                return " /**/";
+                // but keep the exclamation point so it's still an important comment
+                return " /*!*/";
             }
-            // otherwise we just want to get rid of the exclamation point
-            return "/*" + source.Substring(3);
+            // otherwise return the string.
+            // don't get rid of the exclamation point after all;
+            // we want the comment to remain an important comment
+            return source;
         }
         #endregion
 

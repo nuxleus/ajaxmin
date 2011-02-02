@@ -11,7 +11,7 @@
 body
 { 
     /*! \*/background-color: black;/*!*/ /* hide from mac ie */
-    /*!/*//*/background-color: red;/*!*/ /* NS4 and Opera5 only */
+    /*!/*//*!/background-color: red;/**/ /* NS4 and Opera5 only */
     /*!/*/background-color: blue; /*!*/ /* hide from NS4, Opera5 */
     background-color /*!ADD_WS_BEFORE_COMMENT*/: yellow; /* hide for IE6 */
     background-color:/*!*/silver; /* hide from IE5.5 */

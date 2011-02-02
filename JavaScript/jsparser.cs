@@ -1416,8 +1416,7 @@ namespace Microsoft.Ajax.Utilities
                             if (JSToken.Semicolon != m_currentToken.Token)
                                 ReportError(JSError.NoSemicolon);
                         }
-                        else
-                            condOrColl = new ConstantWrapper(true, false, CurrentPositionContext(), this);
+
                         GetNextToken();
                         if (JSToken.RightParenthesis != m_currentToken.Token)
                             increment = ParseExpression();
