@@ -321,4 +321,7 @@
   <data name="1284" xml:space="preserve">
     <value>Function declaration should not be inside a statement. Cross-browser behavior difference</value>
   </data>
+  <data name="1285" xml:space="preserve">
+    <value>Octal literals are deprecated. Possible cross-browser behavior difference</value>
+  </data>
 </root>

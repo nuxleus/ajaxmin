@@ -29,8 +29,8 @@ namespace Microsoft.Ajax.Utilities
         // anything that doesn't match this pattern will just have quotes put around it.
         //private static Regex s_identifierFormat = new Regex(@"^[a-zA-Z_\$][a-zA-Z_\$0-9]*$");
 
-        public ObjectLiteralField(Object value, bool isNumericLiteral, Context context, JSParser parser)
-            : base(value, isNumericLiteral, context, parser)
+        public ObjectLiteralField(Object value, PrimitiveType primitiveType, Context context, JSParser parser)
+            : base(value, primitiveType, context, parser)
         {
             // if the value is a string, then we might be able to remove the quotes
             // if it's a simple identifier format and not a keyword.

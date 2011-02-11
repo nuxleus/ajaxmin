@@ -89,12 +89,23 @@ namespace Microsoft.Ajax.Utilities
         private FunctionScope m_functionScope;
         public FunctionScope FunctionScope { get { return m_functionScope; } }
 
+        public override ActivationObject EnclosingScope
+        {
+            get
+            {
+                return m_functionScope;
+            }
+        }
+
         public FunctionObject(Lookup identifier, JSParser parser, FunctionType functionType, ParameterDeclaration[] parameterDeclarations, Block bodyBlock, Context functionContext, FunctionScope functionScope)
             : base(functionContext, parser)
         {
             FunctionType = functionType;
             m_functionScope = functionScope;
-            functionScope.FunctionObject = this;
+            if (functionScope != null)
+            {
+                functionScope.FunctionObject = this;
+            }
 
             m_name = string.Empty;
             m_identifier = identifier;
@@ -105,9 +116,6 @@ namespace Microsoft.Ajax.Utilities
 
             Body = bodyBlock;
             if (bodyBlock != null) { bodyBlock.Parent = this; }
-
-            m_functionScope = functionScope;
-            m_functionScope.FunctionObject = this;
 
             // now we need to make sure that the enclosing scope has the name of this function defined
             // so that any references get properly resolved once we start analyzing the parent scope
@@ -289,7 +297,7 @@ namespace Microsoft.Ajax.Utilities
                 ScopeStack.Pop();
             }
             */
-            throw new NotImplementedException("FunctionObject.Clone not implemented");
+            throw new NotImplementedException();
         }
 
         internal bool IsReferenced(int fieldRefCount)
@@ -461,7 +469,14 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(')');
                 if (Body != null)
                 {
-                    sb.Append(Body.ToCode(ToCodeFormat.AlwaysBraces));
+                    if (Body.Count == 0)
+                    {
+                        sb.Append("{}");
+                    }
+                    else
+                    {
+                        sb.Append(Body.ToCode(ToCodeFormat.AlwaysBraces));
+                    }
                 }
 
                 if (LeftHandFunctionExpression)

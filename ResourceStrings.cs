@@ -56,14 +56,17 @@ namespace Microsoft.Ajax.Utilities
         {
             m_properties = new Dictionary<string, object>();
 
-            // use the IDictionaryEnumerator to add properties to the collection
-            while (enumerator.MoveNext())
+            if (enumerator != null)
             {
-                // get the property name
-                string propertyName = enumerator.Key.ToString();
+                // use the IDictionaryEnumerator to add properties to the collection
+                while (enumerator.MoveNext())
+                {
+                    // get the property name
+                    string propertyName = enumerator.Key.ToString();
 
-                // set the name/value in the resource object
-                m_properties[propertyName] = enumerator.Value;
+                    // set the name/value in the resource object
+                    m_properties[propertyName] = enumerator.Value;
+                }
             }
         }
 

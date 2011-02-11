@@ -116,7 +116,7 @@ namespace Microsoft.Ajax.Utilities
                     // see if the string resource contains this value
                     ConstantWrapper stringLiteral = new ConstantWrapper(
                         resourceStrings[Name],
-                        false,
+                        PrimitiveType.String,
                         Context,
                         Parser
                         );

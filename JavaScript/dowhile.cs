@@ -23,16 +23,16 @@ namespace Microsoft.Ajax.Utilities
 
     public sealed class DoWhile : AstNode
     {
-        private Block m_body;
-        private AstNode m_condition;
+        public Block Body { get; set; }
+        public AstNode Condition {get; set;}
 
         public DoWhile(Context context, JSParser parser, AstNode body, AstNode condition)
             : base(context, parser)
         {
-            m_body = ForceToBlock(body);
-            m_condition = condition;
-            if (m_body != null) m_body.Parent = this;
-            if (m_condition != null) m_condition.Parent = this;
+            Body = ForceToBlock(body);
+            Condition = condition;
+            if (Body != null) Body.Parent = this;
+            if (Condition != null) Condition.Parent = this;
         }
 
         public override AstNode Clone()
@@ -40,8 +40,8 @@ namespace Microsoft.Ajax.Utilities
             return new DoWhile(
               (Context == null ? null : Context.Clone()),
               Parser,
-              (m_body == null ? null : m_body.Clone()),
-              (m_condition == null ? null : m_condition.Clone())
+              (Body == null ? null : Body.Clone()),
+              (Condition == null ? null : Condition.Clone())
               );
         }
 
@@ -51,19 +51,19 @@ namespace Microsoft.Ajax.Utilities
             // just a debugger statement, replace it with a null
             if (Parser.Settings.StripDebugStatements
                  && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
-                 && m_body != null 
-                 && m_body.IsDebuggerStatement)
+                 && Body != null 
+                 && Body.IsDebuggerStatement)
             {
-                m_body = null;
+                Body = null;
             }
 
             // recurse
             base.AnalyzeNode();
 
             // if the body is now empty, make it null
-            if (m_body != null && m_body.Count == 0)
+            if (Body != null && Body.Count == 0)
             {
-                m_body = null;
+                Body = null;
             }
         }
 
@@ -71,28 +71,28 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_body != null)
+                if (Body != null)
                 {
-                    yield return m_body;
+                    yield return Body;
                 }
-                if (m_condition != null)
+                if (Condition != null)
                 {
-                    yield return m_condition;
+                    yield return Condition;
                 }
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_body == oldNode)
+            if (Body == oldNode)
             {
-                m_body = ForceToBlock(newNode);
-                if (m_body != null) { m_body.Parent = this; }
+                Body = ForceToBlock(newNode);
+                if (Body != null) { Body.Parent = this; }
                 return true;
             }
-            if (m_condition == oldNode)
+            if (Condition == oldNode)
             {
-                m_condition = newNode;
+                Condition = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
@@ -113,24 +113,24 @@ namespace Microsoft.Ajax.Utilities
             StringBuilder sb = new StringBuilder();
             sb.Append("do");
 
-            ToCodeFormat bodyFormat = ((m_body != null
-              && m_body.Count == 1
-              && m_body[0].GetType() == typeof(DoWhile))
+            ToCodeFormat bodyFormat = ((Body != null
+              && Body.Count == 1
+              && Body[0].GetType() == typeof(DoWhile))
               ? ToCodeFormat.AlwaysBraces
               : ToCodeFormat.Normal
               );
 
             // if the body is a single statement that ends in a do-while, then we
             // will need to wrap the body in curly-braces to get around an IE bug
-            if (m_body != null && m_body.EncloseBlock(EncloseBlockType.SingleDoWhile))
+            if (Body != null && Body.EncloseBlock(EncloseBlockType.SingleDoWhile))
             {
                 bodyFormat = ToCodeFormat.AlwaysBraces;
             }
 
             string bodyString = (
-              m_body == null
+              Body == null
               ? string.Empty
-              : m_body.ToCode(bodyFormat)
+              : Body.ToCode(bodyFormat)
               );
             if (bodyString.Length == 0)
             {
@@ -149,8 +149,8 @@ namespace Microsoft.Ajax.Utilities
                 // if there is no body, we need a semi-colon
                 // OR if we didn't always wrap in braces AND we require a separator, we need a semi-colon.
                 // and make sure it doesn't already end in a semicolon -- we don't want two in a row.
-                if (m_body == null
-                    || (bodyFormat != ToCodeFormat.AlwaysBraces && m_body.RequiresSeparator && !bodyString.EndsWith(";", StringComparison.Ordinal)))
+                if (Body == null
+                    || (bodyFormat != ToCodeFormat.AlwaysBraces && Body.RequiresSeparator && !bodyString.EndsWith(";", StringComparison.Ordinal)))
                 {
                     sb.Append(';');
                 }
@@ -161,9 +161,34 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(' ');
             }
             sb.Append("while(");
-            sb.Append(m_condition.ToCode());
+            sb.Append(Condition.ToCode());
             sb.Append(")");
             return sb.ToString();
+        }
+
+        public override void CleanupNodes()
+        {
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                // if the condition is a constant, we can simplify things
+                ConstantWrapper constantCondition = Condition as ConstantWrapper;
+                if (constantCondition != null && constantCondition.IsNotOneOrPositiveZero)
+                {
+                    try
+                    {
+                        // the condition is a constant, so it is always either true or false
+                        // we can replace the condition with a one or a zero -- only one byte
+                        Condition = new ConstantWrapper(constantCondition.ToBoolean() ? 1 : 0, PrimitiveType.Number, null, Parser);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // ignore any invalid cast errors
+                    }
+                }
+            }
         }
     }
 }

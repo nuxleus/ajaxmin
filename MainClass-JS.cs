@@ -49,6 +49,9 @@ namespace Microsoft.Ajax.Utilities
         // parent scopes
         private EvalTreatment m_evalTreatment = EvalTreatment.Ignore;
 
+        // whether or not to evaluate literal expressions
+        private bool m_evalLiteralExpressions = true;
+
         /// <summary>
         /// List of expected global variables we don't want to assume are undefined
         /// </summary>
@@ -146,6 +149,7 @@ namespace Microsoft.Ajax.Utilities
             CodeSettings settings = new CodeSettings();
             settings.CollapseToLiteral = m_collapseToLiteral;
             settings.CombineDuplicateLiterals = m_combineDuplicateLiterals;
+            settings.EvalLiteralExpressions = m_evalLiteralExpressions;
             settings.EvalTreatment = m_evalTreatment;
             settings.IndentSize = m_indentSize;
             settings.InlineSafeStrings = m_safeForInline;
@@ -979,18 +983,36 @@ namespace Microsoft.Ajax.Utilities
 
             public int Compare(UndefinedReferenceException left, UndefinedReferenceException right)
             {
+                // first do the right thing if one or both are null
+                if (left == null && right == null)
+                {
+                    // both null -- equal
+                    return 0;
+                }
+
+                if (left == null)
+                {
+                    // left is null, right is not -- left is less
+                    return -1;
+                }
+
+                if (right == null)
+                {
+                    // left is not null, right is -- left is more
+                    return 1;
+                }
+
+                // neither are null
                 int comparison = string.Compare(left.ToString(), right.ToString(), StringComparison.OrdinalIgnoreCase);
                 if (comparison == 0)
                 {
-                    if (left != null && right != null)
+                    comparison = left.Line - right.Line;
+                    if (comparison == 0)
                     {
-                        comparison = left.Line - right.Line;
-                        if (comparison == 0)
-                        {
-                            comparison = left.Column - right.Column;
-                        }
+                        comparison = left.Column - right.Column;
                     }
                 }
+
                 return comparison;
             }
 

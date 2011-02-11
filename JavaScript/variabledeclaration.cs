@@ -92,10 +92,22 @@ namespace Microsoft.Ajax.Utilities
                 // has already been marked ambiguous
                 if (field.IsAmbiguous || field.FieldValue is FunctionObject)
                 {
-                    idContext.HandleError(
-                     JSError.AmbiguousNamedFunctionExpression,
-                     true
-                     );
+                    if (idContext != null)
+                    {
+                        idContext.HandleError(
+                            JSError.AmbiguousNamedFunctionExpression,
+                            true
+                            );
+                    }
+                    else if (context != null)
+                    {
+                        // not identifier context???? Try the whole statment context.
+                        // if neither context is set, then we don't get an error!
+                        context.HandleError(
+                            JSError.AmbiguousNamedFunctionExpression,
+                            true
+                            );
+                    }
 
                     // if we are preserving function names, then we need to mark this field
                     // as not crunchable
@@ -104,10 +116,18 @@ namespace Microsoft.Ajax.Utilities
                         field.CanCrunch = false;
                     }
                 }
-                else
+                else if (idContext != null)
                 {
                     // otherwise just a normal duplicate error
                     idContext.HandleError(
+                      JSError.DuplicateName,
+                      field.IsLiteral
+                      );
+                }
+                else if (context != null)
+                {
+                    // otherwise just a normal duplicate error
+                    context.HandleError(
                       JSError.DuplicateName,
                       field.IsLiteral
                       );

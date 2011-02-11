@@ -744,8 +744,8 @@ namespace Microsoft.Ajax.Utilities
 
             // we have an optional word ONLY or NOT -- they will show up as identifiers here
             if (CurrentTokenType == TokenType.Identifier &&
-                (string.Compare(CurrentTokenText, "ONLY", StringComparison.InvariantCultureIgnoreCase) == 0
-                || string.Compare(CurrentTokenText, "NOT", StringComparison.InvariantCultureIgnoreCase) == 0))
+                (string.Compare(CurrentTokenText, "ONLY", StringComparison.OrdinalIgnoreCase) == 0
+                || string.Compare(CurrentTokenText, "NOT", StringComparison.OrdinalIgnoreCase) == 0))
             {
                 // if this is the first query, the last thing we output was @media, which will need a separator.
                 // if it's not the first, the last thing was a comma, so no space is needed.
@@ -804,9 +804,9 @@ namespace Microsoft.Ajax.Utilities
             // OR we have an *identifier* AND (and followed by space)
             // OR we have a *function* AND (and followed by the opening paren, scanned as a function)
             while ((CurrentTokenType == TokenType.Identifier
-                && string.Compare(CurrentTokenText, "AND", StringComparison.InvariantCultureIgnoreCase) == 0)
+                && string.Compare(CurrentTokenText, "AND", StringComparison.OrdinalIgnoreCase) == 0)
                 || (CurrentTokenType == TokenType.Function
-                && string.Compare(CurrentTokenText, "AND(", StringComparison.InvariantCultureIgnoreCase) == 0))
+                && string.Compare(CurrentTokenText, "AND(", StringComparison.OrdinalIgnoreCase) == 0))
             {
                 // if we might need a space, output it now
                 if (mightNeedSpace || Settings.ExpandOutput)
@@ -2192,9 +2192,6 @@ namespace Microsoft.Ajax.Utilities
                     // Start the parenLevel at 0 because the "expression(" token contains the first paren.
                     var jsBuilder = new StringBuilder();
                     int parenLevel = 0;
-
-                    // save the position of the start of the expression
-                    Position startOfExpression = m_currentToken.Context.Start;
 
                     while (!m_scanner.EndOfFile
                       && (CurrentTokenType != TokenType.Character

@@ -29,7 +29,10 @@ namespace Microsoft.Ajax.Utilities
         {
             m_variableName = variableName;
             m_value = value;
-            m_value.Parent = this;
+            if (m_value != null)
+            {
+                m_value.Parent = this;
+            }
         }
 
         public override AstNode Clone()

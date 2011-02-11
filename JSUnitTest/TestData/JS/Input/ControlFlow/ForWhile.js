@@ -27,9 +27,14 @@ function Func(p1)
     {
         break;
     }
+
+    var a = 10;
+    var b;
+    var c = 42;
     while(1)
     {
-        break;
+        if (++a > c)
+            break;
     }
     
     // empty body on the while

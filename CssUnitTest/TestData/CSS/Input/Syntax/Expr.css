@@ -7,4 +7,5 @@
 	overflow:hidden;
 	color:blue;
 	padding:0px 0px 4px 0px;
+	width:expression( document.body.clientWidth > 800 ? "800px" : "auto" );
 }

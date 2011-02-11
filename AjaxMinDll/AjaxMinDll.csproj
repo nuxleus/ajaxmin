@@ -208,9 +208,6 @@
     <Compile Include="..\JavaScript\continue.cs">
       <Link>JavaScript\continue.cs</Link>
     </Compile>
-    <Compile Include="..\JavaScript\convert.cs">
-      <Link>JavaScript\convert.cs</Link>
-    </Compile>
     <Compile Include="..\JavaScript\crunchenumerator.cs">
       <Link>JavaScript\crunchenumerator.cs</Link>
     </Compile>

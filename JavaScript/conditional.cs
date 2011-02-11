@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -181,6 +182,32 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(')');
             }
             return sb.ToString();
+        }
+
+        public override void CleanupNodes()
+        {
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                // if the condition is a literal, evaluating the condition doesn't do anything, AND
+                // we know now whether it's true or not.
+                ConstantWrapper literalCondition = m_condition as ConstantWrapper;
+                if (literalCondition != null)
+                {
+                    try
+                    {
+                        // if the boolean represenation of the literal is true, we can replace the condition operator
+                        // with the true expression; otherwise we can replace it with the false expression
+                        Parent.ReplaceChild(this, literalCondition.ToBoolean() ? m_trueExpression : m_falseExpression);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // ignore any invalid cast errors
+                    }
+                }
+            }
         }
     }
 }

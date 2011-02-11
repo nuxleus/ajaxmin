@@ -28,7 +28,8 @@ namespace Microsoft.Ajax.Utilities
         Parentheses,
         Semicolons,
         NestedTry,
-        Preprocessor
+        Preprocessor,
+        ElseIf
     }
 
     internal enum EncloseBlockType
@@ -42,7 +43,6 @@ namespace Microsoft.Ajax.Utilities
         public AstNode Parent { get; set; }
         public Context Context { get; set; }
         public JSParser Parser { get; private set; }
-        public ActivationObject ParentScope { get; set; }
 
         protected AstNode(Context context, JSParser parser)
         {
@@ -56,11 +56,6 @@ namespace Microsoft.Ajax.Utilities
                 // generate a bogus context
                 Context = new Context(parser);
             }
-
-            // save the current scope in the scope stack at creation.
-            // NOTE: this isn't necessarily the actual parent scope. we're assuming
-            // the node is being created with the proper scope stack being correct
-            ParentScope = ScopeStack.Peek();
         }
 
         internal Stack<ActivationObject> ScopeStack { get { return Parser.ScopeStack; } }
@@ -174,6 +169,16 @@ namespace Microsoft.Ajax.Utilities
             {
                 // default is just to return ourselves
                 return this;
+            }
+        }
+
+        public virtual ActivationObject EnclosingScope
+        {
+            get
+            {
+                // if we don't have a parent, then we are in the global scope.
+                // otherwise, just ask our parent. Nodes with scope will override this property.
+                return Parent != null ? Parent.EnclosingScope : Parser.GlobalScope;
             }
         }
     }

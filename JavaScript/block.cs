@@ -37,6 +37,14 @@ namespace Microsoft.Ajax.Utilities
             set { m_blockScope = value; }
         }
 
+        public override ActivationObject EnclosingScope
+        {
+            get
+            {
+                return m_blockScope != null ? m_blockScope : base.EnclosingScope;
+            }
+        }
+
         public Block(Context context, JSParser parser)
             : base(context, parser)
         {
@@ -584,6 +592,20 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public int StatementIndex(AstNode childNode)
+        {
+            // find childNode in our collection of statements
+            for (var ndx = 0; ndx < m_list.Count; ++ndx)
+            {
+                if (m_list[ndx] == childNode)
+                {
+                    return ndx;
+                }
+            }
+            // if we got here, then childNode is not a statement in our collection!
+            return -1;
+        }
+
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
             for (int ndx = m_list.Count - 1; ndx >= 0; --ndx)
@@ -597,8 +619,20 @@ namespace Microsoft.Ajax.Utilities
                     }
                     else
                     {
-                        m_list[ndx] = newNode;
-                        newNode.Parent = this;
+                        Block newBlock = newNode as Block;
+                        if (newBlock != null)
+                        {
+                            // the new "statement" is a block. That means we need to insert all
+                            // the statements from the new block at the location of the old item.
+                            m_list.RemoveAt(ndx);
+                            m_list.InsertRange(ndx, newBlock.m_list);
+                        }
+                        else
+                        {
+                            // not a block -- slap it in there
+                            m_list[ndx] = newNode;
+                            newNode.Parent = this;
+                        }
                     }
                     return true;
                 }
@@ -636,7 +670,7 @@ namespace Microsoft.Ajax.Utilities
                     sb.Append("{");
                     closeBrace = true;
                 }
-                else if (m_list.Count == 1)
+                else if (m_list.Count == 1 && format != ToCodeFormat.ElseIf)
                 {
                     // we're pretty-printing a single-line block.
                     // we still won't enclose in brackets, but we need to indent it
@@ -670,7 +704,13 @@ namespace Microsoft.Ajax.Utilities
                     string itemText = item.ToCode();
                     if (itemText.Length > 0)
                     {
-                        Parser.Settings.NewLine(sb);
+                        // if this is an else-if construct, we don't want to break to a new line.
+                        // but all other formats put the next statement on a newline
+                        if (format != ToCodeFormat.ElseIf)
+                        {
+                            Parser.Settings.NewLine(sb);
+                        }
+
                         if (mightNeedSpace && JSScanner.IsValidIdentifierPart(itemText[0]))
                         {
                             sb.Append(' ');
@@ -707,8 +747,11 @@ namespace Microsoft.Ajax.Utilities
 
         public void Append(AstNode element)
         {
-            element.Parent = this;
-            m_list.Add(element);
+            if (element != null)
+            {
+                element.Parent = this;
+                m_list.Add(element);
+            }
         }
 
         /* FxCop error -- unreferenced method
@@ -725,8 +768,11 @@ namespace Microsoft.Ajax.Utilities
 
         public void Insert(int position, AstNode item)
         {
-            item.Parent = this;
-            m_list.Insert(position, item);
+            if (item != null)
+            {
+                item.Parent = this;
+                m_list.Insert(position, item);
+            }
         }
 
         internal void RemoveLast()

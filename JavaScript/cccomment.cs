@@ -47,8 +47,11 @@ namespace Microsoft.Ajax.Utilities
 
         public void Append(AstNode statement)
         {
-            Context.UpdateWith(statement.Context);
-            m_statements.Append(statement);
+            if (statement != null)
+            {
+                Context.UpdateWith(statement.Context);
+                m_statements.Append(statement);
+            }
         }
 
         public override IEnumerable<AstNode> Children

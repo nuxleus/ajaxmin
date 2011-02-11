@@ -615,6 +615,8 @@ namespace Microsoft.Ajax.Utilities
                                         var numberOfNegatives = 0;
                                         foreach (ConstantWrapper constantWrapper in literalReference.ConstantWrapperList)
                                         {
+                                            // since the model us numeric, we shouldn't have any problems calling the
+                                            // ToNumber method on the others (which should all also be numeric)
                                             if (constantWrapper.ToNumber() < 0)
                                             {
                                                 ++numberOfNegatives;
@@ -641,7 +643,7 @@ namespace Microsoft.Ajax.Utilities
                                         specialName,
                                         new ConstantWrapper(
                                             generatedValue,
-                                            modelConstant.IsNumericLiteral,
+                                            modelConstant.PrimitiveType,
                                             modelConstant.Context,
                                             Parser),
                                         true);
@@ -667,6 +669,8 @@ namespace Microsoft.Ajax.Utilities
                                         // operator on the lookup, not just the lookup.
                                         if (constantWrapper.IsNumericLiteral)
                                         {
+                                            // since the constant wrapper is numeric, we shouldn't have any problems
+                                            // calling ToNumber
                                             if ((double)generatedValue == -constantWrapper.ToNumber())
                                             {
                                                 // it has been negated! Change the replacement to a unary minus operator
@@ -684,7 +688,7 @@ namespace Microsoft.Ajax.Utilities
 
                                         // set up the lookup's outer local field using the scope of the
                                         // original constant wrapper
-                                        lookup.SetOuterLocalField(constantWrapper.ParentScope);
+                                        lookup.SetOuterLocalField(constantWrapper.EnclosingScope);
 
                                         // and remove it from the list. This is so child scopes don't also try to
                                         // add a shortcut -- the list will be empty.

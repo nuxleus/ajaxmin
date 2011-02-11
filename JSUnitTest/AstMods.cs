@@ -92,5 +92,53 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest("-rename:all");
         }
+
+        [TestMethod]
+        public void LiteralExpressions()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void LiteralsToLeft()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void LiteralsFarToLeft()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void LiteralsToRight()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void LiteralsFarToRight()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void SimplifyStrToNum()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void SimplifyStrToNum_noeval()
+        {
+            TestHelper.Instance.RunTest("-literals:noeval");
+        }
+
+        [TestMethod]
+        public void LiteralOverflows()
+        {
+            TestHelper.Instance.RunTest();
+        }
     }
 }

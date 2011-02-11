@@ -46,7 +46,7 @@ namespace Microsoft.Ajax.Utilities
             m_name = identifier;
             m_context = (context != null ? context : new Context(parser));
 
-            FunctionScope functionScope = parser.ScopeStack.Peek() as FunctionScope;
+            FunctionScope functionScope = parser != null ? parser.ScopeStack.Peek() as FunctionScope : null;
             if (functionScope != null)
             {
                 if (functionScope.NameTable.ContainsKey(m_name))

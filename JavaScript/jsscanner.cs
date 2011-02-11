@@ -112,17 +112,20 @@ namespace Microsoft.Ajax.Utilities
             // get the index into the keywords array by taking the first letter of the string
             // and subtracting the character 'a' from it. Use a negative number if the string
             // is null or empty
-            int index = string.IsNullOrEmpty(name) ? -1 : name[0] - 'a';
-
-            // only proceed if the index is within the array length
-            if (0 <= index && index < s_Keywords.Length)
+            if (!string.IsNullOrEmpty(name))
             {
-                // get the head of the list for this index (if any)
-                JSKeyword keyword = s_Keywords[name[0] - 'a'];
-                if (keyword != null)
+                int index = name[0] - 'a';
+
+                // only proceed if the index is within the array length
+                if (0 <= index && index < s_Keywords.Length)
                 {
-                    // and ask if the name is in the list
-                    isKeyword = keyword.Exists(name);
+                    // get the head of the list for this index (if any)
+                    JSKeyword keyword = s_Keywords[name[0] - 'a'];
+                    if (keyword != null)
+                    {
+                        // and ask if the name is in the list
+                        isKeyword = keyword.Exists(name);
+                    }
                 }
             }
 

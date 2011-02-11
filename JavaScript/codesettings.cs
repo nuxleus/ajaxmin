@@ -57,6 +57,7 @@ namespace Microsoft.Ajax.Utilities
             this.RemoveUnneededCode = true;
             this.StripDebugStatements = true;
 			this.AllowEmbeddedAspNetBlocks = false;
+            this.EvalLiteralExpressions = true;
         }
 
 		/// <summary>
@@ -113,6 +114,16 @@ namespace Microsoft.Ajax.Utilities
             {
                 EvalTreatment = (value ? EvalTreatment.Ignore : EvalTreatment.MakeAllSafe);
             }
+        }
+
+        /// <summary>
+        /// Evaluate expressions containing only literal bool, string, numeric, or null values [true]
+        /// Leave literal expressions alone and do not evaluate them [false]
+        /// </summary>
+        public bool EvalLiteralExpressions
+        {
+            get;
+            set;
         }
 
         /// <summary>
@@ -464,5 +475,19 @@ namespace Microsoft.Ajax.Utilities
         /// Convert (new Date()).getTime() to +new Date
         /// </summary>
         DateGetTimeToUnaryPlus                      = 0x0000000010000000,
+
+        /// <summary>
+        /// Evaluate numeric literal expressions.
+        /// 1 + 2  ==&gt; 3
+        /// </summary>
+        EvaluateNumericExpressions                  = 0x0000000020000000,
+
+        /// <summary>
+        /// Simplify a common method on converting string to numeric: 
+        /// lookup - 0  ==&gt; +lookup
+        /// (Subtracting zero converts lookup to number, then doesn't modify
+        /// it; unary plus also converts operand to numeric)
+        /// </summary>
+        SimplifyStringToNumericConversion           = 0x0000000040000000,
     }
 }

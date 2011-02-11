@@ -26,7 +26,10 @@ namespace Microsoft.Ajax.Utilities
             : base(context, parser)
         {
             m_condition = condition;
-            m_condition.Parent = this;
+            if (m_condition != null)
+            {
+                m_condition.Parent = this;
+            }
         }
 
         public override AstNode Clone()

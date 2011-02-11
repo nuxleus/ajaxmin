@@ -14,7 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace Microsoft.Ajax.Utilities
@@ -22,32 +24,18 @@ namespace Microsoft.Ajax.Utilities
 
     public sealed class BinaryOperator : AstNode
     {
-        private AstNode m_operand1;
-        public AstNode Operand1
-        {
-            get { return m_operand1; }
-        }
-
-        private AstNode m_operand2;
-        public AstNode Operand2
-        {
-            get { return m_operand2; }
-        }
-
-        public JSToken OperatorToken
-        {
-            get { return m_operatorToken; }
-        }
-        private JSToken m_operatorToken;
+        public AstNode Operand1 { get; private set; }
+        public AstNode Operand2 { get; private set; }
+        public JSToken OperatorToken { get; private set; }
 
         public BinaryOperator(Context context, JSParser parser, AstNode operand1, AstNode operand2, JSToken operatorToken)
             : base(context, parser)
         {
             if (operand1 != null) operand1.Parent = this;
             if (operand2 != null) operand2.Parent = this;
-            m_operand1 = operand1;
-            m_operand2 = operand2;
-            m_operatorToken = operatorToken;
+            Operand1 = operand1;
+            Operand2 = operand2;
+            OperatorToken = operatorToken;
         }
 
         public override AstNode Clone()
@@ -55,146 +43,38 @@ namespace Microsoft.Ajax.Utilities
             return new BinaryOperator(
                 (Context == null ? null : Context.Clone()),
                 Parser,
-                (m_operand1 == null ? null : m_operand1.Clone()),
-                (m_operand2 == null ? null : m_operand2.Clone()),
-                m_operatorToken
+                (Operand1 == null ? null : Operand1.Clone()),
+                (Operand2 == null ? null : Operand2.Clone()),
+                OperatorToken
                 );
-        }
-
-        private ConstantWrapper CombineStrings(ConstantWrapper left, ConstantWrapper right)
-        {
-            // create a combined constant wrapper from the combined string values
-            return new ConstantWrapper(
-              string.Concat(left.Value, right.Value),
-              false,
-              Context,
-              Parser);
-        }
-
-        public override void CleanupNodes()
-        {
-            // now check to see if this might be a string-literal concatenation,
-            // but only if we are allowing adjacent string combination
-            if (m_operatorToken == JSToken.Plus
-                && Parser.Settings.IsModificationAllowed(TreeModifications.CombineAdjacentStringLiterals))
-            {
-                // if the right-hand operand is a constant string
-                ConstantWrapper right = m_operand2 as ConstantWrapper;
-                if (right != null && right.Value is string)
-                {
-                    // and if the left-hand operand is a constant string... 
-                    ConstantWrapper left = m_operand1 as ConstantWrapper;
-                    if (left != null && left.Value is string)
-                    {
-                        // see if we can/should create a combined constant wrapper for these two strings
-                        // (will return null if we shouldn't)
-                        ConstantWrapper combined = CombineStrings(left, right);
-                        if (combined != null)
-                        {
-                            // now see if this newly-combined string it the sole argument to a 
-                            // call-brackets node. If it is and the combined string is a valid
-                            // identifier (and not a keyword), then we can replace the call
-                            // with a member operator.
-                            // remember that the parent of the argument won't be the call node -- it
-                            // will be the ast node list representing the arguments, whose parent will
-                            // be the node list. 
-                            CallNode parentCall = (Parent is AstNodeList ? Parent.Parent as CallNode : null);
-                            if (parentCall != null && parentCall.InBrackets
-                                && Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember))
-                            {
-                                // our parent is a call-bracket -- now we just need to see if the newly-combined
-                                // string can be a valid identifier/non-keyword
-                                string combinedString = combined.Value.ToString();
-                                if (JSScanner.IsValidIdentifier(combinedString) && !JSScanner.IsKeyword(combinedString))
-                                {
-                                    // yes -- replace the parent with a member node
-                                    Member replacementMember = new Member(parentCall.Context, Parser, parentCall.Function, combinedString);
-                                    if (parentCall.Parent.ReplaceChild(parentCall, replacementMember))
-                                    {
-                                        // done
-                                        return;
-                                    }
-                                }
-                            }
-
-                            // replace ourselves with the newly-combined string
-                            Parent.ReplaceChild(this, combined);
-
-                            // call cleanup on the new constant node.
-                            // kinda weird, since we never analyzed it, but the two halves have been
-                            // analyzed, so they should be good to go already.
-                            combined.CleanupNodes();
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        // see if the left-hand side is another binary concat-op with a 
-                        // right-hand side that's a string literal
-                        BinaryOperator binaryOp = m_operand1 as BinaryOperator;
-                        if (binaryOp != null && binaryOp.OperatorToken == JSToken.Plus)
-                        {
-                            left = binaryOp.Operand2 as ConstantWrapper;
-                            if (left != null && left.Value is string)
-                            {
-                                // since a + b + c == (a + b) + c == a + (b + c), and 
-                                // we know b and c are both string literals, we can combine
-                                // those two string literals into the right-hand side of the lower
-                                // concat-op and replace this concat-op with the lower one.
-                                ConstantWrapper combined = CombineStrings(left, right);
-                                if (combined != null)
-                                {
-                                    // we want to replace the right-hand string on the lower concat-op
-                                    // with the new combined constant wrapper
-                                    if (binaryOp.ReplaceChild(left, combined))
-                                    {
-                                        // and then we want to replace ourselves with the lower concat-op
-                                        if (Parent.ReplaceChild(this, binaryOp))
-                                        {
-                                            // and then cleanup on the node that replaced us and bail
-                                            binaryOp.CleanupNodes();
-                                            return;
-                                        }
-
-                                        // couldn't rotate the tree for some reason. try to back-out our
-                                        // previous replace operation and continue on
-                                        binaryOp.ReplaceChild(combined, left);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            base.CleanupNodes();
         }
 
         public override IEnumerable<AstNode> Children
         {
             get
             {
-                if (m_operand1 != null)
+                if (Operand1 != null)
                 {
-                    yield return m_operand1;
+                    yield return Operand1;
                 }
-                if (m_operand2 != null)
+                if (Operand2 != null)
                 {
-                    yield return m_operand2;
+                    yield return Operand2;
                 }
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_operand1 == oldNode)
+            if (Operand1 == oldNode)
             {
-                m_operand1 = newNode;
+                Operand1 = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_operand2 == oldNode)
+            if (Operand2 == oldNode)
             {
-                m_operand2 = newNode;
+                Operand2 = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
@@ -206,7 +86,37 @@ namespace Microsoft.Ajax.Utilities
             get
             {
                 // the operand1 is on the left
-                return m_operand1.LeftHandSide;
+                return Operand1.LeftHandSide;
+            }
+        }
+
+        internal override void AnalyzeNode()
+        {
+            base.AnalyzeNode();
+
+            // see if this operation is subtracting zero from a lookup -- that is typically done to
+            // coerce a value to numeric. There's a simpler way: unary plus operator.
+            if (OperatorToken == JSToken.Minus
+                && Parser.Settings.IsModificationAllowed(TreeModifications.SimplifyStringToNumericConversion))
+            {
+                Lookup lookup = Operand1 as Lookup;
+                if (lookup != null)
+                {
+                    ConstantWrapper right = Operand2 as ConstantWrapper;
+                    if (right != null && right.IsIntegerLiteral && right.ToNumber() == 0)
+                    {
+                        // okay, so we have "lookup - 0"
+                        // this is done frequently to force a value to be numeric. 
+                        // There is an easier way: apply the unary + operator to it. 
+                        NumericUnary unary = new NumericUnary(Context, Parser, lookup, JSToken.Plus);
+                        Parent.ReplaceChild(this, unary);
+
+                        // because we recursed at the top of this function, we don't need to Analyze
+                        // the new Unary node. The AnalyzeNode method of NumericUnary only does something
+                        // if the operand is a constant -- and this one is a Lookup. And we already analyzed
+                        // the lookup.
+                    }
+                }
             }
         }
 
@@ -214,7 +124,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                switch(m_operatorToken)
+                switch(OperatorToken)
                 {
                     case JSToken.Assign:
                     case JSToken.PlusAssign:
@@ -238,45 +148,45 @@ namespace Microsoft.Ajax.Utilities
 
         internal override string GetFunctionGuess(AstNode target)
         {
-            return m_operand1.GetFunctionGuess(target);
+            return Operand1.GetFunctionGuess(target);
         }
 
         internal override AstNode LogicalNot()
         {
             // depending on the operator, we either can't logical-not this
             // node at all, OR we can just tweak the operator and it's notted.
-            switch (m_operatorToken)
+            switch (OperatorToken)
             {
                 case JSToken.Equal:
-                    m_operatorToken = JSToken.NotEqual;
+                    OperatorToken = JSToken.NotEqual;
                     return this;
 
                 case JSToken.NotEqual:
-                    m_operatorToken = JSToken.Equal;
+                    OperatorToken = JSToken.Equal;
                     return this;
 
                 case JSToken.StrictEqual:
-                    m_operatorToken = JSToken.StrictNotEqual;
+                    OperatorToken = JSToken.StrictNotEqual;
                     return this;
 
                 case JSToken.StrictNotEqual:
-                    m_operatorToken = JSToken.StrictEqual;
+                    OperatorToken = JSToken.StrictEqual;
                     return this;
 
                 case JSToken.LessThan:
-                    m_operatorToken = JSToken.GreaterThanEqual;
+                    OperatorToken = JSToken.GreaterThanEqual;
                     return this;
 
                 case JSToken.LessThanEqual:
-                    m_operatorToken = JSToken.GreaterThan;
+                    OperatorToken = JSToken.GreaterThan;
                     return this;
 
                 case JSToken.GreaterThan:
-                    m_operatorToken = JSToken.LessThanEqual;
+                    OperatorToken = JSToken.LessThanEqual;
                     return this;
 
                 case JSToken.GreaterThanEqual:
-                    m_operatorToken = JSToken.LessThan;
+                    OperatorToken = JSToken.LessThan;
                     return this;
 
             }
@@ -286,16 +196,16 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToCode(ToCodeFormat format)
         {
-            string lhs = OptionalParens(m_operand1, false, (format == ToCodeFormat.Preprocessor));
-            string rhs = OptionalParens(m_operand2, true, (format == ToCodeFormat.Preprocessor));
-            string op = JSScanner.GetOperatorString(m_operatorToken);
+            string lhs = OptionalParens(Operand1, false, (format == ToCodeFormat.Preprocessor));
+            string rhs = OptionalParens(Operand2, true, (format == ToCodeFormat.Preprocessor));
+            string op = JSScanner.GetOperatorString(OperatorToken);
 
             StringBuilder sb = new StringBuilder();
             // if this is a comma operator and we are passed the comma-delimeter format,
             // then we need to wrap the entire operator in parens to preserve the
             // operator precedence. Otherwise our operator comma will just seem like
             // the containing list's separator
-            bool wrapInParens = (m_operatorToken == JSToken.Comma && format == ToCodeFormat.Commas);
+            bool wrapInParens = (OperatorToken == JSToken.Comma && format == ToCodeFormat.Commas);
             if (wrapInParens)
             {
                 sb.Append('(');
@@ -351,13 +261,13 @@ namespace Microsoft.Ajax.Utilities
             BinaryOperator binaryOp = operand as BinaryOperator;
             if (binaryOp != null)
             {
-                operandToken = binaryOp.m_operatorToken;
+                operandToken = binaryOp.OperatorToken;
             }
 
             if (operandToken != JSToken.Null)
             {
                 OpPrec operandPrec = JSScanner.GetOperatorPrecedence(operandToken);
-                OpPrec thisPrec = JSScanner.GetOperatorPrecedence(m_operatorToken);
+                OpPrec thisPrec = JSScanner.GetOperatorPrecedence(OperatorToken);
                 if (operandPrec < thisPrec)
                 {
                     // lesser precedence gets parenthesis
@@ -372,7 +282,7 @@ namespace Microsoft.Ajax.Utilities
                     // we'll wrap the same precedence in parens if this is for the right-hand-side.
                     // we don't need to do this if BOTH operators are the same and they are associative.
                     // EG: addition, multiplication, logical-AND, logical-OR, bitwise-AND, bitwise-OR, bitwise-XOR
-                    if (operandToken != m_operatorToken)
+                    if (operandToken != OperatorToken)
                     {
                         // the operators are different, so always wrap the right-hand pair in parens
                         // to make sure the resulting code has the proper operator precedence
@@ -416,7 +326,7 @@ namespace Microsoft.Ajax.Utilities
                     }
                 }
             }
-            else if (operand is Conditional && JSScanner.GetOperatorPrecedence(m_operatorToken) > OpPrec.precConditional)
+            else if (operand is Conditional && JSScanner.GetOperatorPrecedence(OperatorToken) > OpPrec.precConditional)
             {
                 // the operand is a conditional, so wrap it in parens when this binary operator's 
                 // precedence is greater than the conditional precedence
@@ -430,5 +340,1667 @@ namespace Microsoft.Ajax.Utilities
             }
             return operandCode;
         }
+
+        #region Literal-expression evaluation code
+
+        /// <summary>
+        /// This is where we evaluate operations on constant values
+        /// </summary>
+        public override void CleanupNodes()
+        {
+            // recurse, then see if we can evaluate our expression
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions)
+            {
+                // if this is an assign operator, an in, or an instanceof, then we won't
+                // try to evaluate it
+                if (!IsAssign && OperatorToken != JSToken.In && OperatorToken != JSToken.InstanceOf)
+                {
+                    // see if the left operand is a literal number, boolean, string, or null
+                    ConstantWrapper left = Operand1 as ConstantWrapper;
+                    if (left != null)
+                    {
+                        if (OperatorToken == JSToken.Comma)
+                        {
+                            // the comma operator evaluates the left, then evaluates the right and returns it.
+                            // but if the left is a literal, evaluating it doesn't DO anything, so we can replace the
+                            // entire operation with the right-hand operand
+                            ConstantWrapper rightConstant = Operand2 as ConstantWrapper;
+                            if (rightConstant != null)
+                            {
+                                if (!ReplaceMemberBracketWithDot(rightConstant))
+                                {
+                                    Parent.ReplaceChild(this, rightConstant);
+                                }
+                            }
+                            else
+                            {
+                                Parent.ReplaceChild(this, Operand2);
+                            }
+                        }
+                        else
+                        {
+                            // see if the right operand is a literal number, boolean, string, or null
+                            ConstantWrapper right = Operand2 as ConstantWrapper;
+                            if (right != null)
+                            {
+                                // then they are both constants and we can evaluate the operation
+                                EvalThisOperator(left, right);
+                            }
+                            else
+                            {
+                                // see if the right is a binary operator that can be combined with ours
+                                BinaryOperator rightBinary = Operand2 as BinaryOperator;
+                                if (rightBinary != null)
+                                {
+                                    ConstantWrapper rightLeft = rightBinary.Operand1 as ConstantWrapper;
+                                    if (rightLeft != null)
+                                    {
+                                        // eval our left and the right-hand binary's left and put the combined operation as
+                                        // the child of the right-hand binary
+                                        EvalToTheRight(left, rightLeft, rightBinary);
+                                    }
+                                    else
+                                    {
+                                        ConstantWrapper rightRight = rightBinary.Operand2 as ConstantWrapper;
+                                        if (rightRight != null)
+                                        {
+                                            EvalFarToTheRight(left, rightRight, rightBinary);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // left is not a constantwrapper. See if the right is
+                        ConstantWrapper right = Operand2 as ConstantWrapper;
+                        if (right != null)
+                        {
+                            // the right is a constant. See if the the left is a binary operator...
+                            BinaryOperator leftBinary = Operand1 as BinaryOperator;
+                            if (leftBinary != null)
+                            {
+                                // ...with a constant on the right, and the operators can be combined
+                                ConstantWrapper leftRight = leftBinary.Operand2 as ConstantWrapper;
+                                if (leftRight != null)
+                                {
+                                    EvalToTheLeft(right, leftRight, leftBinary);
+                                }
+                                else
+                                {
+                                    ConstantWrapper leftLeft = leftBinary.Operand1 as ConstantWrapper;
+                                    if (leftLeft != null)
+                                    {
+                                        EvalFarToTheLeft(right, leftLeft, leftBinary);
+                                    }
+                                }
+                            }
+                            else if (Parser.Settings.IsModificationAllowed(TreeModifications.SimplifyStringToNumericConversion))
+                            {
+                                // see if it's a lookup and this is a minus operation and the constant is a zero
+                                Lookup lookup = Operand1 as Lookup;
+                                if (lookup != null && OperatorToken == JSToken.Minus && right.IsIntegerLiteral && right.ToNumber() == 0)
+                                {
+                                    // okay, so we have "lookup - 0"
+                                    // this is done frequently to force a value to be numeric. 
+                                    // There is an easier way: apply the unary + operator to it. 
+                                    NumericUnary unary = new NumericUnary(Context, Parser, lookup, JSToken.Plus);
+                                    Parent.ReplaceChild(this, unary);
+                                }
+                            }
+                        }
+                        // TODO: shouldn't we check if they BOTH are binary operators? (a*6)*(5*b) ==> a*30*b (for instance)
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// If the new literal is a string literal, then we need to check to see if our
+        /// parent is a CallNode. If it is, and if the string literal can be an identifier,
+        /// we'll replace it with a Member-Dot operation.
+        /// </summary>
+        /// <param name="newLiteral">newLiteral we intend to replace this binaryop node with</param>
+        /// <returns>true if we replaced the parent callnode with a member-dot operation</returns>
+        private bool ReplaceMemberBracketWithDot(ConstantWrapper newLiteral)
+        {
+            if (newLiteral.IsStringLiteral
+                && Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember))
+            {
+                // now see if this newly-combined string is the sole argument to a 
+                // call-brackets node. If it is and the combined string is a valid
+                // identifier (and not a keyword), then we can replace the call
+                // with a member operator.
+                // remember that the parent of the argument won't be the call node -- it
+                // will be the ast node list representing the arguments, whose parent will
+                // be the node list. 
+                CallNode parentCall = (Parent is AstNodeList ? Parent.Parent as CallNode : null);
+                if (parentCall != null && parentCall.InBrackets)
+                {
+                    // our parent is a call-bracket -- now we just need to see if the newly-combined
+                    // string can be a valid identifier/non-keyword
+                    string combinedString = newLiteral.ToString();
+                    if (JSScanner.IsValidIdentifier(combinedString) && !JSScanner.IsKeyword(combinedString))
+                    {
+                        // yes -- replace the parent with a member node
+                        Member replacementMember = new Member(parentCall.Context, Parser, parentCall.Function, combinedString);
+                        parentCall.Parent.ReplaceChild(parentCall, replacementMember);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Both the operands of this operator are constants. See if we can evaluate them
+        /// </summary>
+        /// <param name="left">left-side operand</param>
+        /// <param name="right">right-side operand</param>
+        private void EvalThisOperator(ConstantWrapper left, ConstantWrapper right)
+        {
+            // we can evaluate these operators if we know both operands are literal
+            // number, boolean, string or null
+            ConstantWrapper newLiteral = null;
+            switch (OperatorToken)
+            {
+                case JSToken.Multiply:
+                    newLiteral = Multiply(left, right);
+                    break;
+
+                case JSToken.Divide:
+                    newLiteral = Divide(left, right);
+                    if (newLiteral != null && newLiteral.ToCode().Length > ToCode().Length)
+                    {
+                        // the result is bigger than the expression.
+                        // eg: 1/3 is smaller than .333333333333333
+                        // never mind.
+                        newLiteral = null;
+                    }
+                    break;
+
+                case JSToken.Modulo:
+                    newLiteral = Modulo(left, right);
+                    if (newLiteral != null && newLiteral.ToCode().Length > ToCode().Length)
+                    {
+                        // the result is bigger than the expression.
+                        // eg: 46.5%6.3 is smaller than 2.4000000000000012
+                        // never mind.
+                        newLiteral = null;
+                    }
+                    break;
+
+                case JSToken.Plus:
+                    newLiteral = Plus(left, right);
+                    break;
+
+                case JSToken.Minus:
+                    newLiteral = Minus(left, right);
+                    break;
+
+                case JSToken.LeftShift:
+                    newLiteral = LeftShift(left, right);
+                    break;
+
+                case JSToken.RightShift:
+                    newLiteral = RightShift(left, right);
+                    break;
+
+                case JSToken.UnsignedRightShift:
+                    newLiteral = UnsignedRightShift(left, right);
+                    break;
+
+                case JSToken.LessThan:
+                    newLiteral = LessThan(left, right);
+                    break;
+
+                case JSToken.LessThanEqual:
+                    newLiteral = LessThanOrEqual(left, right);
+                    break;
+
+                case JSToken.GreaterThan:
+                    newLiteral = GreaterThan(left, right);
+                    break;
+
+                case JSToken.GreaterThanEqual:
+                    newLiteral = GreaterThanOrEqual(left, right);
+                    break;
+
+                case JSToken.Equal:
+                    newLiteral = Equal(left, right);
+                    break;
+
+                case JSToken.NotEqual:
+                    newLiteral = NotEqual(left, right);
+                    break;
+
+                case JSToken.StrictEqual:
+                    newLiteral = StrictEqual(left, right);
+                    break;
+
+                case JSToken.StrictNotEqual:
+                    newLiteral = StrictNotEqual(left, right);
+                    break;
+
+                case JSToken.BitwiseAnd:
+                    newLiteral = BitwiseAnd(left, right);
+                    break;
+
+                case JSToken.BitwiseOr:
+                    newLiteral = BitwiseOr(left, right);
+                    break;
+
+                case JSToken.BitwiseXor:
+                    newLiteral = BitwiseXor(left, right);
+                    break;
+
+                case JSToken.LogicalAnd:
+                    newLiteral = LogicalAnd(left, right);
+                    break;
+
+                case JSToken.LogicalOr:
+                    newLiteral = LogicalOr(left, right);
+                    break;
+
+                default:
+                    // an operator we don't want to evaluate
+                    break;
+            }
+
+            // if we can combine them...
+            if (newLiteral != null)
+            {
+                // first we want to check if the new combination is a string literal, and if so, whether 
+                // it's now the sole parameter of a member-bracket call operator. If so, instead of replacing our
+                // binary operation with the new constant, we'll replace the entire call with a member-dot
+                // expression
+                if (!ReplaceMemberBracketWithDot(newLiteral))
+                {
+                    Parent.ReplaceChild(this, newLiteral);
+                }
+            }
+        }
+
+        /// <summary>
+        /// We have determined that our left-hand operand is another binary operator, and its
+        /// right-hand operand is a constant that can be combined with our right-hand operand.
+        /// Now we want to set the right-hand operand of that other operator to the newly-
+        /// combined constant value, and then rotate it up -- replace our binary operator
+        /// with this newly-modified binary operator, and then attempt to re-evaluate it.
+        /// </summary>
+        /// <param name="binaryOp">the binary operator that is our left-hand operand</param>
+        /// <param name="newLiteral">the newly-combined literal</param>
+        private void RotateFromLeft(BinaryOperator binaryOp, ConstantWrapper newLiteral)
+        {
+            // replace our node with the binary operator
+            binaryOp.ReplaceChild(binaryOp.Operand2, newLiteral);
+            Parent.ReplaceChild(this, binaryOp);
+
+            // and just for good measure.. revisit the node that's taking our place, since
+            // we just changed a constant value. Assuming the other operand is a constant, too.
+            ConstantWrapper otherConstant = binaryOp.Operand1 as ConstantWrapper;
+            if (otherConstant != null)
+            {
+                binaryOp.EvalThisOperator(otherConstant, newLiteral);
+            }
+        }
+
+        /// <summary>
+        /// We have determined that our right-hand operand is another binary operator, and its
+        /// left-hand operand is a constant that can be combined with our left-hand operand.
+        /// Now we want to set the left-hand operand of that other operator to the newly-
+        /// combined constant value, and then rotate it up -- replace our binary operator
+        /// with this newly-modified binary operator, and then attempt to re-evaluate it.
+        /// </summary>
+        /// <param name="binaryOp">the binary operator that is our right-hand operand</param>
+        /// <param name="newLiteral">the newly-combined literal</param>
+        private void RotateFromRight(BinaryOperator binaryOp, ConstantWrapper newLiteral)
+        {
+            // replace our node with the binary operator
+            binaryOp.ReplaceChild(binaryOp.Operand1, newLiteral);
+            Parent.ReplaceChild(this, binaryOp);
+
+            // and just for good measure.. revisit the node that's taking our place, since
+            // we just changed a constant value. Assuming the other operand is a constant, too.
+            ConstantWrapper otherConstant = binaryOp.Operand2 as ConstantWrapper;
+            if (otherConstant != null)
+            {
+                binaryOp.EvalThisOperator(newLiteral, otherConstant);
+            }
+        }
+
+        /// <summary>
+        /// Return true is not an overflow or underflow, for multiplication operations
+        /// </summary>
+        /// <param name="left">left operand</param>
+        /// <param name="right">right operand</param>
+        /// <param name="result">result</param>
+        /// <returns>true if result not overflow or underflow; false if it is</returns>
+        private bool NoMultiplicativeOverOrUnderFlow(ConstantWrapper left, ConstantWrapper right, ConstantWrapper result)
+        {
+            // check for overflow
+            bool okayToProceed = !result.IsInfinity;
+
+            // if we still might be good, check for possible underflow
+            if (okayToProceed)
+            {
+                // if the result is zero, we might have an underflow. But if one of the operands
+                // was zero, then it's okay.
+                // Inverse: if neither operand is zero, then a zero result is not okay
+                okayToProceed = !result.IsZero || (left.IsZero || right.IsZero);
+            }
+            return okayToProceed;
+        }
+
+        /// <summary>
+        /// Return true if the result isn't an overflow condition
+        /// </summary>
+        /// <param name="result">result constant</param>
+        /// <returns>true is not an overflow; false if it is</returns>
+        private bool NoOverflow(ConstantWrapper result)
+        {
+            return !result.IsInfinity;
+        }
+
+        /// <summary>
+        /// Evaluate: (OTHER [op] CONST) [op] CONST
+        /// </summary>
+        /// <param name="thisConstant">second constant</param>
+        /// <param name="otherConstant">first constant</param>
+        /// <param name="leftOperator">first operator</param>
+        private void EvalToTheLeft(ConstantWrapper thisConstant, ConstantWrapper otherConstant, BinaryOperator leftOperator)
+        {
+            if (leftOperator.OperatorToken == JSToken.Plus && OperatorToken == JSToken.Plus)
+            {
+                // plus-plus
+                // the other operation goes first, so if the other constant is a string, then we know that
+                // operation will do a string concatenation, which will force our operation to be a string
+                // concatenation. If the other constant is not a string, then we won't know until runtime and
+                // we can't combine them.
+                if (otherConstant.IsStringLiteral)
+                {
+                    // the other constant is a string -- so we can do the string concat and combine them
+                    ConstantWrapper newLiteral = StringConcat(otherConstant, thisConstant);
+                    if (newLiteral != null)
+                    {
+                        RotateFromLeft(leftOperator, newLiteral);
+                    }
+                }
+            }
+            else if (leftOperator.OperatorToken == JSToken.Minus)
+            {
+                if (OperatorToken == JSToken.Plus)
+                {
+                    // minus-plus
+                    // the minus operator goes first and will always convert to number.
+                    // if our constant is not a string, then it will be a numeric addition and we can combine them.
+                    // if our constant is a string, then we'll end up doing a string concat, so we can't combine
+                    if (!thisConstant.IsStringLiteral)
+                    {
+                        // two numeric operators. a-n1+n2 is the same as a-(n1-n2)
+                        ConstantWrapper newLiteral = Minus(otherConstant, thisConstant);
+                        if (newLiteral != null && NoOverflow(newLiteral))
+                        {
+                            // a-(-n) is numerically equivalent as a+n -- and takes fewer characters to represent.
+                            // BUT we can't do that because that might change a numeric operation (the original minus)
+                            // to a string concatenation if the unknown operand turns out to be a string!
+
+                            RotateFromLeft(leftOperator, newLiteral);
+                        }
+                        else
+                        {
+                            // if the left-left is a constant, then we can try combining with it
+                            ConstantWrapper leftLeft = leftOperator.Operand1 as ConstantWrapper;
+                            if (leftLeft != null)
+                            {
+                                EvalFarToTheLeft(thisConstant, leftLeft, leftOperator);
+                            }
+                        }
+                    }
+                }
+                else if (OperatorToken == JSToken.Minus)
+                {
+                    // minus-minus. Both operations are numeric.
+                    // a-n1-n2 => a-(n1+n2), so we can add the two constants and subtract from 
+                    // the left-hand non-constant. 
+                    ConstantWrapper newLiteral = NumericAddition(otherConstant, thisConstant);
+                    if (newLiteral != null && NoOverflow(newLiteral))
+                    {
+                        // make it the new right-hand literal for the left-hand operator
+                        // and make the left-hand operator replace our operator
+                        RotateFromLeft(leftOperator, newLiteral);
+                    }
+                    else
+                    {
+                        // if the left-left is a constant, then we can try combining with it
+                        ConstantWrapper leftLeft = leftOperator.Operand1 as ConstantWrapper;
+                        if (leftLeft != null)
+                        {
+                            EvalFarToTheLeft(thisConstant, leftLeft, leftOperator);
+                        }
+                    }
+                }
+            }
+            else if (leftOperator.OperatorToken == OperatorToken
+                && (OperatorToken == JSToken.Multiply || OperatorToken == JSToken.Divide))
+            {
+                // either multiply-multiply or divide-divide
+                // either way, we use the other operand and the product of the two constants.
+                // if the product blows up to an infinte value, then don't combine them because that
+                // could change the way the program goes at runtime, depending on the unknown value.
+                ConstantWrapper newLiteral = Multiply(otherConstant, thisConstant);
+                if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, newLiteral))
+                {
+                    RotateFromLeft(leftOperator, newLiteral);
+                }
+            }
+            else if ((leftOperator.OperatorToken == JSToken.Multiply && OperatorToken == JSToken.Divide)
+                || (leftOperator.OperatorToken == JSToken.Divide && OperatorToken == JSToken.Multiply))
+            {
+                if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+                {
+                    // get the two division operators
+                    ConstantWrapper otherOverThis = Divide(otherConstant, thisConstant);
+                    ConstantWrapper thisOverOther = Divide(thisConstant, otherConstant);
+
+                    // get the lengths
+                    int otherOverThisLength = otherOverThis != null ? otherOverThis.ToCode().Length : int.MaxValue;
+                    int thisOverOtherLength = thisOverOther != null ? thisOverOther.ToCode().Length : int.MaxValue;
+
+                    // we'll want to use whichever one is shorter, and whichever one does NOT involve an overflow 
+                    // or possible underflow
+                    if (otherOverThis != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, otherOverThis)
+                        && (thisOverOther == null || otherOverThisLength < thisOverOtherLength))
+                    {
+                        // but only if it's smaller than the original expression
+                        if (otherOverThisLength <= otherConstant.ToCode().Length + thisConstant.ToCode().Length + 1)
+                        {
+                            // same operator
+                            RotateFromLeft(leftOperator, otherOverThis);
+                        }
+                    }
+                    else if (thisOverOther != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, thisOverOther))
+                    {
+                        // but only if it's smaller than the original expression
+                        if (thisOverOtherLength <= otherConstant.ToCode().Length + thisConstant.ToCode().Length + 1)
+                        {
+                            // opposite operator
+                            leftOperator.OperatorToken = leftOperator.OperatorToken == JSToken.Multiply ? JSToken.Divide : JSToken.Multiply;
+                            RotateFromLeft(leftOperator, thisOverOther);
+                        }
+                    }
+                }
+            }
+            else if (OperatorToken == leftOperator.OperatorToken
+                && (OperatorToken == JSToken.BitwiseAnd || OperatorToken == JSToken.BitwiseOr || OperatorToken == JSToken.BitwiseXor))
+            {
+                // identical bitwise operators can be combined
+                ConstantWrapper newLiteral = null;
+                switch(OperatorToken)
+                {
+                    case JSToken.BitwiseAnd:
+                        newLiteral = BitwiseAnd(otherConstant, thisConstant);
+                        break;
+
+                    case JSToken.BitwiseOr:
+                        newLiteral = BitwiseOr(otherConstant, thisConstant);
+                        break;
+
+                    case JSToken.BitwiseXor:
+                        newLiteral = BitwiseXor(otherConstant, thisConstant);
+                        break;
+                }
+                if (newLiteral != null)
+                {
+                    RotateFromLeft(leftOperator, newLiteral);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Evaluate: (CONST [op] OTHER) [op] CONST
+        /// </summary>
+        /// <param name="thisConstant">second constant</param>
+        /// <param name="otherConstant">first constant</param>
+        /// <param name="leftOperator">first operator</param>
+        private void EvalFarToTheLeft(ConstantWrapper thisConstant, ConstantWrapper otherConstant, BinaryOperator leftOperator)
+        {
+            if (leftOperator.OperatorToken == JSToken.Minus)
+            {
+                if (OperatorToken == JSToken.Plus)
+                {
+                    // minus-plus
+                    ConstantWrapper newLiteral = NumericAddition(otherConstant, thisConstant);
+                    if (newLiteral != null && NoOverflow(newLiteral))
+                    {
+                        RotateFromRight(leftOperator, newLiteral);
+                    }
+                }
+                else if (OperatorToken == JSToken.Minus)
+                {
+                    // minus-minus
+                    ConstantWrapper newLiteral = Minus(otherConstant, thisConstant);
+                    if (newLiteral != null && NoOverflow(newLiteral))
+                    {
+                        RotateFromRight(leftOperator, newLiteral);
+                    }
+                }
+            }
+            else if (OperatorToken == JSToken.Multiply)
+            {
+                if (leftOperator.OperatorToken == JSToken.Multiply || leftOperator.OperatorToken == JSToken.Divide)
+                {
+                    ConstantWrapper newLiteral = Multiply(otherConstant, thisConstant);
+                    if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, newLiteral))
+                    {
+                        RotateFromRight(leftOperator, newLiteral);
+                    }
+                }
+            }
+            else if (OperatorToken == JSToken.Divide)
+            {
+                if (leftOperator.OperatorToken == JSToken.Divide)
+                {
+                    // divide-divide
+                    ConstantWrapper newLiteral = Divide(otherConstant, thisConstant);
+                    if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, newLiteral)
+                        && newLiteral.ToCode().Length <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                    {
+                        RotateFromRight(leftOperator, newLiteral);
+                    }
+                }
+                else if (leftOperator.OperatorToken == JSToken.Multiply)
+                {
+                    // mult-divide
+                    ConstantWrapper otherOverThis = Divide(otherConstant, thisConstant);
+                    ConstantWrapper thisOverOther = Divide(thisConstant, otherConstant);
+
+                    int otherOverThisLength = otherOverThis != null ? otherOverThis.ToCode().Length : int.MaxValue;
+                    int thisOverOtherLength = thisOverOther != null ? thisOverOther.ToCode().Length : int.MaxValue;
+
+                    if (otherOverThis != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, otherOverThis)
+                        && (thisOverOther == null || otherOverThisLength < thisOverOtherLength))
+                    {
+                        if (otherOverThisLength <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                        {
+                            RotateFromRight(leftOperator, otherOverThis);
+                        }
+                    }
+                    else if (thisOverOther != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, thisOverOther))
+                    {
+                        if (thisOverOtherLength <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                        {
+                            // swap the operands
+                            AstNode temp = leftOperator.Operand1;
+                            leftOperator.Operand1 = leftOperator.Operand2;
+                            leftOperator.Operand2 = temp;
+
+                            // operator is the opposite
+                            leftOperator.OperatorToken = JSToken.Divide;
+                            RotateFromLeft(leftOperator, thisOverOther);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Evaluate: CONST [op] (CONST [op] OTHER)
+        /// </summary>
+        /// <param name="thisConstant">first constant</param>
+        /// <param name="otherConstant">second constant</param>
+        /// <param name="leftOperator">second operator</param>
+        private void EvalToTheRight(ConstantWrapper thisConstant, ConstantWrapper otherConstant, BinaryOperator rightOperator)
+        {
+            if (OperatorToken == JSToken.Plus)
+            {
+                if (rightOperator.OperatorToken == JSToken.Plus && otherConstant.IsStringLiteral)
+                {
+                    // plus-plus, and the other constant is a string. So the right operator will be a string-concat
+                    // that generates a string. And since this is a plus-operator, then this operator will be a string-
+                    // concat as well. So we can just combine the strings now and replace our node with the right-hand 
+                    // operation
+                    ConstantWrapper newLiteral = StringConcat(thisConstant, otherConstant);
+                    if (newLiteral != null)
+                    {
+                        RotateFromRight(rightOperator, newLiteral);
+                    }
+                }
+                else if (rightOperator.OperatorToken == JSToken.Minus && !thisConstant.IsStringLiteral)
+                {
+                    // plus-minus. Now, the minus operation happens first, and it will perform a numeric
+                    // operation. The plus is NOT string, so that means it will also be a numeric operation
+                    // and we can combine the operators numericly. 
+                    ConstantWrapper newLiteral = NumericAddition(thisConstant, otherConstant);
+                    if (newLiteral != null && NoOverflow(newLiteral))
+                    {
+                        RotateFromRight(rightOperator, newLiteral);
+                    }
+                    else
+                    {
+                        ConstantWrapper rightRight = rightOperator.Operand2 as ConstantWrapper;
+                        if (rightRight != null)
+                        {
+                            EvalFarToTheRight(thisConstant, rightRight, rightOperator);
+                        }
+                    }
+                }
+            }
+            else if (OperatorToken == JSToken.Minus && rightOperator.OperatorToken == JSToken.Minus)
+            {
+                // minus-minus
+                // both operations are numeric, so we can combine the constant operands. However, we 
+                // can't combine them into a plus, so make sure we do the minus in the opposite direction
+                ConstantWrapper newLiteral = Minus(otherConstant, thisConstant);
+                if (newLiteral != null && NoOverflow(newLiteral))
+                {
+                    AstNode temp = rightOperator.Operand1;
+                    rightOperator.Operand1 = rightOperator.Operand2;
+                    rightOperator.Operand2 = temp;
+
+                    RotateFromLeft(rightOperator, newLiteral);
+                }
+                else
+                {
+                    ConstantWrapper rightRight = rightOperator.Operand2 as ConstantWrapper;
+                    if (rightRight != null)
+                    {
+                        EvalFarToTheRight(thisConstant, rightRight, rightOperator);
+                    }
+                }
+            }
+            else if (OperatorToken == JSToken.Multiply
+                && (rightOperator.OperatorToken == JSToken.Multiply || rightOperator.OperatorToken == JSToken.Divide))
+            {
+                // multiply-divide or multiply-multiply
+                // multiply the operands and use the right-hand operator
+                ConstantWrapper newLiteral = Multiply(thisConstant, otherConstant);
+                if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, newLiteral))
+                {
+                    RotateFromRight(rightOperator, newLiteral);
+                }
+            }
+            else if (OperatorToken == JSToken.Divide)
+            {
+                if (rightOperator.OperatorToken == JSToken.Multiply)
+                {
+                    // divide-multiply
+                    ConstantWrapper newLiteral = Divide(thisConstant, otherConstant);
+                    if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, newLiteral)
+                        && newLiteral.ToCode().Length < thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                    {
+                        // flip the operator: multiply becomes divide; devide becomes multiply
+                        rightOperator.OperatorToken = JSToken.Divide;
+
+                        RotateFromRight(rightOperator, newLiteral);
+                    }
+                }
+                else if (rightOperator.OperatorToken == JSToken.Divide)
+                {
+                    // divide-divide
+                    // get constants for left/right and for right/left
+                    ConstantWrapper leftOverRight = Divide(thisConstant, otherConstant);
+                    ConstantWrapper rightOverLeft = Divide(otherConstant, thisConstant);
+
+                    // get the lengths of the resulting code
+                    int leftOverRightLength = leftOverRight != null ? leftOverRight.ToCode().Length : int.MaxValue;
+                    int rightOverLeftLength = rightOverLeft != null ? rightOverLeft.ToCode().Length : int.MaxValue;
+
+                    // try whichever is smaller
+                    if (leftOverRight != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, leftOverRight)
+                        && (rightOverLeft == null || leftOverRightLength < rightOverLeftLength))
+                    {
+                        // use left-over-right. 
+                        // but only if the resulting value is smaller than the original expression
+                        if (leftOverRightLength <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                        {
+                            // We don't need to swap the operands, but we do need to switch the operator
+                            rightOperator.OperatorToken = JSToken.Multiply;
+                            RotateFromRight(rightOperator, leftOverRight);
+                        }
+                    }
+                    else if (rightOverLeft != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, rightOverLeft))
+                    {
+                        // but only if the resulting value is smaller than the original expression
+                        if (rightOverLeftLength <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                        {
+                            // use right-over-left. Keep the operator, but swap the operands
+                            AstNode temp = rightOperator.Operand1;
+                            rightOperator.Operand1 = rightOperator.Operand2;
+                            rightOperator.Operand2 = temp;
+                            RotateFromLeft(rightOperator, rightOverLeft);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Eval the two constants: CONST [op] (OTHER [op] CONST)
+        /// </summary>
+        /// <param name="thisConstant">first constant</param>
+        /// <param name="otherConstant">second constant</param>
+        /// <param name="rightOperator">second operator</param>
+        private void EvalFarToTheRight(ConstantWrapper thisConstant, ConstantWrapper otherConstant, BinaryOperator rightOperator)
+        {
+            if (rightOperator.OperatorToken == JSToken.Minus)
+            {
+                if (OperatorToken == JSToken.Plus)
+                {
+                    // plus-minus
+                    // our constant cannot be a string, though
+                    if (!thisConstant.IsStringLiteral)
+                    {
+                        ConstantWrapper newLiteral = Minus(otherConstant, thisConstant);
+                        if (newLiteral != null && NoOverflow(newLiteral))
+                        {
+                            RotateFromLeft(rightOperator, newLiteral);
+                        }
+                    }
+                }
+                else if (OperatorToken == JSToken.Minus)
+                {
+                    // minus-minus
+                    ConstantWrapper newLiteral = NumericAddition(thisConstant, otherConstant);
+                    if (newLiteral != null && NoOverflow(newLiteral))
+                    {
+                        // but we need to swap the left and right operands first
+                        AstNode temp = rightOperator.Operand1;
+                        rightOperator.Operand1 = rightOperator.Operand2;
+                        rightOperator.Operand2 = temp;
+
+                        // then rotate the node up after replacing old with new
+                        RotateFromRight(rightOperator, newLiteral);
+                    }
+                }
+            }
+            else if (OperatorToken == JSToken.Multiply)
+            {
+                if (rightOperator.OperatorToken == JSToken.Multiply)
+                {
+                    // mult-mult
+                    ConstantWrapper newLiteral = Multiply(thisConstant, otherConstant);
+                    if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, newLiteral))
+                    {
+                        RotateFromLeft(rightOperator, newLiteral);
+                    }
+                }
+                else if (rightOperator.OperatorToken == JSToken.Divide)
+                {
+                    // mult-divide
+                    ConstantWrapper otherOverThis = Divide(otherConstant, thisConstant);
+                    ConstantWrapper thisOverOther = Divide(thisConstant, otherConstant);
+
+                    int otherOverThisLength = otherOverThis != null ? otherOverThis.ToCode().Length : int.MaxValue;
+                    int thisOverOtherLength = thisOverOther != null ? thisOverOther.ToCode().Length : int.MaxValue;
+
+                    if (otherOverThis != null && NoMultiplicativeOverOrUnderFlow(otherConstant, thisConstant, otherOverThis)
+                        && (thisOverOther == null || otherOverThisLength < thisOverOtherLength))
+                    {
+                        if (otherOverThisLength <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                        {
+                            // swap the operands, but keep the operator
+                            RotateFromLeft(rightOperator, otherOverThis);
+                        }
+                    }
+                    else if (thisOverOther != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, thisOverOther))
+                    {
+                        if (thisOverOtherLength <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                        {
+                            // keep the order, but opposite operator
+                            rightOperator.OperatorToken = JSToken.Multiply;
+                            RotateFromRight(rightOperator, thisOverOther);
+                        }
+                    }
+                }
+            }
+            else if (OperatorToken == JSToken.Divide)
+            {
+                if (rightOperator.OperatorToken == JSToken.Multiply)
+                {
+                    // divide-mult
+                    ConstantWrapper newLiteral = Divide(thisConstant, otherConstant);
+                    if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, newLiteral)
+                        && newLiteral.ToCode().Length <= thisConstant.ToCode().Length + otherConstant.ToCode().Length + 1)
+                    {
+                        // swap the operands
+                        AstNode temp = rightOperator.Operand1;
+                        rightOperator.Operand1 = rightOperator.Operand2;
+                        rightOperator.Operand2 = temp;
+                        // change the operator
+                        rightOperator.OperatorToken = JSToken.Divide;
+                        RotateFromRight(rightOperator, newLiteral);
+                    }
+                }
+                else if (rightOperator.OperatorToken == JSToken.Divide)
+                {
+                    // divide-divide
+                    ConstantWrapper newLiteral = Multiply(thisConstant, otherConstant);
+                    if (newLiteral != null && NoMultiplicativeOverOrUnderFlow(thisConstant, otherConstant, newLiteral))
+                    {
+                        // but we need to swap the left and right operands first
+                        AstNode temp = rightOperator.Operand1;
+                        rightOperator.Operand1 = rightOperator.Operand2;
+                        rightOperator.Operand2 = temp;
+
+                        // then rotate the node up after replacing old with new
+                        RotateFromRight(rightOperator, newLiteral);
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Constant operation methods
+
+        private ConstantWrapper Multiply(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (left.IsOkayToCombine && right.IsOkayToCombine
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    double leftValue = left.ToNumber();
+                    double rightValue = right.ToNumber();
+                    double result = leftValue * rightValue;
+
+                    if (ConstantWrapper.NumberIsOkayToCombine(result))
+                    {
+                        newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                    }
+                    else
+                    {
+                        if (!left.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(leftValue))
+                        {
+                            left.Parent.ReplaceChild(left, new ConstantWrapper(leftValue, PrimitiveType.Number, left.Context, Parser));
+                        }
+                        if (!right.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(rightValue))
+                        {
+                            right.Parent.ReplaceChild(right, new ConstantWrapper(rightValue, PrimitiveType.Number, right.Context, Parser));
+                        }
+                    }
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper Divide(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (left.IsOkayToCombine && right.IsOkayToCombine
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    double leftValue = left.ToNumber();
+                    double rightValue = right.ToNumber();
+                    double result = leftValue / rightValue;
+
+                    if (ConstantWrapper.NumberIsOkayToCombine(result))
+                    {
+                        newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                    }
+                    else
+                    {
+                        if (!left.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(leftValue))
+                        {
+                            left.Parent.ReplaceChild(left, new ConstantWrapper(leftValue, PrimitiveType.Number, left.Context, Parser));
+                        }
+                        if (!right.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(rightValue))
+                        {
+                            right.Parent.ReplaceChild(right, new ConstantWrapper(rightValue, PrimitiveType.Number, right.Context, Parser));
+                        }
+                    }
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper Modulo(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (left.IsOkayToCombine && right.IsOkayToCombine
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    double leftValue = left.ToNumber();
+                    double rightValue = right.ToNumber();
+                    double result = leftValue % rightValue;
+
+                    if (ConstantWrapper.NumberIsOkayToCombine(result))
+                    {
+                        newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                    }
+                    else
+                    {
+                        if (!left.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(leftValue))
+                        {
+                            left.Parent.ReplaceChild(left, new ConstantWrapper(leftValue, PrimitiveType.Number, left.Context, Parser));
+                        }
+                        if (!right.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(rightValue))
+                        {
+                            right.Parent.ReplaceChild(right, new ConstantWrapper(rightValue, PrimitiveType.Number, right.Context, Parser));
+                        }
+                    }
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper Plus(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (left.IsStringLiteral || right.IsStringLiteral)
+            {
+                // one or both are strings -- this is a strng concat operation
+                newLiteral = StringConcat(left, right);
+            }
+            else
+            {
+                // neither are strings -- this is a numeric addition operation
+                newLiteral = NumericAddition(left, right);
+            }
+            return newLiteral;
+        }
+
+        private ConstantWrapper NumericAddition(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (left.IsOkayToCombine && right.IsOkayToCombine
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    double leftValue = left.ToNumber();
+                    double rightValue = right.ToNumber();
+                    double result = leftValue + rightValue;
+
+                    if (ConstantWrapper.NumberIsOkayToCombine(result))
+                    {
+                        newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                    }
+                    else
+                    {
+                        if (!left.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(leftValue))
+                        {
+                            left.Parent.ReplaceChild(left, new ConstantWrapper(leftValue, PrimitiveType.Number, left.Context, Parser));
+                        }
+                        if (!right.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(rightValue))
+                        {
+                            right.Parent.ReplaceChild(right, new ConstantWrapper(rightValue, PrimitiveType.Number, right.Context, Parser));
+                        }
+                    }
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper StringConcat(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            // if we don't want to combine adjacent string literals, then we know we don't want to do
+            // anything here.
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.CombineAdjacentStringLiterals))
+            {
+                // if either one of the operands is not a string literal, then check to see if we allow
+                // evaluation of numeric expression; if not, then no-go. IF they are both string literals,
+                // then it doesn't matter what the numeric flag says.
+                if ((left.IsStringLiteral && right.IsStringLiteral)
+                    || Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+                {
+                    // if either value is a floating-point number (a number, not NaN, not Infinite, not an Integer),
+                    // then we won't do the string concatenation because different browsers may have subtle differences
+                    // in their double-to-string conversion algorithms.
+                    // so if neither is a numeric literal, or if one or both are, if they are both integer literals
+                    // in the range that we can EXACTLY represent them in a double, then we can proceed.
+                    // NaN, +Infinity and -Infinity are also acceptable
+                    if ((!left.IsNumericLiteral || left.IsExactInteger || left.IsNaN || left.IsInfinity)
+                        && (!right.IsNumericLiteral || right.IsExactInteger || right.IsNaN || right.IsInfinity))
+                    {
+                        // they are both either string, bool, null, or integer 
+                        newLiteral = new ConstantWrapper(left.ToString() + right.ToString(), PrimitiveType.String, null, left.Parser);
+                    }
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper Minus(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (left.IsOkayToCombine && right.IsOkayToCombine
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    double leftValue = left.ToNumber();
+                    double rightValue = right.ToNumber();
+                    double result = leftValue - rightValue;
+
+                    if (ConstantWrapper.NumberIsOkayToCombine(result))
+                    {
+                        newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                    }
+                    else
+                    {
+                        if (!left.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(leftValue))
+                        {
+                            left.Parent.ReplaceChild(left, new ConstantWrapper(leftValue, PrimitiveType.Number, left.Context, Parser));
+                        }
+                        if (!right.IsNumericLiteral && ConstantWrapper.NumberIsOkayToCombine(rightValue))
+                        {
+                            right.Parent.ReplaceChild(right, new ConstantWrapper(rightValue, PrimitiveType.Number, right.Context, Parser));
+                        }
+                    }
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper LeftShift(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    // left-hand value is a 32-bit signed integer
+                    Int32 lvalue = left.ToInt32();
+
+                    // mask only the bottom 5 bits of the right-hand value
+                    int rvalue = (int)(right.ToUInt32() & 0x1F);
+
+                    // convert the result to a double
+                    double result = Convert.ToDouble(lvalue << rvalue);
+                    newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+            return newLiteral;
+        }
+
+        private ConstantWrapper RightShift(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    // left-hand value is a 32-bit signed integer
+                    Int32 lvalue = left.ToInt32();
+
+                    // mask only the bottom 5 bits of the right-hand value
+                    int rvalue = (int)(right.ToUInt32() & 0x1F);
+
+                    // convert the result to a double
+                    double result = Convert.ToDouble(lvalue >> rvalue);
+                    newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper UnsignedRightShift(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    // left-hand value is a 32-bit signed integer
+                    UInt32 lvalue = left.ToUInt32();
+
+                    // mask only the bottom 5 bits of the right-hand value
+                    int rvalue = (int)(right.ToUInt32() & 0x1F);
+
+                    // convert the result to a double
+                    double result = Convert.ToDouble(lvalue >> rvalue);
+                    newLiteral = new ConstantWrapper(result, PrimitiveType.Number, null, left.Parser);
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper LessThan(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                if (left.IsStringLiteral && right.IsStringLiteral)
+                {
+                    // do a straight ordinal comparison of the strings
+                    newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) < 0, PrimitiveType.Boolean, null, left.Parser);
+                }
+                else
+                {
+                    try
+                    {
+                        // either one or both are NOT a string -- numeric comparison
+                        if (left.IsOkayToCombine && right.IsOkayToCombine)
+                        {
+                            newLiteral = new ConstantWrapper(left.ToNumber() < right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // some kind of casting in ToNumber caused a situation where we don't want
+                        // to perform the combination on these operands
+                    }
+                }
+            }
+            return newLiteral;
+        }
+
+        private ConstantWrapper LessThanOrEqual(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                if (left.IsStringLiteral && right.IsStringLiteral)
+                {
+                    // do a straight ordinal comparison of the strings
+                    newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) <= 0, PrimitiveType.Boolean, null, left.Parser);
+                }
+                else
+                {
+                    try
+                    {
+                        // either one or both are NOT a string -- numeric comparison
+                        if (left.IsOkayToCombine && right.IsOkayToCombine)
+                        {
+                            newLiteral = new ConstantWrapper(left.ToNumber() <= right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // some kind of casting in ToNumber caused a situation where we don't want
+                        // to perform the combination on these operands
+                    }
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper GreaterThan(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                if (left.IsStringLiteral && right.IsStringLiteral)
+                {
+                    // do a straight ordinal comparison of the strings
+                    newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) > 0, PrimitiveType.Boolean, null, left.Parser);
+                }
+                else
+                {
+                    try
+                    {
+                        // either one or both are NOT a string -- numeric comparison
+                        if (left.IsOkayToCombine && right.IsOkayToCombine)
+                        {
+                            newLiteral = new ConstantWrapper(left.ToNumber() > right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // some kind of casting in ToNumber caused a situation where we don't want
+                        // to perform the combination on these operands
+                    }
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper GreaterThanOrEqual(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                if (left.IsStringLiteral && right.IsStringLiteral)
+                {
+                    // do a straight ordinal comparison of the strings
+                    newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) >= 0, PrimitiveType.Boolean, null, left.Parser);
+                }
+                else
+                {
+                    try
+                    {
+                        // either one or both are NOT a string -- numeric comparison
+                        if (left.IsOkayToCombine && right.IsOkayToCombine)
+                        {
+                            newLiteral = new ConstantWrapper(left.ToNumber() >= right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // some kind of casting in ToNumber caused a situation where we don't want
+                        // to perform the combination on these operands
+                    }
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper Equal(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                PrimitiveType leftType = left.PrimitiveType;
+                if (leftType == right.PrimitiveType)
+                {
+                    // the values are the same type
+                    switch (leftType)
+                    {
+                        case PrimitiveType.Null:
+                            // null == null is true
+                            newLiteral = new ConstantWrapper(true, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Boolean:
+                            // compare boolean values
+                            newLiteral = new ConstantWrapper(left.ToBoolean() == right.ToBoolean(), PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.String:
+                            // compare string ordinally
+                            newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) == 0, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Number:
+                            try
+                            {
+                                // compare the values
+                                // +0 and -0 are treated as "equal" in C#, so we don't need to test them separately.
+                                // and NaN is always unequal to everything else, including itself.
+                                if (left.IsOkayToCombine && right.IsOkayToCombine)
+                                {
+                                    newLiteral = new ConstantWrapper(left.ToNumber() == right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                                }
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+                    }
+                }
+                else if (left.IsOkayToCombine && right.IsOkayToCombine)
+                {
+                    try
+                    {
+                        // numeric comparison
+                        // +0 and -0 are treated as "equal" in C#, so we don't need to test them separately.
+                        // and NaN is always unequal to everything else, including itself.
+                        newLiteral = new ConstantWrapper(left.ToNumber() == right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // some kind of casting in ToNumber caused a situation where we don't want
+                        // to perform the combination on these operands
+                    }
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper NotEqual(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                PrimitiveType leftType = left.PrimitiveType;
+                if (leftType == right.PrimitiveType)
+                {
+                    // the values are the same type
+                    switch (leftType)
+                    {
+                        case PrimitiveType.Null:
+                            // null != null is false
+                            newLiteral = new ConstantWrapper(false, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Boolean:
+                            // compare boolean values
+                            newLiteral = new ConstantWrapper(left.ToBoolean() != right.ToBoolean(), PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.String:
+                            // compare string ordinally
+                            newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) != 0, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Number:
+                            try
+                            {
+                                // compare the values
+                                // +0 and -0 are treated as "equal" in C#, so we don't need to test them separately.
+                                // and NaN is always unequal to everything else, including itself.
+                                if (left.IsOkayToCombine && right.IsOkayToCombine)
+                                {
+                                    newLiteral = new ConstantWrapper(left.ToNumber() != right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                                }
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+                    }
+                }
+                else if (left.IsOkayToCombine && right.IsOkayToCombine)
+                {
+                    try
+                    {
+                        // numeric comparison
+                        // +0 and -0 are treated as "equal" in C#, so we don't need to test them separately.
+                        // and NaN is always unequal to everything else, including itself.
+                        newLiteral = new ConstantWrapper(left.ToNumber() != right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // some kind of casting in ToNumber caused a situation where we don't want
+                        // to perform the combination on these operands
+                    }
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper StrictEqual(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                PrimitiveType leftType = left.PrimitiveType;
+                if (leftType == right.PrimitiveType)
+                {
+                    // the values are the same type
+                    switch (leftType)
+                    {
+                        case PrimitiveType.Null:
+                            // null === null is true
+                            newLiteral = new ConstantWrapper(true, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Boolean:
+                            // compare boolean values
+                            newLiteral = new ConstantWrapper(left.ToBoolean() == right.ToBoolean(), PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.String:
+                            // compare string ordinally
+                            newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) == 0, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Number:
+                            try
+                            {
+                                // compare the values
+                                // +0 and -0 are treated as "equal" in C#, so we don't need to test them separately.
+                                // and NaN is always unequal to everything else, including itself.
+                                if (left.IsOkayToCombine && right.IsOkayToCombine)
+                                {
+                                    newLiteral = new ConstantWrapper(left.ToNumber() == right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                                }
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    // if they aren't the same type, they ain't equal
+                    newLiteral = new ConstantWrapper(false, PrimitiveType.Boolean, null, left.Parser);
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper StrictNotEqual(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                PrimitiveType leftType = left.PrimitiveType;
+                if (leftType == right.PrimitiveType)
+                {
+                    // the values are the same type
+                    switch (leftType)
+                    {
+                        case PrimitiveType.Null:
+                            // null !== null is false
+                            newLiteral = new ConstantWrapper(false, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Boolean:
+                            // compare boolean values
+                            newLiteral = new ConstantWrapper(left.ToBoolean() != right.ToBoolean(), PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.String:
+                            // compare string ordinally
+                            newLiteral = new ConstantWrapper(string.CompareOrdinal(left.ToString(), right.ToString()) != 0, PrimitiveType.Boolean, null, left.Parser);
+                            break;
+
+                        case PrimitiveType.Number:
+                            try
+                            {
+                                // compare the values
+                                // +0 and -0 are treated as "equal" in C#, so we don't need to test them separately.
+                                // and NaN is always unequal to everything else, including itself.
+                                if (left.IsOkayToCombine && right.IsOkayToCombine)
+                                {
+                                    newLiteral = new ConstantWrapper(left.ToNumber() != right.ToNumber(), PrimitiveType.Boolean, null, left.Parser);
+                                }
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+                    }
+                }
+                else
+                {
+                    // if they aren't the same type, they are not equal
+                    newLiteral = new ConstantWrapper(true, PrimitiveType.Boolean, null, left.Parser);
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper BitwiseAnd(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    Int32 lValue = left.ToInt32();
+                    Int32 rValue = right.ToInt32();
+                    newLiteral = new ConstantWrapper(Convert.ToDouble(lValue & rValue), PrimitiveType.Number, null, left.Parser);
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper BitwiseOr(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    Int32 lValue = left.ToInt32();
+                    Int32 rValue = right.ToInt32();
+                    newLiteral = new ConstantWrapper(Convert.ToDouble(lValue | rValue), PrimitiveType.Number, null, left.Parser);
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper BitwiseXor(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    Int32 lValue = left.ToInt32();
+                    Int32 rValue = right.ToInt32();
+                    newLiteral = new ConstantWrapper(Convert.ToDouble(lValue ^ rValue), PrimitiveType.Number, null, left.Parser);
+                }
+                catch (InvalidCastException)
+                {
+                    // some kind of casting in ToNumber caused a situation where we don't want
+                    // to perform the combination on these operands
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper LogicalAnd(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    // if the left-hand side evaluates to true, return the right-hand side.
+                    // if the left-hand side is false, return it.
+                    newLiteral = left.ToBoolean() ? right : left;
+                }
+                catch (InvalidCastException)
+                {
+                    // if we couldn't cast to bool, ignore
+                }
+            }
+
+            return newLiteral;
+        }
+
+        private ConstantWrapper LogicalOr(ConstantWrapper left, ConstantWrapper right)
+        {
+            ConstantWrapper newLiteral = null;
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                try
+                {
+                    // if the left-hand side evaluates to true, return the left-hand side.
+                    // if the left-hand side is false, return the right-hand side.
+                    newLiteral = left.ToBoolean() ? left : right;
+                }
+                catch (InvalidCastException)
+                {
+                    // if we couldn't cast to bool, ignore
+                }
+            }
+
+            return newLiteral;
+        }
+
+        #endregion
     }
 }

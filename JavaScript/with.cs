@@ -43,7 +43,7 @@ namespace Microsoft.Ajax.Utilities
               (m_withObject == null ? null : m_withObject.Clone()),
               (m_block == null ? null : m_block.Clone())
               );*/
-            throw new NotImplementedException("WithNode.Clone not implemented");
+            throw new NotImplementedException();
         }
 
         internal override string GetFunctionGuess(AstNode target)

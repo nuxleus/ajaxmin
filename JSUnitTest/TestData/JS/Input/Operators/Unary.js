@@ -50,4 +50,5 @@ function bar(foo)
 var p = -3; // unary on a literal
 var q = -(-4); // unary on an expression that is a single literal
 var r = -(1 + 2) // unary on an expression that is literals in a binaryop
-var s = !(!4); // s=!!4
+var s = !(!4); // s=true
+var t = !(!s); // s=!!s

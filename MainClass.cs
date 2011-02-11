@@ -563,6 +563,14 @@ namespace Microsoft.Ajax.Utilities
                             {
                                 m_combineDuplicateLiterals = true;
                             }
+                            else if (paramPart == "EVAL")
+                            {
+                                m_evalLiteralExpressions = true;
+                            }
+                            else if (paramPart == "NOEVAL")
+                            {
+                                m_evalLiteralExpressions = false;
+                            }
                             else if (paramPart == null)
                             {
                                 throw new UsageException(m_outputMode, "SwitchRequiresArg", switchPart);
@@ -2006,7 +2014,7 @@ namespace Microsoft.Ajax.Utilities
                 // silent -- output to debug only
                 try
                 {
-                    Debug.WriteLine(string.Format(CultureInfo.CurrentUICulture, format, args));
+                    Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, format, args));
                 }
                 catch (FormatException)
                 {

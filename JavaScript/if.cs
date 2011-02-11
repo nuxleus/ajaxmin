@@ -23,26 +23,21 @@ namespace Microsoft.Ajax.Utilities
 
     public sealed class IfNode : AstNode
     {
-        private AstNode m_condition;
-        public AstNode Condition { get { return m_condition; } }
-
-        private Block m_trueBranch;
-        public Block TrueBlock { get { return m_trueBranch; } }
-
-        private Block m_falseBranch;
-        public Block FalseBlock { get { return m_falseBranch; } }
+        public AstNode Condition { get; private set; }
+        public Block TrueBlock { get; private set; }
+        public Block FalseBlock { get; private set; }
 
         public IfNode(Context context, JSParser parser, AstNode condition, AstNode trueBranch, AstNode falseBranch)
             : base(context, parser)
         {
-            m_condition = condition;
-            m_trueBranch = ForceToBlock(trueBranch);
-            m_falseBranch = ForceToBlock(falseBranch);
+            Condition = condition;
+            TrueBlock = ForceToBlock(trueBranch);
+            FalseBlock = ForceToBlock(falseBranch);
 
             // make sure the parent element is set
-            if (m_condition != null) m_condition.Parent = this;
-            if (m_trueBranch != null) m_trueBranch.Parent = this;
-            if (m_falseBranch != null) m_falseBranch.Parent = this;
+            if (Condition != null) Condition.Parent = this;
+            if (TrueBlock != null) TrueBlock.Parent = this;
+            if (FalseBlock != null) FalseBlock.Parent = this;
         }
 
         public override AstNode Clone()
@@ -50,9 +45,9 @@ namespace Microsoft.Ajax.Utilities
             return new IfNode(
                 (Context == null ? null : Context.Clone()),
                 Parser,
-                (m_condition == null ? null : m_condition.Clone()),
-                (m_trueBranch == null ? null : m_trueBranch.Clone()),
-                (m_falseBranch == null ? null : m_falseBranch.Clone())
+                (Condition == null ? null : Condition.Clone()),
+                (TrueBlock == null ? null : TrueBlock.Clone()),
+                (FalseBlock == null ? null : FalseBlock.Clone())
                 );
         }
 
@@ -61,14 +56,14 @@ namespace Microsoft.Ajax.Utilities
             if (Parser.Settings.StripDebugStatements
                  && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements))
             {
-                if (m_trueBranch != null && m_trueBranch.IsDebuggerStatement)
+                if (TrueBlock != null && TrueBlock.IsDebuggerStatement)
                 {
-                    m_trueBranch = null;
+                    TrueBlock = null;
                 }
 
-                if (m_falseBranch != null && m_falseBranch.IsDebuggerStatement)
+                if (FalseBlock != null && FalseBlock.IsDebuggerStatement)
                 {
-                    m_falseBranch = null;
+                    FalseBlock = null;
                 }
             }
 
@@ -77,46 +72,46 @@ namespace Microsoft.Ajax.Utilities
 
             // now check to see if the two branches are now empty.
             // if they are, null them out.
-            if (m_trueBranch != null && m_trueBranch.Count == 0)
+            if (TrueBlock != null && TrueBlock.Count == 0)
             {
-                m_trueBranch = null;
+                TrueBlock = null;
             }
-            if (m_falseBranch != null && m_falseBranch.Count == 0)
+            if (FalseBlock != null && FalseBlock.Count == 0)
             {
-                m_falseBranch = null;
+                FalseBlock = null;
             }
 
             // if there is no true branch but a false branch, then
             // put a not on the condition and move the false branch to the true branch.
-            if (m_trueBranch == null && m_falseBranch != null
+            if (TrueBlock == null && FalseBlock != null
                 && Parser.Settings.IsModificationAllowed(TreeModifications.IfConditionFalseToIfNotConditionTrue))
             {
                 // check to see if not-ing the condition produces a quick and easy
                 // version first
-                AstNode nottedCondition = m_condition.LogicalNot();
+                AstNode nottedCondition = Condition.LogicalNot();
                 if (nottedCondition != null)
                 {
                     // it does -- use it
-                    m_condition = nottedCondition;
+                    Condition = nottedCondition;
                 }
                 else
                 {
                     // it doesn't. Just wrap it.
-                    m_condition = new NumericUnary(
+                    Condition = new NumericUnary(
                       null,
                       Parser,
-                      m_condition,
+                      Condition,
                       JSToken.LogicalNot
                       );
                 }
                 // don't forget to set the parent
-                m_condition.Parent = this;
+                Condition.Parent = this;
 
                 // and swap the branches
-                m_trueBranch = m_falseBranch;
-                m_falseBranch = null;
+                TrueBlock = FalseBlock;
+                FalseBlock = null;
             }
-            else if (m_trueBranch == null && m_falseBranch == null
+            else if (TrueBlock == null && FalseBlock == null
                 && Parser.Settings.IsModificationAllowed(TreeModifications.IfEmptyToExpression))
             {
                 // NEITHER branches have anything now!
@@ -135,14 +130,14 @@ namespace Microsoft.Ajax.Utilities
                 // We don't know what it is and what the side-effects may be, so
                 // just change this statement into an expression statement by replacing us with 
                 // the expression
-                Parent.ReplaceChild(this, m_condition);
+                Parent.ReplaceChild(this, Condition);
                 // no need to analyze -- we already recursed
             }
 
             // if this statement is now of the pattern "if (condtion) callNode" then
             // we can further reduce it by changing it to "condition && callNode".
-            if (m_trueBranch != null && m_falseBranch == null
-                && m_trueBranch.Count == 1
+            if (TrueBlock != null && FalseBlock == null
+                && TrueBlock.Count == 1
                 && Parser.Settings.IsModificationAllowed(TreeModifications.IfConditionCallToConditionAndCall))
             {
                 // BUT we don't want to replace the statement if the true branch is a
@@ -150,7 +145,7 @@ namespace Microsoft.Ajax.Utilities
                 // that throws an error if you pass any parameter to onclick or onfocus or
                 // any of those event handlers directly from within an and-expression -- 
                 // although expression-statements seem to work just fine.
-                CallNode callNode = m_trueBranch[0] as CallNode;
+                CallNode callNode = TrueBlock[0] as CallNode;
                 if (callNode != null)
                 {
                     Member callMember = callNode.Function as Member;
@@ -162,8 +157,8 @@ namespace Microsoft.Ajax.Utilities
                         BinaryOperator binaryOp = new BinaryOperator(
                             Context,
                             Parser,
-                            m_condition,
-                            m_trueBranch,
+                            Condition,
+                            TrueBlock,
                             JSToken.LogicalAnd
                             );
 
@@ -181,39 +176,39 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_condition != null)
+                if (Condition != null)
                 {
-                    yield return m_condition;
+                    yield return Condition;
                 }
-                if (m_trueBranch != null)
+                if (TrueBlock != null)
                 {
-                    yield return m_trueBranch;
+                    yield return TrueBlock;
                 }
-                if (m_falseBranch != null)
+                if (FalseBlock != null)
                 {
-                    yield return m_falseBranch;
+                    yield return FalseBlock;
                 }
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_condition == oldNode)
+            if (Condition == oldNode)
             {
-                m_condition = newNode;
+                Condition = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_trueBranch == oldNode)
+            if (TrueBlock == oldNode)
             {
-                m_trueBranch = ForceToBlock(newNode);
-                if (m_trueBranch != null) { m_trueBranch.Parent = this; }
+                TrueBlock = ForceToBlock(newNode);
+                if (TrueBlock != null) { TrueBlock.Parent = this; }
                 return true;
             }
-            if (m_falseBranch == oldNode)
+            if (FalseBlock == oldNode)
             {
-                m_falseBranch = ForceToBlock(newNode);
-                if (m_falseBranch != null) { m_falseBranch.Parent = this; }
+                FalseBlock = ForceToBlock(newNode);
+                if (FalseBlock != null) { FalseBlock.Parent = this; }
                 return true;
             }
             return false;
@@ -224,13 +219,13 @@ namespace Microsoft.Ajax.Utilities
             Conditional conditional = null;
             try
             {
-                if (m_trueBranch != null && m_trueBranch.Count == 1)
+                if (TrueBlock != null && TrueBlock.Count == 1)
                 {
-                    ReturnNode returnNode = m_trueBranch[0] as ReturnNode;
+                    ReturnNode returnNode = TrueBlock[0] as ReturnNode;
                     if (returnNode != null)
                     {
                         AstNode expr1 = returnNode.Operand;
-                        if (m_falseBranch == null || m_falseBranch.Count == 0)
+                        if (FalseBlock == null || FalseBlock.Count == 0)
                         {
                             // no false branch to speak of. Convert to conditional.
                             // if there is an ultimate expression, use it.
@@ -242,16 +237,16 @@ namespace Microsoft.Ajax.Utilities
                                 conditional = new Conditional(
                                     (Context == null ? null : Context.Clone()),
                                     Parser,
-                                    m_condition,
+                                    Condition,
                                     expr1 ?? CreateVoidNode(),
                                     ultimateOperand ?? CreateVoidNode());
                             }
                         }
-                        else if (m_falseBranch.Count == 1)
+                        else if (FalseBlock.Count == 1)
                         {
                             // there is a false branch with only a single statement
                             // see if it is a return statement
-                            returnNode = m_falseBranch[0] as ReturnNode;
+                            returnNode = FalseBlock[0] as ReturnNode;
                             if (returnNode != null)
                             {
                                 // it is. so we have if(cond)return expr1;else return expr2
@@ -260,14 +255,14 @@ namespace Microsoft.Ajax.Utilities
                                 conditional = new Conditional(
                                     (Context == null ? null : Context.Clone()),
                                     Parser,
-                                    m_condition,
+                                    Condition,
                                     expr1 ?? CreateVoidNode(),
                                     expr2 ?? CreateVoidNode());
                             }
                             else
                             {
                                 // see if it's another if-statement
-                                IfNode elseIf = m_falseBranch[0] as IfNode;
+                                IfNode elseIf = FalseBlock[0] as IfNode;
                                 if (elseIf != null)
                                 {
                                     // it's a nested if-statement. See if IT can be a return argument.
@@ -278,7 +273,7 @@ namespace Microsoft.Ajax.Utilities
                                         conditional = new Conditional(
                                             (Context == null ? null : Context.Clone()),
                                             Parser,
-                                            m_condition,
+                                            Condition,
                                             expr1,
                                             expr2);
                                     }
@@ -302,7 +297,7 @@ namespace Microsoft.Ajax.Utilities
 
         private VoidNode CreateVoidNode()
         {
-            return new VoidNode(null, Parser, new ConstantWrapper(0.0, true, null, Parser));
+            return new VoidNode(null, Parser, new ConstantWrapper(0.0, PrimitiveType.Number, null, Parser));
         }
 
         internal override bool RequiresSeparator
@@ -312,13 +307,13 @@ namespace Microsoft.Ajax.Utilities
                 // if we have an else block, then the if statement
                 // requires a separator if the else block does. 
                 // otherwise only if the true case requires one.
-                if (m_falseBranch != null)
+                if (FalseBlock != null)
                 {
-                    return m_falseBranch.RequiresSeparator;
+                    return FalseBlock.RequiresSeparator;
                 }
-                if (m_trueBranch != null)
+                if (TrueBlock != null)
                 {
-                    return m_trueBranch.RequiresSeparator;
+                    return TrueBlock.RequiresSeparator;
                 }
                 return true;
             }
@@ -328,13 +323,13 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_falseBranch != null)
+                if (FalseBlock != null)
                 {
-                    return m_falseBranch.EndsWithEmptyBlock;
+                    return FalseBlock.EndsWithEmptyBlock;
                 }
-                if (m_trueBranch != null)
+                if (TrueBlock != null)
                 {
-                    return m_trueBranch.EndsWithEmptyBlock;
+                    return TrueBlock.EndsWithEmptyBlock;
                 }
                 return true;
             }
@@ -343,18 +338,18 @@ namespace Microsoft.Ajax.Utilities
         internal override bool EncloseBlock(EncloseBlockType type)
         {
             // if there's an else block, recurse down that branch
-            if (m_falseBranch != null)
+            if (FalseBlock != null)
             {
-                return m_falseBranch.EncloseBlock(type);
+                return FalseBlock.EncloseBlock(type);
             }
             else if (type == EncloseBlockType.IfWithoutElse)
             {
                 // there is no else branch -- we might have to enclose the outer block
                 return true;
             }
-            else if (m_trueBranch != null)
+            else if (TrueBlock != null)
             {
-                return m_trueBranch.EncloseBlock(type);
+                return TrueBlock.EncloseBlock(type);
             }
             return false;
         }
@@ -363,40 +358,45 @@ namespace Microsoft.Ajax.Utilities
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("if(");
-            sb.Append(m_condition.ToCode());
+            sb.Append(Condition.ToCode());
             sb.Append(')');
 
             // if we're in Safari-quirks mode, we will need to wrap the if block
             // in curly braces if it only includes a function declaration. Safari
             // throws parsing errors in those situations
             ToCodeFormat elseFormat = ToCodeFormat.Normal;
-            if (Parser.Settings.MacSafariQuirks
-                && m_falseBranch != null
-                && m_falseBranch.Count == 1
-                && m_falseBranch[0] is FunctionObject)
+            if (FalseBlock != null && FalseBlock.Count == 1)
             {
-                elseFormat = ToCodeFormat.AlwaysBraces;
+                if (Parser.Settings.MacSafariQuirks
+                    && FalseBlock[0] is FunctionObject)
+                {
+                    elseFormat = ToCodeFormat.AlwaysBraces;
+                }
+                else if (FalseBlock[0] is IfNode)
+                {
+                    elseFormat = ToCodeFormat.ElseIf;
+                }
             }
 
             // get the else block -- we need to know if there is anything in order
             // to fully determine if the true-branch needs curly-braces
             string elseBlock = (
-                m_falseBranch == null
+                FalseBlock == null
                 ? string.Empty
-                : m_falseBranch.ToCode(elseFormat));
+                : FalseBlock.ToCode(elseFormat));
 
             // we'll need to force the true block to be enclosed in curly braces if
             // there is an else block and the true block contains a single statement
             // that ends in an if that doesn't have an else block
-            ToCodeFormat trueFormat = (m_falseBranch != null
-                && m_trueBranch != null
-                && m_trueBranch.EncloseBlock(EncloseBlockType.IfWithoutElse)
+            ToCodeFormat trueFormat = (FalseBlock != null
+                && TrueBlock != null
+                && TrueBlock.EncloseBlock(EncloseBlockType.IfWithoutElse)
                 ? ToCodeFormat.AlwaysBraces
                 : ToCodeFormat.Normal);
 
             if (elseBlock.Length > 0
-              && m_trueBranch != null
-              && m_trueBranch.EncloseBlock(EncloseBlockType.SingleDoWhile))
+              && TrueBlock != null
+              && TrueBlock.EncloseBlock(EncloseBlockType.SingleDoWhile))
             {
                 trueFormat = ToCodeFormat.AlwaysBraces;
             }
@@ -405,25 +405,25 @@ namespace Microsoft.Ajax.Utilities
             // in curly braces if it only includes a function declaration. Safari
             // throws parsing errors in those situations
             if (Parser.Settings.MacSafariQuirks
-                && m_trueBranch != null
-                && m_trueBranch.Count == 1
-                && m_trueBranch[0] is FunctionObject)
+                && TrueBlock != null
+                && TrueBlock.Count == 1
+                && TrueBlock[0] is FunctionObject)
             {
                 trueFormat = ToCodeFormat.AlwaysBraces;
             }
 
             // add the true block
             string trueBlock = (
-                m_trueBranch == null
+                TrueBlock == null
                 ? string.Empty
-                : m_trueBranch.ToCode(trueFormat));
+                : TrueBlock.ToCode(trueFormat));
             sb.Append(trueBlock);
 
             if (elseBlock.Length > 0)
             {
                 if (trueFormat != ToCodeFormat.AlwaysBraces
                     && !trueBlock.EndsWith(";", StringComparison.Ordinal)
-                    && (m_trueBranch == null || m_trueBranch.RequiresSeparator))
+                    && (TrueBlock == null || TrueBlock.RequiresSeparator))
                 {
                     sb.Append(';');
                 }
@@ -441,6 +441,33 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(elseBlock);
             }
             return sb.ToString();
+        }
+
+        public override void CleanupNodes()
+        {
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                // if the if-condition is a constant, we can eliminate one of the two branches
+                ConstantWrapper constantCondition = Condition as ConstantWrapper;
+                if (constantCondition != null)
+                {
+                    // instead, replace the condition with a 1 if it's always true or a 0 if it's always false
+                    if (constantCondition.IsNotOneOrPositiveZero)
+                    {
+                        try
+                        {
+                            Condition = new ConstantWrapper(constantCondition.ToBoolean() ? 1 : 0, PrimitiveType.Number, null, Parser);
+                        }
+                        catch (InvalidCastException)
+                        {
+                            // ignore any invalid cast exceptions
+                        }
+                    }
+                }
+            }
         }
     }
 }

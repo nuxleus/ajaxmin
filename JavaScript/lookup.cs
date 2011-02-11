@@ -174,8 +174,29 @@ namespace Microsoft.Ajax.Utilities
                 // add the reference
                 variableField.AddReference(scope);
 
-                // save the local field if it is one
-                m_localField = variableField as JSLocalField;
+                if (variableField is JSPredefinedField)
+                {
+                    // this is a predefined field. If it's Nan or Infinity, we should
+                    // replace it with the numeric value in case we need to later combine
+                    // some literal expressions.
+                    if (string.CompareOrdinal(m_name, "NaN") == 0)
+                    {
+                        // don't analyze the new ConstantWrapper -- we don't want it to take part in the
+                        // duplicate constant combination logic should it be turned on.
+                        Parent.ReplaceChild(this, new ConstantWrapper(double.NaN, PrimitiveType.Number, Context, Parser));
+                    }
+                    else if (string.CompareOrdinal(m_name, "Infinity") == 0)
+                    {
+                        // don't analyze the new ConstantWrapper -- we don't want it to take part in the
+                        // duplicate constant combination logic should it be turned on.
+                        Parent.ReplaceChild(this, new ConstantWrapper(double.PositiveInfinity, PrimitiveType.Number, Context, Parser));
+                    }
+                }
+                else
+                {
+                    // save the local field if it is one
+                    m_localField = variableField as JSLocalField;
+                }
             }
         }
 
@@ -186,12 +207,6 @@ namespace Microsoft.Ajax.Utilities
             // local variables
             if (!(parentScope is GlobalScope))
             {
-                // set the parent scope if it isn't the same
-                if (ParentScope != parentScope)
-                {
-                    ParentScope = parentScope;
-                }
-
                 // get the field reference for this lookup value
                 JSVariableField variableField = parentScope.FindReference(m_name);
                 if (variableField != null)

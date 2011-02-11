@@ -51,5 +51,25 @@ namespace Microsoft.Ajax.Utilities
                 return "void" + operandString;
             }
         }
+
+        public override void CleanupNodes()
+        {
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                // see if our operand is a ConstantWrapper
+                ConstantWrapper literalOperand = Operand as ConstantWrapper;
+                if (literalOperand != null)
+                {
+                    // either number, string, boolean, or null.
+                    // the void operator evaluates its operand and returns undefined. Since evaluating a literal
+                    // does nothing, then it doesn't matter what the heck it is. Replace it with a zero -- a one-
+                    // character literal.
+                    ReplaceChild(literalOperand, new ConstantWrapper(0, PrimitiveType.Number, Context, Parser));
+                }
+            }
+        }
     }
 }

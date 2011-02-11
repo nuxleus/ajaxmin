@@ -25,7 +25,7 @@ namespace Microsoft.Ajax.Utilities
         private bool m_isGetter;
 
         public GetterSetter(String identifier, bool isGetter, Context context, JSParser parser)
-            : base(identifier, false, context, parser)
+            : base(identifier, PrimitiveType.String, context, parser)
         {
             m_isGetter = isGetter;
         }

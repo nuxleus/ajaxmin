@@ -102,7 +102,7 @@ namespace Microsoft.Ajax.Utilities
                 if (args != null && args.Length > 0)
                 {
                     // format the string with the args
-                    format = string.Format(CultureInfo.CurrentUICulture, format, args);
+                    format = string.Format(CultureInfo.CurrentCulture, format, args);
                 }
             }
             else

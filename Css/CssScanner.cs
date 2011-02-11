@@ -1397,7 +1397,7 @@ namespace Microsoft.Ajax.Utilities
             }
             if (units != null || fraction != null)
             {
-                string rawNum = units + (fraction != null ? "." + fraction : null);
+                //string rawNum = units + (fraction != null ? "." + fraction : null);
                 //if (m_collapseNumbers)
                 {
                     if (units != null)

@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -184,6 +185,39 @@ namespace Microsoft.Ajax.Utilities
               );
             sb.Append(bodyString);
             return sb.ToString();
+        }
+
+        public override void CleanupNodes()
+        {
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                ConstantWrapper constantCondition = Condition as ConstantWrapper;
+                if (constantCondition != null)
+                {
+                    try
+                    {
+                        // if condition is always false, change it to a zero (only one byte)
+                        // and if it is always true, remove it (default behavior)
+                        if (constantCondition.ToBoolean())
+                        {
+                            // always true -- don't need a condition at all
+                            Condition = null;
+                        }
+                        else if (constantCondition.IsNotOneOrPositiveZero)
+                        {
+                            // always false and it's not already a zero. Make it so (only one byte)
+                            Condition = new ConstantWrapper(0, PrimitiveType.Number, null, Parser);
+                        }
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // ignore any invalid cast exceptions
+                    }
+                }
+            }
         }
     }
 }

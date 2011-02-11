@@ -18,7 +18,7 @@ using System.Text;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public class ConstantWrapperPP : ConstantWrapper
+    public class ConstantWrapperPP : AstNode
     {
         private string m_varName;
         public string VarName { get { return m_varName; } }
@@ -26,10 +26,20 @@ namespace Microsoft.Ajax.Utilities
         private bool m_forceComments;
 
         public ConstantWrapperPP(string varName, bool forceComments, Context context, JSParser parser)
-            : base(null, false, context, parser)
+            : base(context, parser)
         {
             m_varName = varName;
             m_forceComments = forceComments;
+        }
+
+        public override AstNode Clone()
+        {
+            return new ConstantWrapperPP(
+                m_varName,
+                m_forceComments,
+                (Context == null ? null : Context.Clone()),
+                Parser
+                );
         }
 
         public override string ToCode(ToCodeFormat format)

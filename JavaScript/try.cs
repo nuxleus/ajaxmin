@@ -154,10 +154,12 @@ namespace Microsoft.Ajax.Utilities
             // handle the catch clause (if any)
             // catch should always have braces around it
             string catchString = (
-              CatchBlock == null
-              ? string.Empty
-              : CatchBlock.ToCode(ToCodeFormat.AlwaysBraces)
-              );
+                CatchBlock == null
+                ? string.Empty
+                : CatchBlock.Count == 0
+                    ? "{}"
+                    : CatchBlock.ToCode(ToCodeFormat.AlwaysBraces)
+                );
             if (catchString.Length > 0)
             {
                 Parser.Settings.NewLine(sb);

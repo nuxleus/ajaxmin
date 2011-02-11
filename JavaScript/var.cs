@@ -283,7 +283,10 @@ namespace Microsoft.Ajax.Utilities
                         // remove it from the var statement
                         m_list.RemoveAt(ndx);
                         // and remove the field from the scope
-                        scope.Remove(localField);
+                        if (scope != null)
+                        {
+                            scope.Remove(localField);
+                        }
                     }
                 }
             }

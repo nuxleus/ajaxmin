@@ -206,7 +206,7 @@ namespace Microsoft.Ajax.Utilities
                             // get the localized string from the resources object
                             ConstantWrapper resourceLiteral = new ConstantWrapper(
                                 resourceStrings[resourceName],
-                                false,
+                                PrimitiveType.String,
                                 Context,
                                 Parser);
 

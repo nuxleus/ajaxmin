@@ -1130,7 +1130,7 @@ namespace Microsoft.Ajax.Utilities
                     if (exc._partiallyComputedNode != null)
                         condition = exc._partiallyComputedNode;
                     else
-                        condition = new ConstantWrapper(true, false, CurrentPositionContext(), this);
+                        condition = new ConstantWrapper(true, PrimitiveType.Boolean, CurrentPositionContext(), this);
 
                     if (IndexOfToken(NoSkipTokenSet.s_BlockConditionNoSkipTokenSet, exc) == -1)
                     {
@@ -1318,7 +1318,7 @@ namespace Microsoft.Ajax.Utilities
                                     else
                                     {
                                         if (exc._partiallyComputedNode == null)
-                                            condOrColl = new ConstantWrapper(true, false, CurrentPositionContext(), this); // what could we put here?
+                                            condOrColl = new ConstantWrapper(true, PrimitiveType.Boolean, CurrentPositionContext(), this); // what could we put here?
                                         else
                                             condOrColl = exc._partiallyComputedNode;
                                     }
@@ -1437,7 +1437,7 @@ namespace Microsoft.Ajax.Utilities
                             // discard any partial info, just genrate empty condition and increment and keep going
                             exc._partiallyComputedNode = null;
                             if (condOrColl == null)
-                                condOrColl = new ConstantWrapper(true, false, CurrentPositionContext(), this);
+                                condOrColl = new ConstantWrapper(true, PrimitiveType.Boolean, CurrentPositionContext(), this);
                         }
                         if (exc._token == JSToken.RightParenthesis)
                         {
@@ -1517,7 +1517,7 @@ namespace Microsoft.Ajax.Utilities
                         // we have to pass the exception to someone else, make as much as you can from the 'do while'
                         exc._partiallyComputedNode = new DoWhile(CurrentPositionContext(), this,
                                                                   body,
-                                                                  new ConstantWrapper(false, false, CurrentPositionContext(), this));
+                                                                  new ConstantWrapper(false, PrimitiveType.Boolean, CurrentPositionContext(), this));
                         throw;
                     }
                 }
@@ -1556,7 +1556,7 @@ namespace Microsoft.Ajax.Utilities
                     if (exc._partiallyComputedNode != null)
                         condition = exc._partiallyComputedNode;
                     else
-                        condition = new ConstantWrapper(false, false, CurrentPositionContext(), this);
+                        condition = new ConstantWrapper(false, PrimitiveType.Boolean, CurrentPositionContext(), this);
 
                     if (IndexOfToken(NoSkipTokenSet.s_BlockConditionNoSkipTokenSet, exc) == -1)
                     {
@@ -1641,7 +1641,7 @@ namespace Microsoft.Ajax.Utilities
                         if (exc._partiallyComputedNode != null)
                             condition = exc._partiallyComputedNode;
                         else
-                            condition = new ConstantWrapper(false, false, CurrentPositionContext(), this);
+                            condition = new ConstantWrapper(false, PrimitiveType.Boolean, CurrentPositionContext(), this);
 
                         if (JSToken.RightParenthesis == m_currentToken.Token)
                             GetNextToken();
@@ -1945,7 +1945,7 @@ namespace Microsoft.Ajax.Utilities
                     else
                     {
                         if (exc._partiallyComputedNode == null)
-                            obj = new ConstantWrapper(true, false, CurrentPositionContext(), this);
+                            obj = new ConstantWrapper(true, PrimitiveType.Boolean, CurrentPositionContext(), this);
                         else
                             obj = exc._partiallyComputedNode;
                         withCtx.UpdateWith(obj.Context);
@@ -2080,7 +2080,7 @@ namespace Microsoft.Ajax.Utilities
                     else
                     {
                         if (exc._partiallyComputedNode == null)
-                            expr = new ConstantWrapper(true, false, CurrentPositionContext(), this);
+                            expr = new ConstantWrapper(true, PrimitiveType.Boolean, CurrentPositionContext(), this);
                         else
                             expr = exc._partiallyComputedNode;
 
@@ -3291,7 +3291,7 @@ namespace Microsoft.Ajax.Utilities
 
                 case JSToken.StringLiteral:
                     canBeAttribute = false;
-                    ast = new ConstantWrapper(m_scanner.StringLiteral, false, m_currentToken.Clone(), this);
+                    ast = new ConstantWrapper(m_scanner.StringLiteral, PrimitiveType.String, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.IntegerLiteral:
@@ -3300,54 +3300,50 @@ namespace Microsoft.Ajax.Utilities
                         canBeAttribute = false;
                         Context numericContext = m_currentToken.Clone();
                         double doubleValue;
-                        double valueWithSign;
-                        try
+                        if (ConvertNumericLiteralToDouble(m_currentToken.Code, (token == JSToken.IntegerLiteral), out doubleValue))
                         {
-                            // if the digits themselves cause an overflow, ToNumber will return PositiveInfinity.
-                            // but I still want to enclose this statement in a try/catch just in case the multiplication
-                            // to add the sign causes an overflow
-                            doubleValue = JSConvert.ToNumber(m_currentToken.Code, (token == JSToken.IntegerLiteral));
-                            valueWithSign = doubleValue * (isMinus ? -1 : 1);
-                        }
-                        catch (OverflowException)
-                        {
-                            doubleValue = (isMinus ? double.NegativeInfinity : double.PositiveInfinity);
-                            // just assign something to this variable, as long as it's not MinValue
-                            valueWithSign = 0;
-                        }
+                            // conversion worked fine
+                            // check for some boundary conditions
+                            if (doubleValue == double.MaxValue)
+                            {
+                                ReportError(JSError.NumericMaximum, numericContext, true);
+                            }
+                            else if (isMinus && -doubleValue == double.MinValue)
+                            {
+                                ReportError(JSError.NumericMinimum, numericContext, true);
+                            }
 
-                        // check or a few interesting warnings
-                        if (double.IsInfinity(doubleValue))
-                        {
-                            ReportError(JSError.NumericOverflow, numericContext, true);
+                            // create the constant wrapper from the value
+                            ast = new ConstantWrapper(doubleValue, PrimitiveType.Number, numericContext, this);
                         }
-                        else if (doubleValue == double.MaxValue)
+                        else
                         {
-                            ReportError(JSError.NumericMaximum, numericContext, true);
-                        }
-                        else if (valueWithSign == double.MinValue)
-                        {
-                            ReportError(JSError.NumericMinimum, numericContext, true);
-                        }
+                            // check to see if we went overflow
+                            if (double.IsInfinity(doubleValue))
+                            {
+                                ReportError(JSError.NumericOverflow, numericContext, true);
+                            }
 
-                        // create the constant wrapper from the value
-                        ast = new ConstantWrapper(doubleValue, true, numericContext, this);
+                            // regardless, we're going to create a special constant wrapper
+                            // that simply echos the input as-is
+                            ast = new ConstantWrapper(m_currentToken.Code, PrimitiveType.Other, numericContext, this);
+                        }
                         break;
                     }
 
                 case JSToken.True:
                     canBeAttribute = false;
-                    ast = new ConstantWrapper(true, false, m_currentToken.Clone(), this);
+                    ast = new ConstantWrapper(true, PrimitiveType.Boolean, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.False:
                     canBeAttribute = false;
-                    ast = new ConstantWrapper(false, false, m_currentToken.Clone(), this);
+                    ast = new ConstantWrapper(false, PrimitiveType.Boolean, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.Null:
                     canBeAttribute = false;
-                    ast = new ConstantWrapper(null, false, m_currentToken.Clone(), this);
+                    ast = new ConstantWrapper(null, PrimitiveType.Null, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.PreprocessorConstant:
@@ -3446,7 +3442,7 @@ namespace Microsoft.Ajax.Utilities
                         else
                         {
                             // comma -- missing array item in the list
-                            list.Append(new ConstantWrapper(Missing.Value, false, m_currentToken.Clone(), this));
+                            list.Append(new ConstantWrapper(Missing.Value, PrimitiveType.Other, m_currentToken.Clone(), this));
                         }
                         GetNextToken();
                     }
@@ -3477,27 +3473,43 @@ namespace Microsoft.Ajax.Utilities
                             switch (m_currentToken.Token)
                             {
                                 case JSToken.Identifier:
-                                    field = new ObjectLiteralField(m_scanner.GetIdentifier(), false, m_currentToken.Clone(), this);
+                                    field = new ObjectLiteralField(m_scanner.GetIdentifier(), PrimitiveType.String, m_currentToken.Clone(), this);
                                     break;
 
                                 case JSToken.StringLiteral:
-                                    field = new ObjectLiteralField(m_scanner.StringLiteral, false, m_currentToken.Clone(), this);
+                                    field = new ObjectLiteralField(m_scanner.StringLiteral, PrimitiveType.String, m_currentToken.Clone(), this);
                                     break;
 
                                 case JSToken.IntegerLiteral:
                                 case JSToken.NumericLiteral:
                                     {
-                                        double doubleValue = JSConvert.ToNumber(m_currentToken.Code, (m_currentToken.Token == JSToken.IntegerLiteral));
-                                        if (double.IsInfinity(doubleValue))
+                                        double doubleValue;
+                                        if (ConvertNumericLiteralToDouble(m_currentToken.Code, (m_currentToken.Token == JSToken.IntegerLiteral), out doubleValue))
                                         {
-                                            ReportError(JSError.NumericOverflow, m_currentToken.Clone(), true);
+                                            // conversion worked fine
+                                            field = new ObjectLiteralField(
+                                              doubleValue,
+                                              PrimitiveType.Number,
+                                              m_currentToken.Clone(),
+                                              this
+                                              );
                                         }
-                                        field = new ObjectLiteralField(
-                                          doubleValue,
-                                          true,
-                                          m_currentToken.Clone(),
-                                          this
-                                          );
+                                        else
+                                        {
+                                            // something went wrong and we're not sure the string representation in the source is 
+                                            // going to convert to a numeric value well
+                                            if (double.IsInfinity(doubleValue))
+                                            {
+                                                ReportError(JSError.NumericOverflow, m_currentToken.Clone(), true);
+                                            }
+
+                                            // use the source as the field name, not the numeric value
+                                            field = new ObjectLiteralField(
+                                                m_currentToken.Code,
+                                                PrimitiveType.Other,
+                                                m_currentToken.Clone(),
+                                                this);
+                                        }
                                         break;
                                     }
 
@@ -3506,7 +3518,7 @@ namespace Microsoft.Ajax.Utilities
                                     if (m_scanner.PeekToken() == JSToken.Colon)
                                     {
                                         // the field is either "get" or "set" and isn't the special Mozilla getter/setter
-                                        field = new ObjectLiteralField(m_currentToken.Code, false, m_currentToken.Clone(), this);
+                                        field = new ObjectLiteralField(m_currentToken.Code, PrimitiveType.String, m_currentToken.Clone(), this);
                                     }
                                     else
                                     {
@@ -3543,12 +3555,12 @@ namespace Microsoft.Ajax.Utilities
                                     {
                                         // don't throw a warning -- it's okay to have a keyword that
                                         // can be an identifier here.
-                                        field = new ObjectLiteralField(ident, false, m_currentToken.Clone(), this);
+                                        field = new ObjectLiteralField(ident, PrimitiveType.String, m_currentToken.Clone(), this);
                                     }
                                     else
                                     {
                                         ReportError(JSError.NoMemberIdentifier);
-                                        field = new ObjectLiteralField("_#Missing_Field#_" + s_cDummyName++, false, CurrentPositionContext(), this);
+                                        field = new ObjectLiteralField("_#Missing_Field#_" + s_cDummyName++, PrimitiveType.String, CurrentPositionContext(), this);
                                     }
                                     break;
                             }
@@ -3685,6 +3697,109 @@ namespace Microsoft.Ajax.Utilities
             return MemberExpression(ast, newContexts, ref canBeAttribute);
         }
 
+        /// <summary>
+        /// Convert the given numeric string to a double value
+        /// </summary>
+        /// <param name="str">string representation of a number</param>
+        /// <param name="isInteger">we should know alreasdy if it's an integer or not</param>
+        /// <param name="doubleValue">output value</param>
+        /// <returns>true if there were no problems; false if there were</returns>
+        private bool ConvertNumericLiteralToDouble(string str, bool isInteger, out double doubleValue)
+        {
+            try
+            {
+                if (isInteger)
+                {
+                    if (str[0] == '0' && str.Length > 1)
+                    {
+                        if (str[1] == 'x' || str[1] == 'X')
+                        {
+                            if (str.Length == 2)
+                            {
+                                // 0x???? must be a parse error. Just return zero
+                                doubleValue = 0;
+                                return false;
+                            }
+
+                            // parse the number as a hex integer, converted to a double
+                            doubleValue = (double)System.Convert.ToInt64(str, 16);
+                        }
+                        else
+                        {
+                            // might be an octal value... try converting to octal
+                            // and if it fails, just convert to decimal
+                            try
+                            {
+                                doubleValue = (double)System.Convert.ToInt64(str, 8);
+
+                                // if we got here, we successfully converted it to octal.
+                                // now, octal literals are deprecated -- not all JS implementations will
+                                // decode them. If this decoded as an octal, it can also be a decimal. Check
+                                // the decimal value, and if it's the same, then we'll just treat it
+                                // as a normal decimal value. Otherwise we'll throw a warning and treat it
+                                // as a special no-convert literal.
+                                double decimalValue = (double)System.Convert.ToInt64(str, 10);
+                                if (decimalValue != doubleValue)
+                                {
+                                    // throw a warning!
+                                    ReportError(JSError.OctalLiteralsDeprecated, m_currentToken.Clone(), true);
+
+                                    // return false because octals are deprecated and might have
+                                    // cross-browser issues
+                                    return false;
+                                }
+                            }
+                            catch (FormatException)
+                            {
+                                // ignore the format exception and fall through to parsing
+                                // the value as a base-10 decimal value
+                                doubleValue = Convert.ToDouble(str, CultureInfo.InvariantCulture);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // just parse the integer as a decimal value
+                        doubleValue = Convert.ToDouble(str, CultureInfo.InvariantCulture);
+                    }
+
+                    // check for out-of-bounds integer values -- if the integer can't EXACTLY be represented
+                    // as a double, then we don't want to consider it "successful"
+                    if (doubleValue < -0x20000000000000 || 0x20000000000000 < doubleValue)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    // use the system to convert the string to a double
+                    doubleValue = Convert.ToDouble(str, CultureInfo.InvariantCulture);
+                }
+
+                // if we got here, we should have an appropriate value in doubleValue
+                return true;
+            }
+            catch (OverflowException)
+            {
+                // overflow mean just return one of the infinity values
+                doubleValue = (str[0] == '-'
+                  ? Double.NegativeInfinity
+                  : Double.PositiveInfinity
+                  );
+
+                // and it wasn't "successful"
+                return false;
+            }
+            catch (FormatException)
+            {
+                // format exception converts to NaN
+                doubleValue = double.NaN;
+
+                // not successful
+                return false;
+            }
+        }
+
         //---------------------------------------------------------------------------------------
         // MemberExpression
         //
@@ -3750,7 +3865,7 @@ namespace Microsoft.Ajax.Utilities
                                     if (args.Count > 0)
                                         expression = new EvaluateNode(expression.Context, this, args[0]);
                                     else
-                                        expression = new EvaluateNode(expression.Context, this, new ConstantWrapper("", false, CurrentPositionContext(), this));
+                                        expression = new EvaluateNode(expression.Context, this, new ConstantWrapper("", PrimitiveType.String, CurrentPositionContext(), this));
                                 }
                                 else
                                 {
@@ -3851,7 +3966,7 @@ namespace Microsoft.Ajax.Utilities
                                     // that is a keyword which is okay to be an identifier. For instance,
                                     // jQuery has a commonly-used method named "get" to make an ajax request
                                     //ForceReportInfo(JSError.KeywordUsedAsIdentifier);
-                                    id = new ConstantWrapper(identifier, false, m_currentToken.Clone(), this);
+                                    id = new ConstantWrapper(identifier, PrimitiveType.String, m_currentToken.Clone(), this);
                                 }
                                 else if (JSScanner.IsValidIdentifier(m_currentToken.Code))
                                 {
@@ -3859,7 +3974,7 @@ namespace Microsoft.Ajax.Utilities
                                     // but it IS a valid identifier format. Throw the error but still
                                     // create the constant wrapper so we can output it as-is
                                     ReportError(JSError.NoIdentifier, m_currentToken.Clone(), true);
-                                    id = new ConstantWrapper(m_currentToken.Code, false, m_currentToken.Clone(), this);
+                                    id = new ConstantWrapper(m_currentToken.Code, PrimitiveType.String, m_currentToken.Clone(), this);
                                 }
                                 else
                                 {
@@ -3869,7 +3984,7 @@ namespace Microsoft.Ajax.Utilities
                             }
                             else
                             {
-                                id = new ConstantWrapper(m_scanner.GetIdentifier(), false, m_currentToken.Clone(), this);
+                                id = new ConstantWrapper(m_scanner.GetIdentifier(), PrimitiveType.String, m_currentToken.Clone(), this);
                             }
                             GetNextToken();
                             expression = new Member(expression.Context.CombineWith(id.Context), this, expression, id.Context.Code);
@@ -3929,7 +4044,7 @@ namespace Microsoft.Ajax.Utilities
                     {
                         if (JSToken.Comma == m_currentToken.Token)
                         {
-                            list.Append(new ConstantWrapper(Missing.Value, false, m_currentToken.Clone(), this));
+                            list.Append(new ConstantWrapper(Missing.Value, PrimitiveType.Other, m_currentToken.Clone(), this));
                         }
                         else if (terminator == m_currentToken.Token)
                         {

@@ -9,7 +9,10 @@ var d1=10, d2=1.23e10, d3=1.2e+5, d4=1.3e-5, d5=1.45, d6=-42, d7=-1.414e-0, d8=.
 var h1=0x19, h2=0xa, h3=0xffff, h4=0x0001, h5=0xfedcba9876, h6=-0xff;
 
 // octal
-var o1 = 0377, o2 = 012, o3 = 00, o4 = 089;
+// because octals are deprecated and may have cross-browser issues, we should leave them
+// as-is in our code IF they would be different decoded as decimal. 
+// That last one, though, isn't an octal!
+var o1 = 0377, o2 = 012, o3 = 00, o4 = 06, o5 = 089;
 
 // literal representing the maximum numeric value. should suggest developer replace with Number.MAX_VALUE
 // while leaving the value literal crunched but still numeric
@@ -31,7 +34,9 @@ var neg = -1.79769313486232E+308;
 var tooBig = 1E999;
 
 // boundary conditions for floating-point
-var b = 123456789012345678901 + 12345678901234567891;
+var a = 123456789012345678901;
+var b = 12345678901234567891;
+var c = 123456789012345678901 + 12345678901234567891;
 
 // overflow for an object-literal field name works in browsers. for instance,
 // if obj[1e999] = 2 then obj[1e999] === obj[1e309] evaluates to true because

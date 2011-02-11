@@ -332,8 +332,9 @@ Valid JSOPTS are zero or more of:
         code references.
   -inline[:BOOL] &gt; whether to make sure strings are safe for HTML inline 
         script. Default is True.
-  -literals:(keep|combine) &gt; whether to combine duplicate literals or keep 
-        them. Default is keep.
+  -literals:(keep|combine, eval|noeval) &gt; two literal treatment options:
+        whether to combine duplicate literals or keep them. Default is keep;
+        whether to evaluate literal expressions or keep them. Default is eval.
   -mac[:BOOL] &gt; whether to add code to ensure output works in Mac Safari
         browsers. Default is True.
   -new:(keep|collapse) &gt; whether to collapse certain constructors with known

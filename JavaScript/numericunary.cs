@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Text;
 
 namespace Microsoft.Ajax.Utilities
@@ -46,30 +47,25 @@ namespace Microsoft.Ajax.Utilities
             if (constantWrapper != null
                 && constantWrapper.IsNumericLiteral)
             {
-                // get the value of the constant
+                // get the value of the constant. We've already screened it for numeric, so
+                // we don't have to worry about catching any errors
                 double doubleValue = constantWrapper.ToNumber();
 
                 // if this is a unary minus...
                 if (OperatorToken == JSToken.Minus
                     && Parser.Settings.IsModificationAllowed(TreeModifications.ApplyUnaryMinusToNumericLiteral))
                 {
-                    // see if the value is positive, and if so, replace the unary with
-                    // the negated constant wrapper
-                    // but don't replace -0 with 0, because in JavaScript, -0 and 0 are actually different values
-                    if (doubleValue != 0)
-                    {
-                        // negate the value
-                        constantWrapper.Value = -doubleValue;
+                    // negate the value
+                    constantWrapper.Value = -doubleValue;
 
-                        // replace us with the negated constant
-                        if (Parent.ReplaceChild(this, constantWrapper))
-                        {
-                            // the context for the minus will include the number (its operand),
-                            // but the constant will just be the number. Update the context on
-                            // the constant to be a copy of the context on the operator
-                            constantWrapper.Context = Context.Clone();
-                            return;
-                        }
+                    // replace us with the negated constant
+                    if (Parent.ReplaceChild(this, constantWrapper))
+                    {
+                        // the context for the minus will include the number (its operand),
+                        // but the constant will just be the number. Update the context on
+                        // the constant to be a copy of the context on the operator
+                        constantWrapper.Context = Context.Clone();
+                        return;
                     }
                 }
                 else if (OperatorToken == JSToken.Plus
@@ -84,6 +80,76 @@ namespace Microsoft.Ajax.Utilities
                         // the constant to be a copy of the context on the operator
                         constantWrapper.Context = Context.Clone();
                         return;
+                    }
+                }
+            }
+        }
+
+        public override void CleanupNodes()
+        {
+            base.CleanupNodes();
+
+            if (Parser.Settings.EvalLiteralExpressions
+                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
+            {
+                // see if our operand is a ConstantWrapper
+                ConstantWrapper literalOperand = Operand as ConstantWrapper;
+                if (literalOperand != null)
+                {
+                    // must be number, boolean, string, or null
+                    double doubleValue;
+                    switch (OperatorToken)
+                    {
+                        case JSToken.Plus:
+                            try
+                            {
+                                // replace with a constant representing operand.ToNumber,
+                                Parent.ReplaceChild(this, new ConstantWrapper(literalOperand.ToNumber(), PrimitiveType.Number, Context, Parser));
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+
+                        case JSToken.Minus:
+                            try
+                            {
+                                // replace with a constant representing the negative of operand.ToNumber
+                                Parent.ReplaceChild(this, new ConstantWrapper(-literalOperand.ToNumber(), PrimitiveType.Number, Context, Parser));
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+
+                        case JSToken.BitwiseNot:
+                            try
+                            {
+                                // replace with a constant representing the bitwise-not of operant.ToInt32
+                                Parent.ReplaceChild(this, new ConstantWrapper(Convert.ToDouble(~literalOperand.ToInt32()), PrimitiveType.Number, Context, Parser));
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // some kind of casting in ToNumber caused a situation where we don't want
+                                // to perform the combination on these operands
+                            }
+                            break;
+
+                        case JSToken.LogicalNot:
+                            // replace with a constant representing the opposite of operand.ToBoolean
+                            try
+                            {
+                                Parent.ReplaceChild(this, new ConstantWrapper(!literalOperand.ToBoolean(), PrimitiveType.Boolean, Context, Parser));
+                            }
+                            catch (InvalidCastException)
+                            {
+                                // ignore any invalid cast exceptions
+                            }
+                            break;
                     }
                 }
             }
