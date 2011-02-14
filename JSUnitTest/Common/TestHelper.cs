@@ -189,9 +189,26 @@ namespace JSUnitTest
                             ++inputCount;
                             outputFiles = ReadXmlForOutputFiles(inputPath, testClass);
                         }
+                        else if (string.Compare(option, "-rename", StringComparison.OrdinalIgnoreCase) == 0)
+                        {
+                            // rename with no param parts (a colon and other stuff) means the next
+                            // option should be an xml file name, so we'll add an option
+                            // that is the file scoped to the input path.
+                            string nextFile = options[++ndx];
+
+                            string renamePath = BuildFullPath(
+                                m_inputFolder,
+                                testClass,
+                                Path.GetFileNameWithoutExtension(nextFile),
+                                Path.GetExtension(nextFile),
+                                true);
+
+                            // add that scoped path to the arguments
+                            args.AddLast(renamePath);
+                        }
                         // the -r option can have a subpart, eg: -res:Strings, so only test to see if
                         // the first two characters of the current option are "-res"
-                        else if (option.StartsWith("-res",StringComparison.OrdinalIgnoreCase))
+                        else if (option.StartsWith("-res", StringComparison.OrdinalIgnoreCase))
                         {
                             // the next option is a resource file name, so we'll need to scope it to the input path
                             // FIRST we'll try to see if there's an existing compiled .RESOURCES file with the same
@@ -226,7 +243,8 @@ namespace JSUnitTest
                             }
                             args.AddLast(resourcePath);
                         }
-                        else if (option.StartsWith("-rename:", StringComparison.OrdinalIgnoreCase))
+                        else if (option.StartsWith("-rename:", StringComparison.OrdinalIgnoreCase) 
+                            && option.IndexOf('=') < 0 && option.IndexOf("prop", StringComparison.OrdinalIgnoreCase) < 0)
                         {
                             specifiesRename = true;
                         }
@@ -337,7 +355,18 @@ namespace JSUnitTest
             Trace.WriteLine("COMMAND-LINE SWITCHES:");
             foreach (string arg in mainArguments)
             {
-                Trace.Write(arg);
+                if (arg.IndexOf(' ') >= 0)
+                {
+                    // at least one space -- enclose the argument in quotes
+                    Trace.Write('"');
+                    Trace.Write(arg);
+                    Trace.Write('"');
+                }
+                else
+                {
+                    // no spaces; don't need quotes
+                    Trace.Write(arg);
+                }
                 Trace.Write(' ');
             }
             Trace.WriteLine(string.Empty);
@@ -391,7 +420,7 @@ namespace JSUnitTest
                 else if (File.Exists(expectedPath))
                 {
                     // no output file, but we did expect an output! That is a failure
-                    Assert.Fail("Expected output file does not exist!");
+                    Assert.Fail("Output file does not exist, but one was expected!");
                 }
                 else
                 {

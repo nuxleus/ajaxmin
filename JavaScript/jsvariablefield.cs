@@ -29,6 +29,7 @@ namespace Microsoft.Ajax.Utilities
         private bool m_isDeclared; //= false;
         private bool m_isPlaceholder; //= false;
         private bool m_canCrunch;// = false;
+        private string m_crunchedName;// = null;
 
         private int m_refCount;// = 0;
         public int RefCount { get { return m_refCount; } }
@@ -75,6 +76,36 @@ namespace Microsoft.Ajax.Utilities
                 if (m_outerField != null)
                 {
                     m_outerField.IsDeclared = value;
+                }
+            }
+        }
+
+        // we'll set this after analyzing all the variables in the
+        // script in order to shrink it down even further
+        public string CrunchedName
+        {
+            get
+            {
+                // return the outer field's crunched name if there is one,
+                // otherwise return ours
+                return (m_outerField != null
+                    ? m_outerField.CrunchedName
+                    : m_crunchedName);
+            }
+            set
+            {
+                // only set this if we CAN
+                if (m_canCrunch)
+                {
+                    // if this is an outer reference, pass this on to the outer field
+                    if (m_outerField != null)
+                    {
+                        m_outerField.CrunchedName = value;
+                    }
+                    else
+                    {
+                        m_crunchedName = value;
+                    }
                 }
             }
         }
@@ -158,8 +189,8 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToString()
         {
-            // just output the name
-            return m_name;
+            string crunch = CrunchedName;
+            return string.IsNullOrEmpty(crunch) ? m_name : crunch;
         }
 
         public virtual String Name
@@ -188,6 +219,11 @@ namespace Microsoft.Ajax.Utilities
             {
                 return ((m_attributeFlags & FieldAttributes.Literal) != 0);
             }
+        }
+
+        public override int GetHashCode()
+        {
+            return m_name.GetHashCode();
         }
     }
 }

@@ -232,6 +232,12 @@
     <Content Include="TestData\JS\Expected\Operators\NewPrecedence.js" />
     <Content Include="TestData\JS\Expected\Operators\Unary.js" />
     <Content Include="TestData\JS\Expected\Operators\Void.js" />
+    <Content Include="TestData\JS\Expected\Renaming\ManualRename.js" />
+    <Content Include="TestData\JS\Expected\Renaming\ManualRename_all.js" />
+    <Content Include="TestData\JS\Expected\Renaming\ManualRename_cmd.js" />
+    <Content Include="TestData\JS\Expected\Renaming\ManualRename_collide.js" />
+    <Content Include="TestData\JS\Expected\Renaming\ManualRename_noprops.js" />
+    <Content Include="TestData\JS\Expected\Renaming\ManualRename_rename.js" />
     <Content Include="TestData\JS\Expected\Renaming\NestedGlobals.js" />
     <Content Include="TestData\JS\Expected\ResourceMerge\ResourceJS.js" />
     <Content Include="TestData\JS\Expected\ResourceMerge\ResourceResx.js" />
@@ -368,7 +374,10 @@
     <Content Include="TestData\JS\Input\Operators\NewPrecedence.js" />
     <Content Include="TestData\JS\Input\Operators\Unary.js" />
     <Content Include="TestData\JS\Input\Operators\Void.js" />
+    <Content Include="TestData\JS\Input\Renaming\Collide.xml" />
+    <Content Include="TestData\JS\Input\Renaming\ManualRename.js" />
     <Content Include="TestData\JS\Input\Renaming\NestedGlobals.js" />
+    <Content Include="TestData\JS\Input\Renaming\Rename.xml" />
     <Content Include="TestData\JS\Input\ResourceMerge\ResourceResx.js" />
     <Content Include="TestData\JS\Input\ResourceMerge\ResourceJS.js" />
     <Content Include="TestData\JS\Input\ResourceMerge\ResourceJS_res.js" />

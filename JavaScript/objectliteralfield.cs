@@ -20,35 +20,24 @@ namespace Microsoft.Ajax.Utilities
 {
     public class ObjectLiteralField : ConstantWrapper
     {
-        private bool m_canBeIdentifier;// = false;
-
-        // really basic identifier format. JavaScript identifiers typically have the format:
-        // first character is ASCII letter, underscore, or dollar sign.
-        // subsequent characters can also contain numbers.
-        // they can have many more characters in them, but this is just a simple pattern.
-        // anything that doesn't match this pattern will just have quotes put around it.
-        //private static Regex s_identifierFormat = new Regex(@"^[a-zA-Z_\$][a-zA-Z_\$0-9]*$");
-
         public ObjectLiteralField(Object value, PrimitiveType primitiveType, Context context, JSParser parser)
             : base(value, primitiveType, context, parser)
         {
-            // if the value is a string, then we might be able to remove the quotes
-            // if it's a simple identifier format and not a keyword.
-            if (value is string)
-            {
-                // get the string object
-                string stringValue = value.ToString();
-                // if it's a simple format and not a keyword...
-                if (JSScanner.IsValidIdentifier(stringValue)/*s_identifierFormat.IsMatch(stringValue)*/ && !JSScanner.IsKeyword(stringValue))
-                {
-                    // then the string literal could be treated like an identifier
-                    m_canBeIdentifier = true;
-                }
-            }
         }
 
         internal override void AnalyzeNode()
         {
+            if (PrimitiveType == PrimitiveType.String
+                && Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming))
+            {
+                string newName = Parser.GetNewName(Value.ToString());
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    Value = newName;
+                }
+            }
+
             // don't call the base -- we don't want to add the literal to
             // the combination logic, which is what the ConstantWrapper (base class) does
             //base.AnalyzeNode();
@@ -56,14 +45,17 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToCode(ToCodeFormat format)
         {
-            if (m_canBeIdentifier)
+            if (PrimitiveType == PrimitiveType.String)
             {
-                // just return the string as an identifier (no quotes)
-                return Value.ToString();
+                string rawValue = Value.ToString();
+
+                // if the raw value is safe to be an identifier, then go ahead and ditch the quotes and just output
+                // the raw value. Otherwise call ToCode to wrap the string in quotes.
+                return JSScanner.IsSafeIdentifier(rawValue) && !JSScanner.IsKeyword(rawValue) ? rawValue : base.ToCode(format);
             }
             else
             {
-                // doing the normal base class call puts quotes around the strings
+                // call the base to format the value
                 return base.ToCode(format);
             }
         }

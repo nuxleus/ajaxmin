@@ -334,9 +334,6 @@
     <Compile Include="..\JavaScript\scannerexception.cs">
       <Link>JavaScript\scannerexception.cs</Link>
     </Compile>
-    <Compile Include="..\JavaScript\simplehashtable.cs">
-      <Link>JavaScript\simplehashtable.cs</Link>
-    </Compile>
     <Compile Include="..\JavaScript\stringmgr.cs">
       <Link>JavaScript\stringmgr.cs</Link>
     </Compile>

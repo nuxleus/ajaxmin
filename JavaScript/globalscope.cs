@@ -58,6 +58,9 @@ namespace Microsoft.Ajax.Utilities
 
         internal override void AnalyzeScope()
         {
+            // rename fields if we need to
+            RenameFields();
+
             // it's okay for the global scope to have unused vars, so don't bother checking
             // the fields, but recurse the function scopes anyway
             foreach (ActivationObject activationObject in ChildScopes)

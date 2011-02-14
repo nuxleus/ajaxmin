@@ -1,22 +1,64 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
-    AjaxMin.resx
+    Microsoft ResX Schema 
     
-    Copyright 2010 Microsoft Corporation
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-  -->
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -329,7 +371,7 @@ Valid JSOPTS are zero or more of:
         renamed; onlyref removes unreferenced function expression names and 
         allows all function names to be renamed. Default is onlyref.
   -global:IDENT(,IDENT)* &gt; specify one or more external global variables the
-        code references.
+        code references. May be repeated as needed.
   -inline[:BOOL] &gt; whether to make sure strings are safe for HTML inline 
         script. Default is True.
   -literals:(keep|combine, eval|noeval) &gt; two literal treatment options:
@@ -339,8 +381,16 @@ Valid JSOPTS are zero or more of:
         browsers. Default is True.
   -new:(keep|collapse) &gt; whether to collapse certain constructors with known
         literals. Default is collapse.
-  -rename:(all|localization|none) &gt; local variable and function renaming 
-        method; default is all. Default is all.
+  -rename:(all|localization|none) &gt; automatic local variable and function 
+        renaming methododology. Default is all.
+  -rename:IDENT=IDENT(,IDENT=IDENT)* &gt; specify one or more comma-separated
+        from=to identifier pairs for manual renaming of variables, functions
+        or properties. May be repeated as needed.
+  -rename NFILE &gt; open the XML file with path NFILE and use the &lt;rename&gt;
+        elements for manual renaming of variables, function and properties. 
+        May be repeated as needed.
+  -rename:NOPROPS &gt; when using the manual renaming options above, this option
+        will turn off property-renaming (renaming only variables and functions).
   -unused:(remove|keep) &gt; whether to keep or remove unused code. Default
         is remove.
 
@@ -362,12 +412,13 @@ OFILE is a valid path to the output file. Existing files will be clobbered
 XFILE is a valid path to an existing XML input file.
 ODIR is a valid path to an output folder.
 RFILE is a valid path to an existing .RESX or .RESOURCES file.
+NFILE is a valid path to an existing XML input file.
 
-XML Format (XML element names and attributes are case-sensitive):
+XFILE XML format (XML element names and attributes are case-sensitive):
     &lt;root&gt;
       &lt;output path="[OFILE]"&gt;
-        &lt;resource path="[RFILE]" name="[IDENT]"/&gt;
-        &lt;input path="[IFILE]"/&gt;
+        &lt;resource path="[RFILE]" name="[IDENT]" /&gt;
+        &lt;input path="[IFILE]" /&gt;
       &lt;/output&gt;
     &lt;/root&gt;
   Must have one or more &lt;output&gt; nodes.
@@ -375,6 +426,14 @@ XML Format (XML element names and attributes are case-sensitive):
        single optional &lt;resource&gt; node.
   Attribute 'path' is optional for &lt;output&gt; nodes; required for
        &lt;input&gt; and &lt;resource&gt; nodes.
+       
+NFILE XML format (XML element names and attributes are case-sensitive):
+    &lt;root&gt;
+      &lt;rename from="[IDENT]" to="[IDENT]" /&gt;
+    &lt;/root&gt;
+  File can contain any number of &lt;rename&gt; elements.
+  Each &lt;rename&gt; element must have both from and to attributes.
+  Both [IDENT] values must be valid JavaScript identifiers.
   
 Everything is case-insensitive unless otherwise noted.
 If no OFILE specified, output sent to STDOUT.
@@ -450,5 +509,17 @@ Multiple IFILE files will be concatenated to the output.</value>
   </data>
   <data name="InvalidKillSwitchArg" xml:space="preserve">
     <value>Invalid kill switch value: must be a decimal number;;Invalid kill switch value: '{0}' must be a valid decimal number</value>
+  </data>
+  <data name="RenameArgMissingParameterOrFilePath" xml:space="preserve">
+    <value>Rename switch must either have valid parameter parts or be followed by valid file path</value>
+  </data>
+  <data name="InvalidRenameIdentifiers" xml:space="preserve">
+    <value>Rename identifiers are invalid;;Rename identifier switch must have valid 'from' and 'to' identifiers: '{0}' and '{1}' are both invalid JavaScript identifiers.</value>
+  </data>
+  <data name="InvalidRenameFromIdentifier" xml:space="preserve">
+    <value>Rename 'from' identifier is invalid;;Rename identifier switch must have valid 'from' identifier: '{0}' is an invalid JavaScript identifier.</value>
+  </data>
+  <data name="InvalidRenameToIdentifier" xml:space="preserve">
+    <value>Rename 'to' identifier is invalid;;Rename identifier switch must have valid 'to' identifier: '{0}' is an invalid JavaScript identifier.</value>
   </data>
 </root>

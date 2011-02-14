@@ -170,7 +170,7 @@ namespace Microsoft.Ajax.Utilities
 
                                 // hook our function object up to the named field
                                 m_variableField = namedExpressionField;
-                                m_identifier.LocalField = namedExpressionField;
+                                m_identifier.VariableField = namedExpressionField;
 
                                 // we're done; quit.
                                 return;
@@ -186,7 +186,7 @@ namespace Microsoft.Ajax.Utilities
 
                                 // hook our function object up to the named field
                                 m_variableField = namedExpressionField;
-                                m_identifier.LocalField = namedExpressionField;
+                                m_identifier.VariableField = namedExpressionField;
 
                                 // we're done; quit.
                                 return;
@@ -228,8 +228,10 @@ namespace Microsoft.Ajax.Utilities
                     m_variableField.IsFunction = true;
                 }
 
-                // the identifier only cares about the local field if it is a local field
-                m_identifier.LocalField = m_variableField as JSLocalField;
+                // set the identifier variable field now. We *know* what the field is now, and during
+                // Analyze mode we aren't going to recurse into the identifier because that would add 
+                // a reference to it.
+                m_identifier.VariableField = m_variableField;
 
                 // if we're here, we have a name. if this is a function expression, then we have
                 // a named function expression and we need to do a little more work to prepare for
@@ -614,7 +616,7 @@ namespace Microsoft.Ajax.Utilities
             m_variableField = nfeField;
 
             // and so is out identifier
-            m_identifier.LocalField = nfeField;
+            m_identifier.VariableField = nfeField;
         }
     }
 }

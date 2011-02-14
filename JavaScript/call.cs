@@ -242,18 +242,57 @@ namespace Microsoft.Ajax.Utilities
             // spec says certain Unicode categories are okay, in practice the various major browsers
             // all seem to have problems with certain characters in identifiers. Rather than risking
             // some browsers breaking when we change this syntax, don't do it for those "danger" categories.
-            if (m_inBrackets && m_args != null
-                && Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember))
+            if (m_inBrackets && m_args != null)
             {
+                // see if there is a single, constant argument
                 string argText = m_args.SingleConstantArgument;
-                if (argText != null
-                    && JSScanner.IsSafeIdentifier(argText)
-                    && !JSScanner.IsKeyword(argText))
+                if (argText != null)
                 {
-                    Member replacementMember = new Member(Context, Parser, m_func, argText);
-                    Parent.ReplaceChild(this, replacementMember);
-                    replacementMember.AnalyzeNode();
-                    return;
+                    // see if we want to replace the name
+                    string newName;
+                    if (Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                        && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming)
+                        && !string.IsNullOrEmpty(newName = Parser.GetNewName(argText)))
+                    {
+                        // yes -- we are going to replace the name, either as a string literal, or by converting
+                        // to a member-dot operation.
+                        // See if we can't turn it into a dot-operator. If we can't, then we just want to replace the operator with
+                        // a new constant wrapper. Otherwise we'll just replace the operator with a new constant wrapper.
+                        if (Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
+                            && JSScanner.IsSafeIdentifier(newName)
+                            && !JSScanner.IsKeyword(newName))
+                        {
+                            // the new name is safe to convert to a member-dot operator.
+                            // but we don't want to convert the node to the NEW name, because we still need to Analyze the
+                            // new member node -- and it might convert the new name to something else. So instead we're
+                            // just going to convert this existing string to a member node WITH THE OLD STRING, 
+                            // and THEN analyze it (which will convert the old string to newName)
+                            Member replacementMember = new Member(Context, Parser, m_func, argText);
+                            Parent.ReplaceChild(this, replacementMember);
+
+                            // this analyze call will convert the old-name member to the newName value
+                            replacementMember.AnalyzeNode();
+                            return;
+                        }
+                        else
+                        {
+                            // nope; can't convert to a dot-operator. 
+                            // we're just going to replace the first argument with a new string literal
+                            // and continue along our merry way.
+                            m_args.ReplaceChild(m_args[0], new ConstantWrapper(newName, PrimitiveType.String, m_args[0].Context, Parser));
+                        }
+                    }
+                    else if (Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
+                        && JSScanner.IsSafeIdentifier(argText)
+                        && !JSScanner.IsKeyword(argText))
+                    {
+                        // not a replacement, but the string literal is a safe identifier. So we will
+                        // replace this call node with a Member-dot operation
+                        Member replacementMember = new Member(Context, Parser, m_func, argText);
+                        Parent.ReplaceChild(this, replacementMember);
+                        replacementMember.AnalyzeNode();
+                        return;
+                    }
                 }
             }
 

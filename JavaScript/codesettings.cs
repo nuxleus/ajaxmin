@@ -56,18 +56,19 @@ namespace Microsoft.Ajax.Utilities
             this.RemoveFunctionExpressionNames = true;
             this.RemoveUnneededCode = true;
             this.StripDebugStatements = true;
-			this.AllowEmbeddedAspNetBlocks = false;
+            this.AllowEmbeddedAspNetBlocks = false;
             this.EvalLiteralExpressions = true;
+            this.ManualRenamesProperties = true;
         }
 
-		/// <summary>
-		/// Whether to allow embedded asp.net blocks.
-		/// </summary>
-		public bool AllowEmbeddedAspNetBlocks
-		{
-			get;
-			set;
-		}
+        /// <summary>
+        /// Whether to allow embedded asp.net blocks.
+        /// </summary>
+        public bool AllowEmbeddedAspNetBlocks
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// deprecated setting
@@ -177,6 +178,16 @@ namespace Microsoft.Ajax.Utilities
         /// Do not modify the syntax tree [false]
         /// </summary>
         public bool MinifyCode
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// When using the manual-rename feature, properties with the "from" name will
+        /// get renamed to the "to" name if this property is true (default), and left alone
+        /// if this property is false.
+        /// </summary>
+        public bool ManualRenamesProperties
         {
             get; set;
         }
@@ -489,5 +500,10 @@ namespace Microsoft.Ajax.Utilities
         /// it; unary plus also converts operand to numeric)
         /// </summary>
         SimplifyStringToNumericConversion           = 0x0000000040000000,
+
+        /// <summary>
+        /// Rename properties in object literals, member-dot, and member-bracket operations
+        /// </summary>
+        PropertyRenaming                            = 0x0000000080000000,
     }
 }

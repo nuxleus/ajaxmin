@@ -1,0 +1,1 @@
+﻿var a=10,b=20,threeGlobal=30,globalObj={a:1,b:2,c:3};function g(p1,c){var g=p1+c,d=p1-c,e=arguments.length>2?arguments[2]:b+a;return f(g,d);function f(p1,a){try{var e=p1+c+threeGlobal+e;return isNaN(a)?e:a}catch(b){return b.Message}}}g("one","2");function arf(){var a=globalObj.a,b=globalObj.a,c=globalObj.a;a=globalObj.b;b=globalObj.b;c=globalObj.b;a=globalObj.c;b=globalObj.c}

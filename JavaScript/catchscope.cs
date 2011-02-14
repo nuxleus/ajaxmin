@@ -110,25 +110,12 @@ namespace Microsoft.Ajax.Utilities
                 // and add them to this block's verboten list if they aren't already.
                 if (parentScope.NameTable.Count > 0)
                 {
-                    foreach (string fieldName in parentScope.NameTable.Keys)
+                    foreach (var variableField in parentScope.NameTable.Values)
                     {
-                        JSLocalField localField = parentScope.NameTable[fieldName] as JSLocalField;
-                        string name;
-                        if (localField != null)
-                        {
-                            // get the name of the variable -- used the crunched name if available
-                            name = localField.ToString();
-                        }
-                        else
-                        {
-                            // only local fields get crunched, and we're not a local field
-                            // just use the key
-                            name = fieldName;
-                        }
                         // add it to our verboten list
-                        if (Verboten[name] == null)
+                        if (!Verboten.ContainsKey(variableField))
                         {
-                            Verboten[name] = name;
+                            Verboten.Add(variableField, variableField);
                         }
                     }
                 }
@@ -136,17 +123,12 @@ namespace Microsoft.Ajax.Utilities
                 // also add everything in the parent's verboten list
                 if (parentScope.Verboten.Count > 0)
                 {
-                    IDictionaryEnumerator nameEnum = parentScope.Verboten.GetEnumerator();
-                    while (nameEnum.MoveNext())
+                    foreach (var variableField in parentScope.Verboten.Keys)
                     {
-                        // this will catch both the string literals we put in (globals)
-                        // and the jslocalfield objects, which will return the crunched name
-                        string name = nameEnum.Key.ToString();
-
                         // add it to our verboten list
-                        if (Verboten[name] == null)
+                        if (!Verboten.ContainsKey(variableField))
                         {
-                            Verboten[name] = name;
+                            Verboten.Add(variableField, variableField);
                         }
                     }
                 }

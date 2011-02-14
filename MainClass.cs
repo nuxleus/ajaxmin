@@ -694,33 +694,117 @@ namespace Microsoft.Ajax.Utilities
                             break;
 
                         case "RENAME":
-                            // three options: all, localization, none
-                            if (paramPart == "ALL")
+                            if (paramPart == null)
                             {
-                                m_localRenaming = LocalRenaming.CrunchAll;
+                                // there are no other parts after -rename
+                                // the next argument should be a filename from which we can pull the
+                                // variable renaming information
+                                if (ndx >= args.Length - 1)
+                                {
+                                    // must be followed by an encoding
+                                    throw new UsageException(m_outputMode, "RenameArgMissingParameterOrFilePath", switchPart);
+                                }
+
+                                // the renaming file is specified as the NEXT argument
+                                string renameFilePath = args[++ndx];
+
+                                // and it needs to exist
+                                EnsureInputFileExists(renameFilePath);
+
+                                // process the renaming file
+                                ProcessRenamingFile(renameFilePath);
                             }
-                            else if (paramPart == "LOCALIZATION")
+                            else if (paramPart.IndexOf('=') > 0)
                             {
-                                m_localRenaming = LocalRenaming.KeepLocalizationVars;
-                            }
-                            else if (paramPart == "NONE")
-                            {
-                                m_localRenaming = LocalRenaming.KeepAll;
-                            }
-                            else if (paramPart == null)
-                            {
-                                throw new UsageException(m_outputMode, "SwitchRequiresArg", switchPart);
+                                // there is at least one equal sign -- treat this as a set of JS identifier
+                                // pairs. split on commas -- multiple pairs can be specified
+                                var paramPairs = parts[1].Split(',');
+                                foreach (var paramPair in paramPairs)
+                                {
+                                    // split on the equal sign -- each pair needs to have an equal sige
+                                    var pairParts = paramPair.Split('=');
+                                    if (pairParts.Length == 2)
+                                    {
+                                        // there is an equal sign. The first part is the source name and the
+                                        // second part is the new name to which to rename those entities.
+                                        string fromIdentifier = pairParts[0];
+                                        string toIdentifier = pairParts[1];
+                                
+                                        // make sure both parts are valid JS identifiers
+                                        var fromIsValid = JSScanner.IsValidIdentifier(fromIdentifier);
+                                        var toIsValid = JSScanner.IsValidIdentifier(toIdentifier);
+                                        if (fromIsValid && toIsValid)
+                                        {
+                                            // create the map if it hasn't been created yet.
+                                            if (m_renameMap == null)
+                                            {
+                                                m_renameMap = new Dictionary<string, string>();
+                                            }
+
+                                            m_renameMap.Add(fromIdentifier, toIdentifier);
+                                        }
+                                        else if (fromIsValid)
+                                        {
+                                            // the toIdentifier is invalid!
+                                            throw new UsageException(m_outputMode, "InvalidRenameToIdentifier", toIdentifier);
+                                        }
+                                        else if (toIsValid)
+                                        {
+                                            // the fromIdentifier is invalid!
+                                            throw new UsageException(m_outputMode, "InvalidRenameFromIdentifier", fromIdentifier);
+                                        }
+                                        else
+                                        {
+                                            // NEITHER of the rename parts are valid identifiers! BOTH are required to
+                                            // be valid JS identifiers
+                                            throw new UsageException(m_outputMode, "InvalidRenameIdentifiers", fromIdentifier, toIdentifier);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // either zero or more than one equal sign. Invalid.
+                                        throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
+                                    }
+                                }
                             }
                             else
                             {
-                                throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
+                                // no equal sign; just a plain option
+                                // three options: all, localization, none
+                                if (paramPart == "ALL")
+                                {
+                                    m_localRenaming = LocalRenaming.CrunchAll;
+
+                                    // automatic renaming strategy has been specified by this option
+                                    renamingSpecified = true;
+                                }
+                                else if (paramPart == "LOCALIZATION")
+                                {
+                                    m_localRenaming = LocalRenaming.KeepLocalizationVars;
+
+                                    // automatic renaming strategy has been specified by this option
+                                    renamingSpecified = true;
+                                }
+                                else if (paramPart == "NONE")
+                                {
+                                    m_localRenaming = LocalRenaming.KeepAll;
+
+                                    // automatic renaming strategy has been specified by this option
+                                    renamingSpecified = true;
+                                }
+                                else if (paramPart == "NOPROPS")
+                                {
+                                    // manual-renaming does not change property names
+                                    m_renameProperties = false;
+                                }
+                                else
+                                {
+                                    throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
+                                }
                             }
 
                             // this is a JS-only switch
                             JavaScriptOnly();
-
-                            // renaming is specified by this option
-                            renamingSpecified = true;
                             break;
 
                         case "RES":

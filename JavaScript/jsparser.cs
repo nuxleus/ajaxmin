@@ -70,6 +70,8 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        private Dictionary<string, string> m_renameMap; //= null;
+
         public CodeSettings Settings
         {
             get
@@ -172,6 +174,64 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public void ClearRenameMap()
+        {
+            // if there is a rename map, clear it now
+            if (m_renameMap != null)
+            {
+                m_renameMap.Clear();
+            }
+        }
+
+        public bool AddRenamePair(string sourceName, string newName)
+        {
+            bool successfullyAdded = false;
+
+            // both names MUST be valid JavaScript identifiers
+            if (JSScanner.IsValidIdentifier(sourceName) && JSScanner.IsValidIdentifier(newName))
+            {
+                // if there isn't a rename map, create it now
+                if (m_renameMap == null)
+                {
+                    m_renameMap = new Dictionary<string, string>();
+                }
+
+                if (m_renameMap.ContainsKey(sourceName))
+                {
+                    // just replace the value
+                    m_renameMap[sourceName] = newName;
+                }
+                else
+                {
+                    // add the new pair
+                    m_renameMap.Add(sourceName, newName);
+                }
+
+                // if we get here, we added it (or updated it if it's a dupe)
+                successfullyAdded = true;
+            }
+
+            return successfullyAdded;
+        }
+
+        public string GetNewName(string sourceName)
+        {
+            string newName = null;
+            if (m_renameMap != null)
+            {
+                m_renameMap.TryGetValue(sourceName, out newName);
+            }
+            return newName;
+        }
+
+        public bool HasRenamePairs
+        {
+            get
+            {
+                return m_renameMap != null && m_renameMap.Count > 0;
+            }
+        }
+
         //---------------------------------------------------------------------------------------
         // Parse
         //
@@ -186,7 +246,7 @@ namespace Microsoft.Ajax.Utilities
             // reset the cc_on flag
             EncounteredCCOn = false;
 
-			m_scanner.AllowEmbeddedAspNetBlocks = m_settings.AllowEmbeddedAspNetBlocks;
+            m_scanner.AllowEmbeddedAspNetBlocks = m_settings.AllowEmbeddedAspNetBlocks;
 
             // set the skip-debug-blocks flag on the scanner if we are stripping debug statements
             m_scanner.SkipDebugBlocks = m_settings.StripDebugStatements
@@ -482,8 +542,8 @@ namespace Microsoft.Ajax.Utilities
                             return endStatement;
                         }
 
-					case JSToken.AspNetBlock:
-						return ParseAspNetBlock(consumeSemicolonIfPossible: true);
+                    case JSToken.AspNetBlock:
+                        return ParseAspNetBlock(consumeSemicolonIfPossible: true);
 
                     default:
                         m_noSkipTokenSet.Add(NoSkipTokenSet.s_EndOfStatementNoSkipTokenSet);
@@ -756,28 +816,28 @@ namespace Microsoft.Ajax.Utilities
             return codeBlock;
         }
 
-		private AstNode ParseAspNetBlock(bool consumeSemicolonIfPossible)
-		{
-			Context context = m_currentToken.Clone();
-			GetNextToken();
-			string aspNetBlockText = context.Code;
-			bool blockTerminatedByExplicitSemicolon = false;
+        private AstNode ParseAspNetBlock(bool consumeSemicolonIfPossible)
+        {
+            Context context = m_currentToken.Clone();
+            GetNextToken();
+            string aspNetBlockText = context.Code;
+            bool blockTerminatedByExplicitSemicolon = false;
 
-			// This token may have a semi-colon after it or the semi-colon may come from the asp.net 
-			// block. If we have one consume it.
-			if (JSToken.Semicolon == m_currentToken.Token &&
-				consumeSemicolonIfPossible)
-			{
-				// add the semicolon to the cloned context
-				context.UpdateWith(m_currentToken);
-				// and skip it
-				GetNextToken();
-				blockTerminatedByExplicitSemicolon = true;
-			}
+            // This token may have a semi-colon after it or the semi-colon may come from the asp.net 
+            // block. If we have one consume it.
+            if (JSToken.Semicolon == m_currentToken.Token &&
+                consumeSemicolonIfPossible)
+            {
+                // add the semicolon to the cloned context
+                context.UpdateWith(m_currentToken);
+                // and skip it
+                GetNextToken();
+                blockTerminatedByExplicitSemicolon = true;
+            }
 
-			// return the new AST object
-			return new AspNetBlockNode(context, this, aspNetBlockText, blockTerminatedByExplicitSemicolon);
-		}
+            // return the new AST object
+            return new AspNetBlockNode(context, this, aspNetBlockText, blockTerminatedByExplicitSemicolon);
+        }
 
         //---------------------------------------------------------------------------------------
         // ParseDebuggerStatement
@@ -3652,9 +3712,9 @@ namespace Microsoft.Ajax.Utilities
                     isFunction = true;
                     break;
 
-				case JSToken.AspNetBlock:
-					ast = ParseAspNetBlock(consumeSemicolonIfPossible: false);
-					break;
+                case JSToken.AspNetBlock:
+                    ast = ParseAspNetBlock(consumeSemicolonIfPossible: false);
+                    break;
 
                 default:
                     string identifier = JSKeyword.CanBeIdentifier(m_currentToken.Token);

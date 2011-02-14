@@ -292,9 +292,6 @@
     <Compile Include="JavaScript\scannerexception.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="JavaScript\simplehashtable.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="JavaScript\stringmgr.cs" />
     <Compile Include="JavaScript\switch.cs">
       <SubType>Code</SubType>

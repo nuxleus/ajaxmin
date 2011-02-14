@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<root>
+  <rename from="globalFunction" to="g" />
+  <rename from="oneGlobal" to="a" />
+  <rename from="twoGlobal" to="b" />
+  <rename from="oneParam" to="p1" />
+  <rename from="twoParam" to="c" />
+  <rename from="twoLocal" to="d" />
+  <rename from="arguments" to="e" />
+  <rename from="isNaN" to="ISNAN" />
+  <rename from="localFunction" to="f" />
+  <rename from="nameOne" to="a" />
+  <rename from="你好" to="b" />
+  <rename from="while" to="c" />
+</root>

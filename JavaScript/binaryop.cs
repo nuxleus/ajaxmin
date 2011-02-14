@@ -467,10 +467,9 @@ namespace Microsoft.Ajax.Utilities
         /// <returns>true if we replaced the parent callnode with a member-dot operation</returns>
         private bool ReplaceMemberBracketWithDot(ConstantWrapper newLiteral)
         {
-            if (newLiteral.IsStringLiteral
-                && Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember))
+            if (newLiteral.IsStringLiteral)
             {
-                // now see if this newly-combined string is the sole argument to a 
+                // see if this newly-combined string is the sole argument to a 
                 // call-brackets node. If it is and the combined string is a valid
                 // identifier (and not a keyword), then we can replace the call
                 // with a member operator.
@@ -480,15 +479,49 @@ namespace Microsoft.Ajax.Utilities
                 CallNode parentCall = (Parent is AstNodeList ? Parent.Parent as CallNode : null);
                 if (parentCall != null && parentCall.InBrackets)
                 {
-                    // our parent is a call-bracket -- now we just need to see if the newly-combined
-                    // string can be a valid identifier/non-keyword
+                    // get the newly-combined string
                     string combinedString = newLiteral.ToString();
-                    if (JSScanner.IsValidIdentifier(combinedString) && !JSScanner.IsKeyword(combinedString))
+
+                    // see if this new string is the target of a replacement operation
+                    string newName;
+                    if (Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                        && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming)
+                        && !string.IsNullOrEmpty(newName = Parser.GetNewName(combinedString)))
                     {
-                        // yes -- replace the parent with a member node
-                        Member replacementMember = new Member(parentCall.Context, Parser, parentCall.Function, combinedString);
-                        parentCall.Parent.ReplaceChild(parentCall, replacementMember);
-                        return true;
+                        // yes, it is. Now see if the new name is safe to be converted to a dot-operation.
+                        if (Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
+                            && JSScanner.IsSafeIdentifier(newName)
+                            && !JSScanner.IsKeyword(newName))
+                        {
+                            // we want to replace the call with operator with a new member dot operation, and
+                            // since we won't be analyzing it (we're past the analyze phase, we're going to need
+                            // to use the new string value
+                            Member replacementMember = new Member(parentCall.Context, Parser, parentCall.Function, newName);
+                            parentCall.Parent.ReplaceChild(parentCall, replacementMember);
+                            return true;
+                        }
+                        else
+                        {
+                            // nope, can't be changed to a dot-operator for whatever reason.
+                            // just replace the value on this new literal. The old operation will
+                            // get replaced with this new literal
+                            newLiteral.Value = newName;
+
+                            // and make sure it's type is string
+                            newLiteral.PrimitiveType = PrimitiveType.String;
+                        }
+                    }
+                    else if (Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember))
+                    {
+                        // our parent is a call-bracket -- now we just need to see if the newly-combined
+                        // string can be an identifier
+                        if (JSScanner.IsSafeIdentifier(combinedString) && !JSScanner.IsKeyword(combinedString))
+                        {
+                            // yes -- replace the parent call with a new member node using the newly-combined string
+                            Member replacementMember = new Member(parentCall.Context, Parser, parentCall.Function, combinedString);
+                            parentCall.Parent.ReplaceChild(parentCall, replacementMember);
+                            return true;
+                        }
                     }
                 }
             }

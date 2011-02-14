@@ -22,6 +22,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Xml;
 
 namespace Microsoft.Ajax.Utilities
 {
@@ -78,6 +79,12 @@ namespace Microsoft.Ajax.Utilities
 
         // whether to strip debug statements from output
         private bool m_stripDebugStatements = true;
+
+        // set of names (variables or functions) that we want to always RENAME to something else
+        private Dictionary<string, string> m_renameMap;
+
+        // when using the manual-rename map, rename properties when this value us true 
+        private bool m_renameProperties = true;
 
         #endregion
 
@@ -145,8 +152,19 @@ namespace Microsoft.Ajax.Utilities
             // put the resource strings object into the parser
             parser.ResourceStrings = resourceStrings;
 
+            // if there are rename entries...
+            if (m_renameMap != null && m_renameMap.Count > 0)
+            {
+                // add each of them to the parser
+                foreach (var sourceName in m_renameMap.Keys)
+                {
+                    parser.AddRenamePair(sourceName, m_renameMap[sourceName]);
+                }
+            }
+
             // set our flags
             CodeSettings settings = new CodeSettings();
+            settings.ManualRenamesProperties = m_renameProperties;
             settings.CollapseToLiteral = m_collapseToLiteral;
             settings.CombineDuplicateLiterals = m_combineDuplicateLiterals;
             settings.EvalLiteralExpressions = m_evalLiteralExpressions;
@@ -283,6 +301,57 @@ namespace Microsoft.Ajax.Utilities
 
         #endregion
 
+        #region Variable Renaming method
+
+        private void ProcessRenamingFile(string filePath)
+        {
+            try
+            {
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.Load(filePath);
+
+                // get all the <rename> nodes in the document
+                var renameNodes = xmlDoc.SelectNodes("//rename");
+
+                // not an error if there are no variables to rename; but if there are no nodes, then
+                // there's nothing to process
+                if (renameNodes.Count > 0)
+                {
+                    // process each <rename> node
+                    for (var ndx = 0; ndx < renameNodes.Count; ++ndx)
+                    {
+                        var renameNode = renameNodes[ndx];
+
+                        // get the from and to attributes
+                        var fromAttribute = renameNode.Attributes["from"];
+                        var toAttribute = renameNode.Attributes["to"];
+
+                        // need to have both, and their values both need to be non-null and non-empty
+                        if (fromAttribute != null && !string.IsNullOrEmpty(fromAttribute.Value)
+                            && toAttribute != null && !string.IsNullOrEmpty(toAttribute.Value))
+                        {
+                            // create the map if it doesn't yet exist
+                            if (m_renameMap == null)
+                            {
+                                m_renameMap = new Dictionary<string, string>();
+                            }
+
+                            // if one or the other name is invalid, the pair will be ignored
+                            m_renameMap.Add(fromAttribute.Value, toAttribute.Value);
+                        }
+                    }
+                }
+            }
+            catch (XmlException e)
+            {
+                // throw an error indicating the XML error
+                System.Diagnostics.Debug.WriteLine(e.ToString());
+                throw new UsageException(ConsoleOutputMode.Console, "InputXmlError", e.Message);
+            }
+        }
+
+        #endregion
+        
         #region reporting methods
 
         private void CreateReport(GlobalScope globalScope)

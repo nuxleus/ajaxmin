@@ -23,15 +23,13 @@ namespace Microsoft.Ajax.Utilities
     public sealed class Member : AstNode
     {
         public AstNode Root { get; private set; }
-        public string Name
-        {
-            get; set;
-        }
+        public string Name { get; set; }
 
         public Member(Context context, JSParser parser, AstNode rootObject, string memberName)
             : base(context, parser)
         {
             Name = memberName;
+
             Root = rootObject;
             if (Root != null) Root.Parent = this;
         }
@@ -125,6 +123,19 @@ namespace Microsoft.Ajax.Utilities
                     // analyze the literal
                     stringLiteral.AnalyzeNode();
                     return;
+                }
+            }
+
+            // if we are replacing property names and we have something to replace
+            if (Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming))
+            {
+                // see if this name is a target for replacement
+                string newName = Parser.GetNewName(Name);
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    // it is -- set the name to the new name
+                    Name = newName;
                 }
             }
 

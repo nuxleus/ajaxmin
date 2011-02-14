@@ -39,8 +39,7 @@ namespace Microsoft.Ajax.Utilities
         private List<ActivationObject> m_childScopes;
         internal List<ActivationObject> ChildScopes { get { return m_childScopes; } }
 
-        private SimpleHashtable m_verboten;
-        internal SimpleHashtable Verboten { get { return m_verboten; } }
+        internal Dictionary<JSVariableField, JSVariableField> Verboten { get; private set; }
 
         private ActivationObject m_parent;
         public ActivationObject Parent
@@ -64,7 +63,7 @@ namespace Microsoft.Ajax.Utilities
             m_nameTable = new Dictionary<string, JSVariableField>();
             m_fieldTable = new List<JSVariableField>();
             m_childScopes = new List<ActivationObject>();
-            m_verboten = new SimpleHashtable(32);
+            Verboten = new Dictionary<JSVariableField, JSVariableField>(32);
             m_isKnownAtCompileTime = true;
             m_parser = parser;
 
@@ -132,6 +131,9 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
 
+            // rename fields if we need to
+            RenameFields();
+
             // recurse 
             foreach (ActivationObject activationObject in m_childScopes)
             {
@@ -143,6 +145,43 @@ namespace Microsoft.Ajax.Utilities
                 finally
                 {
                     Parser.ScopeStack.Pop();
+                }
+            }
+        }
+
+        protected void RenameFields()
+        {
+            // if the parser doesn't even have a list of rename pairs,  or if
+            // the local-remaing kill switch is on, then we have nothing to do
+            if (Parser.HasRenamePairs && Parser.Settings.IsModificationAllowed(TreeModifications.LocalRenaming))
+            {
+                // go through the list of fields in this scope. Anything defined in the script that
+                // is in the parser rename map should be renamed and the auto-rename flag reset so
+                // we don't change it later.
+                foreach (var varField in m_nameTable.Values)
+                {
+                    // don't rename outer fields (only actual fields), 
+                    // and we're only concerned with global or local variables --
+                    // those which are defined by the script (not predefined, not the arguments object)
+                    if (varField.OuterField == null 
+                        && (varField is JSLocalField || varField is JSGlobalField))
+                    {
+                        // see if the name is in the parser's rename map
+                        string newName = Parser.GetNewName(varField.Name);
+                        if (!string.IsNullOrEmpty(newName))
+                        {
+                            // it is! Change the name of the field, but make sure we reset the CanCrunch flag
+                            // or setting the "crunched" name won't work.
+                            // and don't bother making sure the name doesn't collide with anything else that
+                            // already exists -- if it does, that's the developer's fault.
+                            // TODO: should we at least throw a warning?
+                            varField.CanCrunch = true;
+                            varField.CrunchedName = newName;
+
+                            // and make sure we don't crunch it later
+                            varField.CanCrunch = false;
+                        }
+                    }
                 }
             }
         }
@@ -181,7 +220,6 @@ namespace Microsoft.Ajax.Utilities
             // check for unused local fields or arguments
             foreach (JSVariableField variableField in m_nameTable.Values)
             {
-                string name = variableField.Name;
                 JSLocalField localField = variableField as JSLocalField;
                 if (localField != null)
                 {
@@ -192,9 +230,9 @@ namespace Microsoft.Ajax.Utilities
                     {
                         // make sure the field is in this scope's verboten list so we don't accidentally reuse
                         // an outer scope variable name
-                        if (m_verboten[localField] == null)
+                        if (!Verboten.ContainsKey(localField))
                         {
-                            m_verboten[localField] = localField;
+                            Verboten.Add(localField, localField);
                         }
 
                         // we don't need to reserve up the scope because the named function expression's
@@ -206,22 +244,22 @@ namespace Microsoft.Ajax.Utilities
                         // reserved up the scope chain until the scope where it's defined.
                         // make sure the field is in this scope's verboten list so we don't accidentally reuse
                         // the outer scope's variable name
-                        if (m_verboten[localField] == null)
+                        if (!Verboten.ContainsKey(localField))
                         {
-                            m_verboten[localField] = localField;
+                            Verboten.Add(localField, localField);
                         }
 
                         for (ActivationObject scope = this; scope != null; scope = scope.Parent)
                         {
                             // get the local field by this name (if any)
-                            JSLocalField scopeField = scope.GetLocalField(name);
+                            JSLocalField scopeField = scope.GetLocalField(variableField.Name);
                             if (scopeField == null)
                             {
                                 // it's not referenced in this scope -- if the field isn't in the verboten
                                 // list, add it now
-                                if (scope.m_verboten[localField] == null)
+                                if (!scope.Verboten.ContainsKey(localField))
                                 {
-                                    scope.m_verboten[localField] = localField;
+                                    scope.Verboten.Add(localField, localField);
                                 }
                             }
                             else if (scopeField.OuterField == null)
@@ -237,9 +275,19 @@ namespace Microsoft.Ajax.Utilities
                         // localization variable. don't crunch it.
                         // add it to this scope's verboten list in the extremely off-hand chance
                         // that a crunched variable might be the same pattern
-                        if (m_verboten[localField] == null)
+                        if (!Verboten.ContainsKey(localField))
                         {
-                            m_verboten[localField] = localField;
+                            Verboten.Add(localField, localField);
+                        }
+                    }
+                    else if (!localField.CanCrunch)
+                    {
+                        // this local field cannot be crunched for whatever reason
+                        // (we probably already have a name picked out for it that we want to keep).
+                        // add it to the verboten list, too.
+                        if (!Verboten.ContainsKey(localField))
+                        {
+                            Verboten.Add(localField, localField);
                         }
                     }
                 }
@@ -249,9 +297,9 @@ namespace Microsoft.Ajax.Utilities
                     // reserve the name in this scope and all the way up the chain
                     for (ActivationObject scope = this; scope != null; scope = scope.Parent)
                     {
-                        if (scope.m_verboten[name] == null)
+                        if (!scope.Verboten.ContainsKey(variableField))
                         {
-                            scope.m_verboten[name] = variableField;
+                            scope.Verboten.Add(variableField, variableField);
                         }
                     }
                 }
@@ -373,7 +421,7 @@ namespace Microsoft.Ajax.Utilities
                 if (localFields.Length > 0)
                 {
                     // create a crunch-name enumerator, taking into account our verboten set
-                    CrunchEnumerator crunchEnum = new CrunchEnumerator(m_verboten);
+                    CrunchEnumerator crunchEnum = new CrunchEnumerator(Verboten);
                     for (int ndx = 0; ndx < localFields.Length; ++ndx)
                     {
                         JSLocalField localField = localFields[ndx];

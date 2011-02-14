@@ -24,8 +24,6 @@ namespace Microsoft.Ajax.Utilities
     {
         private bool m_isDefined; //Indicates whether an assignment to the field has been encountered.
 
-        private string m_crunchedName;// = null;
-
         private bool m_isGenerated;
         internal bool IsGenerated
         {
@@ -50,48 +48,6 @@ namespace Microsoft.Ajax.Utilities
                 m_isDefined = outerLocalField.m_isDefined;
                 m_isGenerated = outerLocalField.m_isGenerated;
             }
-        }
-
-        // we'll set this after analyzing all the variables in the
-        // script in order to shrink it down even further
-        public string CrunchedName
-        {
-            get
-            {
-                // use the outer crunched name only if it is a local field
-                JSLocalField outerLocalField = OuterField as JSLocalField;
-                return (
-                  outerLocalField != null
-                  ? outerLocalField.CrunchedName
-                  : m_crunchedName
-                  );
-            }
-            set
-            {
-                if (OuterField != null)
-                {
-                    JSLocalField outerLocalField = OuterField as JSLocalField;
-                    if (outerLocalField != null)
-                    {
-                        outerLocalField.CrunchedName = value;
-                    }
-                    // TODO: do we need to raise an error if we try to set a crunched name
-                    // on a field that isn't a local field?
-                    /*else
-                    {
-                    }*/
-                }
-                else
-                {
-                    m_crunchedName = value;
-                }
-            }
-        }
-
-        public override string ToString()
-        {
-            string crunch = CrunchedName;
-            return crunch != null ? crunch : base.ToString();
         }
     }
 }

@@ -28,11 +28,11 @@ namespace Microsoft.Ajax.Utilities
 
     public sealed class Lookup : AstNode
     {
-        private JSLocalField m_localField;// = null; // set during analyze
+        public JSVariableField VariableField { get; internal set; }
+
         public JSLocalField LocalField
         {
-            get { return m_localField; }
-            set { m_localField = value; }
+            get { return VariableField as JSLocalField; }
         }
 
         private bool m_isGenerated;
@@ -56,13 +56,13 @@ namespace Microsoft.Ajax.Utilities
             }
             set
             {
-                if (m_localField == null)
+                if (VariableField == null)
                 {
                     m_name = value;
                 }
                 else
                 {
-                    m_localField.CrunchedName = value;
+                    VariableField.CrunchedName = value;
                 }
             }
         }
@@ -85,11 +85,9 @@ namespace Microsoft.Ajax.Utilities
         {
             // if we have a local field pointer that has a crunched name,
             // the return the crunched name. Otherwise just return our given name;
-            return (
-              m_localField != null
-              ? m_localField.ToString()
-              : m_name
-              );
+            return (VariableField != null
+                ? VariableField.ToString()
+                : m_name);
         }
 
         internal override string GetFunctionGuess(AstNode target)
@@ -111,8 +109,8 @@ namespace Microsoft.Ajax.Utilities
             }
 
             ActivationObject scope = ScopeStack.Peek();
-            JSVariableField variableField = scope.FindReference(m_name);
-            if (variableField == null)
+            VariableField = scope.FindReference(m_name);
+            if (VariableField == null)
             {
                 // this must be a global. if it isn't in the global space, throw an error
                 // this name is not in the global space.
@@ -148,11 +146,11 @@ namespace Microsoft.Ajax.Utilities
                 // function expression, then we need to throw an ambiguous named function expression
                 // error because this could cause problems.
                 // OR if the field is already marked as ambiguous, throw the error
-                if (variableField.NamedFunctionExpression != null
-                    || variableField.IsAmbiguous)
+                if (VariableField.NamedFunctionExpression != null
+                    || VariableField.IsAmbiguous)
                 {
                     // mark it as a field that's referenced ambiguously
-                    variableField.IsAmbiguous = true;
+                    VariableField.IsAmbiguous = true;
                     // throw as an error
                     Context.HandleError(JSError.AmbiguousNamedFunctionExpression, true);
 
@@ -160,7 +158,7 @@ namespace Microsoft.Ajax.Utilities
                     // as not crunchable
                     if (Parser.Settings.PreserveFunctionNames)
                     {
-                        variableField.CanCrunch = false;
+                        VariableField.CanCrunch = false;
                     }
                 }
 
@@ -168,13 +166,13 @@ namespace Microsoft.Ajax.Utilities
                 if (scope[m_name] == null)
                 {
                     // create an inner reference so we don't keep walking up the scope chain for this name
-                    variableField = scope.CreateInnerField(variableField);
+                    VariableField = scope.CreateInnerField(VariableField);
                 }
 
                 // add the reference
-                variableField.AddReference(scope);
+                VariableField.AddReference(scope);
 
-                if (variableField is JSPredefinedField)
+                if (VariableField is JSPredefinedField)
                 {
                     // this is a predefined field. If it's Nan or Infinity, we should
                     // replace it with the numeric value in case we need to later combine
@@ -191,11 +189,6 @@ namespace Microsoft.Ajax.Utilities
                         // duplicate constant combination logic should it be turned on.
                         Parent.ReplaceChild(this, new ConstantWrapper(double.PositiveInfinity, PrimitiveType.Number, Context, Parser));
                     }
-                }
-                else
-                {
-                    // save the local field if it is one
-                    m_localField = variableField as JSLocalField;
                 }
             }
         }
@@ -219,11 +212,11 @@ namespace Microsoft.Ajax.Utilities
                     }
 
                     // save the local field
-                    m_localField = variableField as JSLocalField;
+                    VariableField = variableField as JSLocalField;
                     // add a reference
-                    if (m_localField != null)
+                    if (VariableField != null)
                     {
-                        m_localField.AddReference(parentScope);
+                        VariableField.AddReference(parentScope);
                     }
                 }
             }
