@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Reflection;
 
 namespace Microsoft.Ajax.Utilities
@@ -24,7 +25,7 @@ namespace Microsoft.Ajax.Utilities
     {
         private GlobalObject m_globalObject;
         private GlobalObject m_windowObject;
-        private List<string> m_assumedGlobals;
+        private ReadOnlyCollection<string> m_assumedGlobals;
 
         internal GlobalScope(JSParser parser)
             : base(null, parser)
@@ -46,14 +47,9 @@ namespace Microsoft.Ajax.Utilities
               );
         }
 
-        internal void SetAssumedGlobals(string[] globals)
+        internal void SetAssumedGlobals(ReadOnlyCollection<string> globals)
         {
-            // if we are passed anything....
-            if (globals != null && globals.Length > 0)
-            {
-                // initialize the list with a copy of the array
-                m_assumedGlobals = new List<string>(globals);
-            }
+            m_assumedGlobals = globals;
         }
 
         internal override void AnalyzeScope()
@@ -121,7 +117,7 @@ namespace Microsoft.Ajax.Utilities
                     {
                         foreach (string globalName in m_assumedGlobals)
                         {
-                            if (name == globalName)
+                            if (string.Compare(name, globalName.Trim(), StringComparison.Ordinal) == 0)
                             {
                                 variableField = CreateField(name, null, 0);
                                 break;

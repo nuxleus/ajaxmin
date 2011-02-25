@@ -28,10 +28,10 @@ namespace Microsoft.Ajax.Utilities
         internal override void AnalyzeNode()
         {
             if (PrimitiveType == PrimitiveType.String
-                && Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                && Parser.Settings.HasRenamePairs && Parser.Settings.ManualRenamesProperties
                 && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming))
             {
-                string newName = Parser.GetNewName(Value.ToString());
+                string newName = Parser.Settings.GetNewName(Value.ToString());
                 if (!string.IsNullOrEmpty(newName))
                 {
                     Value = newName;

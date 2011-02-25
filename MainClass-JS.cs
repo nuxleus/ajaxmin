@@ -58,6 +58,11 @@ namespace Microsoft.Ajax.Utilities
         /// </summary>
         private List<string> m_globals;// = null;
 
+        /// <summary>
+        /// List of names we don't want automatically renamed
+        /// </summary>
+        private List<string> m_noAutoRename; // = null;
+
         // whether and how to crunch local names
         private LocalRenaming m_localRenaming = LocalRenaming.CrunchAll;
 
@@ -140,7 +145,7 @@ namespace Microsoft.Ajax.Utilities
             sourceLength += source.Length;
 
             // create the a parser object for our chunk of code
-            JSParser parser = new JSParser(source, m_globals.ToArray());
+            JSParser parser = new JSParser(source);
 
             // set up the file context for the parser
             parser.FileContext = sourceFileName;
@@ -151,16 +156,6 @@ namespace Microsoft.Ajax.Utilities
 
             // put the resource strings object into the parser
             parser.ResourceStrings = resourceStrings;
-
-            // if there are rename entries...
-            if (m_renameMap != null && m_renameMap.Count > 0)
-            {
-                // add each of them to the parser
-                foreach (var sourceName in m_renameMap.Keys)
-                {
-                    parser.AddRenamePair(sourceName, m_renameMap[sourceName]);
-                }
-            }
 
             // set our flags
             CodeSettings settings = new CodeSettings();
@@ -179,6 +174,18 @@ namespace Microsoft.Ajax.Utilities
             settings.RemoveUnneededCode = m_removeUnneededCode;
             settings.StripDebugStatements = m_stripDebugStatements;
 			settings.AllowEmbeddedAspNetBlocks = m_allowAspNet;
+            settings.SetKnownGlobalNames(m_globals == null ? null : m_globals.ToArray());
+            settings.SetNoAutoRename(m_noAutoRename == null ? null : m_noAutoRename.ToArray());
+
+            // if there are rename entries...
+            if (m_renameMap != null && m_renameMap.Count > 0)
+            {
+                // add each of them to the parser
+                foreach (var sourceName in m_renameMap.Keys)
+                {
+                    settings.AddRenamePair(sourceName, m_renameMap[sourceName]);
+                }
+            }
 
             // cast the kill switch numeric value to the appropriate TreeModifications enumeration
             settings.KillSwitch = (TreeModifications)m_killSwitch;
@@ -338,6 +345,29 @@ namespace Microsoft.Ajax.Utilities
 
                             // if one or the other name is invalid, the pair will be ignored
                             m_renameMap.Add(fromAttribute.Value, toAttribute.Value);
+                        }
+                    }
+                }
+
+                // get all the <norename> nodes in the document
+                var norenameNodes = xmlDoc.SelectNodes("//norename");
+
+                // not an error if there aren't any
+                if (norenameNodes.Count > 0)
+                {
+                    for (var ndx = 0; ndx < norenameNodes.Count; ++ndx)
+                    {
+                        var node = norenameNodes[ndx];
+                        var idAttribute = node.Attributes["id"];
+                        if (idAttribute != null && !string.IsNullOrEmpty(idAttribute.Value))
+                        {
+                            // if we haven't created it yet, do it now
+                            if (m_noAutoRename == null)
+                            {
+                                m_noAutoRename = new List<string>();
+                            }
+
+                            m_noAutoRename.Add(idAttribute.Value);
                         }
                     }
                 }

@@ -60,20 +60,7 @@ namespace Microsoft.Ajax.Utilities
         public string MinifyJavaScript(string source)
         {
             // just pass in default settings
-            return MinifyJavaScript(source, new CodeSettings(), null);
-        }
-
-        /// <summary>
-        /// MinifyJavaScript JS string passed to it.
-        /// The Errors property will be set with any errors found during the minification process.
-        /// </summary>
-        /// <param name="source">source Javascript</param>
-        /// <param name="globalNames">array of known global object names</param>
-        /// <returns>minified Javascript</returns>
-        public string MinifyJavaScript(string source, params string[] globalNames)
-        {
-            // just pass in default settings
-            return MinifyJavaScript(source, new CodeSettings(), globalNames);
+            return MinifyJavaScript(source, new CodeSettings());
         }
 
         /// <summary>
@@ -97,19 +84,6 @@ namespace Microsoft.Ajax.Utilities
         /// <returns>minified Javascript</returns>
         public string MinifyJavaScript(string source, CodeSettings codeSettings)
         {
-            return MinifyJavaScript(source, codeSettings, null);
-        }
-
-        /// <summary>
-        /// Crunched JS string passed to it, returning crunched string.
-        /// The Errors property will be set with any errors found during the minification process.
-        /// </summary>
-        /// <param name="source">source Javascript</param>
-        /// <param name="codeSettings">code minification settings</param>
-        /// <param name="globalNames">array of known global object names</param>
-        /// <returns>minified Javascript</returns>
-        public string MinifyJavaScript(string source, CodeSettings codeSettings, params string[] globalNames)
-        {
             // default is an empty string
             string crunched = string.Empty;
 
@@ -118,7 +92,7 @@ namespace Microsoft.Ajax.Utilities
 
             // create the parser from the source string.
             // pass null for the assumed globals array
-            JSParser parser = new JSParser(source, globalNames);
+            JSParser parser = new JSParser(source);
 
             // hook the engine error event
             parser.CompilerError += OnJavaScriptError;
@@ -266,7 +240,51 @@ namespace Microsoft.Ajax.Utilities
         }
 
         #endregion
+
+        #region deprecated methods
+
+        /// <summary>
+        /// This method is deprecated. The list of known global names has been moved to the CodeSettings
+        /// object. If codeSettings.KnownGlobalNames is null and the globalNames parameter is not, this
+        /// API will populate the codeSettings object. Otherwise the globalNames parameter will be ignored.
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="codeSettings"></param>
+        /// <param name="globalNames"></param>
+        /// <returns></returns>
+        [Obsolete("This method is deprecated; use the CodeSettings object to pass known global names")]
+        public string MinifyJavaScript(string source, CodeSettings codeSettings, params string[] globalNames)
+        {
+            if (codeSettings != null && codeSettings.KnownGlobalNames == null && globalNames != null)
+            {
+                codeSettings.SetKnownGlobalNames(globalNames);
+            }
+            return MinifyJavaScript(source, codeSettings);
+        }
+
+
+        /// <summary>
+        /// This method is deprecated. The list of known global names has been moved to the CodeSettings object. 
+        /// </summary>
+        /// <param name="source">source Javascript</param>
+        /// <param name="globalNames">array of known global object names</param>
+        /// <returns>minified Javascript</returns>
+        [Obsolete("This method is deprecated; use the CodeSettings object to pass known global names")]
+        public string MinifyJavaScript(string source, params string[] globalNames)
+        {
+            // just pass in default settings
+            CodeSettings codeSettings = new CodeSettings();
+            if (globalNames != null)
+            {
+                codeSettings.SetKnownGlobalNames(globalNames);
+            }
+            return MinifyJavaScript(source, codeSettings);
+        }
+
+        #endregion
     }
+
+    #region deprecated class
 
     /// <summary>
     /// This class is deprecated; it will be removed in future versions.
@@ -306,4 +324,6 @@ namespace Microsoft.Ajax.Utilities
             return MinifyJavaScript(source, codeSettings);
         }
     }
+
+    #endregion
 }

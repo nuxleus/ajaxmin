@@ -97,7 +97,6 @@ namespace Microsoft.Ajax.Utilities
                 if (literalOperand != null)
                 {
                     // must be number, boolean, string, or null
-                    double doubleValue;
                     switch (OperatorToken)
                     {
                         case JSToken.Plus:

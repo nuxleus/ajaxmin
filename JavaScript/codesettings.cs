@@ -15,6 +15,8 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 
 namespace Microsoft.Ajax.Utilities
@@ -59,6 +61,210 @@ namespace Microsoft.Ajax.Utilities
             this.AllowEmbeddedAspNetBlocks = false;
             this.EvalLiteralExpressions = true;
             this.ManualRenamesProperties = true;
+        }
+
+        /// <summary>
+        /// dictionary of identifiers we want to manually rename
+        /// </summary>
+        private Dictionary<string, string> m_identifierReplacementMap;
+
+        /// <summary>
+        /// Add a rename pair to the identifier rename map
+        /// </summary>
+        /// <param name="sourceName">name of the identifier in the source code</param>
+        /// <param name="newName">new name with which to replace the source name</param>
+        /// <returns>true if added; false if either name is not a valid JavaScript identifier</returns>
+        public bool AddRenamePair(string sourceName, string newName)
+        {
+            bool successfullyAdded = false;
+
+            // both names MUST be valid JavaScript identifiers
+            if (JSScanner.IsValidIdentifier(sourceName) && JSScanner.IsValidIdentifier(newName))
+            {
+                // if there isn't a rename map, create it now
+                if (m_identifierReplacementMap == null)
+                {
+                    m_identifierReplacementMap = new Dictionary<string, string>();
+                }
+
+                if (m_identifierReplacementMap.ContainsKey(sourceName))
+                {
+                    // just replace the value
+                    m_identifierReplacementMap[sourceName] = newName;
+                }
+                else
+                {
+                    // add the new pair
+                    m_identifierReplacementMap.Add(sourceName, newName);
+                }
+
+                // if we get here, we added it (or updated it if it's a dupe)
+                successfullyAdded = true;
+            }
+
+            return successfullyAdded;
+        }
+
+        public int AddRenamePairs(string renamePairs)
+        {
+            // number of pairs added to the dictionary
+            int numAdded = 0;
+
+            if (!string.IsNullOrEmpty(renamePairs))
+            {
+                // pairs are comma-separated
+                foreach (var pair in renamePairs.Split(','))
+                {
+                    // source name and new name are separated by an equal sign
+                    var parts = pair.Split('=');
+
+                    // must be exactly one equal sign
+                    if (parts.Length == 2)
+                    {
+                        // try adding the trimmed pair to the collection
+                        if (AddRenamePair(parts[0].Trim(), parts[1].Trim()))
+                        {
+                            ++numAdded;
+                        }
+                    }
+                }
+            }
+
+            return numAdded;
+        }
+
+        /// <summary>
+        /// Clear any rename pairs from the identifier rename map
+        /// </summary>
+        public void ClearRenamePairs()
+        {
+            m_identifierReplacementMap.Clear();
+        }
+
+        /// <summary>
+        /// returns whether or not there are any rename pairs in this settings object
+        /// </summary>
+        public bool HasRenamePairs
+        {
+            get
+            {
+                return m_identifierReplacementMap != null && m_identifierReplacementMap.Count > 0;
+            }
+        }
+
+        /// <summary>
+        /// Given a source identifier, return a new name for it, if one has already been added
+        /// </summary>
+        /// <param name="sourceName">source name to check</param>
+        /// <returns>new name if it exists, null otherwise</returns>
+        public string GetNewName(string sourceName)
+        {
+            // default is null
+            string newName = null;
+
+            // if there is no map, then there is no new name
+            if (m_identifierReplacementMap != null)
+            {
+                m_identifierReplacementMap.TryGetValue(sourceName, out newName);
+            }
+
+            return newName;
+        }
+
+        /// <summary>
+        /// read-only collection of identifiers we do not want renamed
+        /// </summary>
+        public ReadOnlyCollection<string> NoAutoRenameIdentifiers { get; private set; }
+
+        /// <summary>
+        /// sets the collection of known global names to the array of string passed to this method
+        /// </summary>
+        /// <param name="globalArray">array of known global names</param>
+        public int SetNoAutoRename(params string[] noRenameNames)
+        {
+            int numAdded = 0;
+            if (noRenameNames == null)
+            {
+                NoAutoRenameIdentifiers = null;
+            }
+            else
+            {
+                // create a list with a capacity equal to the number of items in the array
+                var checkedNames = new List<string>(noRenameNames.Length);
+
+                // validate that each name in the array is a valid JS identifier
+                foreach (var name in noRenameNames)
+                {
+                    // must be a valid JS identifier
+                    string trimmedName = name.Trim();
+                    if (JSScanner.IsValidIdentifier(trimmedName))
+                    {
+                        checkedNames.Add(trimmedName);
+                    }
+                }
+                NoAutoRenameIdentifiers = new ReadOnlyCollection<string>(checkedNames);
+                numAdded = checkedNames.Count;
+            }
+
+            return numAdded;
+        }
+
+        /// <summary>
+        /// sets the collection of known global names to the list of names, separated by commas, contained
+        /// in the string passed to this method
+        /// </summary>
+        /// <param name="globalList"></param>
+        public int SetNoAutoRename(string noRenameList)
+        {
+            return string.IsNullOrEmpty(noRenameList) ? 0 : SetNoAutoRename(noRenameList.Split(','));
+        }
+
+        /// <summary>
+        /// read-only collection of known global names
+        /// </summary>
+        public ReadOnlyCollection<string> KnownGlobalNames { get; private set; }
+
+        /// <summary>
+        /// sets the collection of known global names to the array of string passed to this method
+        /// </summary>
+        /// <param name="globalArray">array of known global names</param>
+        public int SetKnownGlobalNames(params string[] globalArray)
+        {
+            int numAdded = 0;
+            if (globalArray == null)
+            {
+                KnownGlobalNames = null;
+            }
+            else
+            {
+                // create a list with a capacity equal to the number of items in the array
+                var checkedNames = new List<string>(globalArray.Length);
+
+                // validate that each name in the array is a valid JS identifier
+                foreach (var name in globalArray)
+                {
+                    // must be a valid JS identifier
+                    string trimmedName = name.Trim();
+                    if (JSScanner.IsValidIdentifier(trimmedName))
+                    {
+                        checkedNames.Add(trimmedName);
+                    }
+                }
+                KnownGlobalNames = new ReadOnlyCollection<string>(checkedNames);
+                numAdded = checkedNames.Count;
+            }
+
+            return numAdded;
+        }
+
+        /// <summary>
+        /// sets the collection of known global names to the list of names, separated by commas, contained
+        /// in the string passed to this method
+        /// </summary>
+        /// <param name="globalList"></param>
+        public int SetKnownGlobalNames(string globalList)
+        {
+            return string.IsNullOrEmpty(globalList) ? 0 : SetKnownGlobalNames(globalList.Split(','));
         }
 
         /// <summary>

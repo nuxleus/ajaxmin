@@ -127,11 +127,11 @@ namespace Microsoft.Ajax.Utilities
             }
 
             // if we are replacing property names and we have something to replace
-            if (Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+            if (Parser.Settings.HasRenamePairs && Parser.Settings.ManualRenamesProperties
                 && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming))
             {
                 // see if this name is a target for replacement
-                string newName = Parser.GetNewName(Name);
+                string newName = Parser.Settings.GetNewName(Name);
                 if (!string.IsNullOrEmpty(newName))
                 {
                     // it is -- set the name to the new name

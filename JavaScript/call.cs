@@ -250,9 +250,9 @@ namespace Microsoft.Ajax.Utilities
                 {
                     // see if we want to replace the name
                     string newName;
-                    if (Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                    if (Parser.Settings.HasRenamePairs && Parser.Settings.ManualRenamesProperties
                         && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming)
-                        && !string.IsNullOrEmpty(newName = Parser.GetNewName(argText)))
+                        && !string.IsNullOrEmpty(newName = Parser.Settings.GetNewName(argText)))
                     {
                         // yes -- we are going to replace the name, either as a string literal, or by converting
                         // to a member-dot operation.

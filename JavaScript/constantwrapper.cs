@@ -176,7 +176,7 @@ namespace Microsoft.Ajax.Utilities
             PrimitiveType = primitiveType;
 
             // force numerics to be of type double
-            Value = (primitiveType == PrimitiveType.Number ? System.Convert.ToDouble(value) : value);
+            Value = (primitiveType == PrimitiveType.Number ? System.Convert.ToDouble(value, CultureInfo.InvariantCulture) : value);
         }
 
         public override AstNode Clone()
@@ -254,7 +254,7 @@ namespace Microsoft.Ajax.Utilities
                     break;
 
                 case PrimitiveType.Boolean:
-                    str = Convert.ToBoolean(Value)
+                    str = Convert.ToBoolean(Value, CultureInfo.InvariantCulture)
                       ? "true"
                       : "false";
                     break;
@@ -810,11 +810,11 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        static public bool NumberIsOkayToCombine(double doubleValue)
+        static public bool NumberIsOkayToCombine(double numericValue)
         {
-            return (double.IsNaN(doubleValue) || double.IsInfinity(doubleValue)) ||
-                (-0x20000000000000 <= doubleValue && doubleValue <= 0x20000000000000
-                && Math.Floor(doubleValue) == doubleValue);
+            return (double.IsNaN(numericValue) || double.IsInfinity(numericValue)) ||
+                (-0x20000000000000 <= numericValue && numericValue <= 0x20000000000000
+                && Math.Floor(numericValue) == numericValue);
         }
 
         public bool IsNotOneOrPositiveZero

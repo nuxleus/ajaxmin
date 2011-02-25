@@ -382,13 +382,16 @@ Valid JSOPTS are zero or more of:
   -new:(keep|collapse) &gt; whether to collapse certain constructors with known
         literals. Default is collapse.
   -rename:(all|localization|none) &gt; automatic local variable and function 
-        renaming methododology. Default is all.
+        renaming methodology. Default is all.
   -rename:IDENT=IDENT(,IDENT=IDENT)* &gt; specify one or more comma-separated
         from=to identifier pairs for manual renaming of variables, functions
         or properties. May be repeated as needed.
+  -norename:IDENT(,IDENT)* &gt; specify one or more comma-separated identifiers
+        that should not be automatically renamed. May be repeated as necessary.
   -rename NFILE &gt; open the XML file with path NFILE and use the &lt;rename&gt;
-        elements for manual renaming of variables, function and properties. 
-        May be repeated as needed.
+        elements for manual renaming of variables, function and properties, and
+        &lt;norename&gt; elements for excluding identifiers from automatic
+        renaming processes. May be repeated as needed.
   -rename:NOPROPS &gt; when using the manual renaming options above, this option
         will turn off property-renaming (renaming only variables and functions).
   -unused:(remove|keep) &gt; whether to keep or remove unused code. Default
@@ -430,10 +433,12 @@ XFILE XML format (XML element names and attributes are case-sensitive):
 NFILE XML format (XML element names and attributes are case-sensitive):
     &lt;root&gt;
       &lt;rename from="[IDENT]" to="[IDENT]" /&gt;
+      &lt;norename id="[IDENT]" /&gt;
     &lt;/root&gt;
-  File can contain any number of &lt;rename&gt; elements.
+  File can contain any number of &lt;rename&gt; or &lt;norename&gt; elements.
   Each &lt;rename&gt; element must have both from and to attributes.
-  Both [IDENT] values must be valid JavaScript identifiers.
+  Each &lt;norename&gt; element must have an id attribute.
+  All [IDENT] values must be valid JavaScript identifiers.
   
 Everything is case-insensitive unless otherwise noted.
 If no OFILE specified, output sent to STDOUT.

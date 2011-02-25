@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
@@ -69,8 +70,6 @@ namespace Microsoft.Ajax.Utilities
                 NestLevel = nestLevel;
             }
         }
-
-        private Dictionary<string, string> m_renameMap; //= null;
 
         public CodeSettings Settings
         {
@@ -148,10 +147,9 @@ namespace Microsoft.Ajax.Utilities
         // create a parser with a context. The context is the code that has to be compiled.
         // Typically used by the runtime
         //---------------------------------------------------------------------------------------
-        public JSParser(string source, string[] globalVars)
+        public JSParser(string source)
         {
             Context context = new Context(new DocumentContext(this), source);
-            GlobalScope.SetAssumedGlobals(globalVars);
 
             m_sourceContext = context;
             m_currentToken = context.Clone();
@@ -161,6 +159,18 @@ namespace Microsoft.Ajax.Utilities
             m_blockType = new List<BlockType>(16);
             m_labelTable = new Dictionary<string, LabelInfo>();
             m_severity = 5;
+        }
+
+        /// <summary>
+        /// Create a new JSParser object.
+        /// Obsolete -- the passed array of known global names will be ignored.
+        /// </summary>
+        /// <param name="source">JavaScript source to parse</param>
+        /// <param name="globalVars">Obsolete - parameter IGNORED</param>
+        [Obsolete("This constructor is obsolete - set known global names via the CodeSettings object")]
+        public JSParser(string source, string[] globalVars)
+            : this(source)
+        {
         }
 
         public string FileContext
@@ -174,64 +184,6 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public void ClearRenameMap()
-        {
-            // if there is a rename map, clear it now
-            if (m_renameMap != null)
-            {
-                m_renameMap.Clear();
-            }
-        }
-
-        public bool AddRenamePair(string sourceName, string newName)
-        {
-            bool successfullyAdded = false;
-
-            // both names MUST be valid JavaScript identifiers
-            if (JSScanner.IsValidIdentifier(sourceName) && JSScanner.IsValidIdentifier(newName))
-            {
-                // if there isn't a rename map, create it now
-                if (m_renameMap == null)
-                {
-                    m_renameMap = new Dictionary<string, string>();
-                }
-
-                if (m_renameMap.ContainsKey(sourceName))
-                {
-                    // just replace the value
-                    m_renameMap[sourceName] = newName;
-                }
-                else
-                {
-                    // add the new pair
-                    m_renameMap.Add(sourceName, newName);
-                }
-
-                // if we get here, we added it (or updated it if it's a dupe)
-                successfullyAdded = true;
-            }
-
-            return successfullyAdded;
-        }
-
-        public string GetNewName(string sourceName)
-        {
-            string newName = null;
-            if (m_renameMap != null)
-            {
-                m_renameMap.TryGetValue(sourceName, out newName);
-            }
-            return newName;
-        }
-
-        public bool HasRenamePairs
-        {
-            get
-            {
-                return m_renameMap != null && m_renameMap.Count > 0;
-            }
-        }
-
         //---------------------------------------------------------------------------------------
         // Parse
         //
@@ -242,6 +194,9 @@ namespace Microsoft.Ajax.Utilities
             // save the settings
             // if we are passed null, just create a default settings object
             m_settings = settings ?? new CodeSettings();
+
+            // make sure the global scope knows about our known global names
+            GlobalScope.SetAssumedGlobals(m_settings.KnownGlobalNames);
 
             // reset the cc_on flag
             EncounteredCCOn = false;

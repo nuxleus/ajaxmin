@@ -50,5 +50,11 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest("-rename:all -rename Collide.xml");
         }
+
+        [TestMethod]
+        public void ManualRename_norename()
+        {
+            TestHelper.Instance.RunTest("-rename:all -rename NoRename.xml");
+        }
     }
 }

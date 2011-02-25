@@ -151,34 +151,65 @@ namespace Microsoft.Ajax.Utilities
 
         protected void RenameFields()
         {
-            // if the parser doesn't even have a list of rename pairs,  or if
-            // the local-remaing kill switch is on, then we have nothing to do
-            if (Parser.HasRenamePairs && Parser.Settings.IsModificationAllowed(TreeModifications.LocalRenaming))
+            // if the local-renaming kill switch is on, we won't be renaming ANYTHING, so we'll have nothing to do.
+            if (Parser.Settings.IsModificationAllowed(TreeModifications.LocalRenaming))
             {
-                // go through the list of fields in this scope. Anything defined in the script that
-                // is in the parser rename map should be renamed and the auto-rename flag reset so
-                // we don't change it later.
-                foreach (var varField in m_nameTable.Values)
+                // if the parser settings has a list of rename pairs, we will want to go through and rename
+                // any matches
+                if (Parser.Settings.HasRenamePairs)
                 {
-                    // don't rename outer fields (only actual fields), 
-                    // and we're only concerned with global or local variables --
-                    // those which are defined by the script (not predefined, not the arguments object)
-                    if (varField.OuterField == null 
-                        && (varField is JSLocalField || varField is JSGlobalField))
+                    // go through the list of fields in this scope. Anything defined in the script that
+                    // is in the parser rename map should be renamed and the auto-rename flag reset so
+                    // we don't change it later.
+                    foreach (var varField in m_nameTable.Values)
                     {
-                        // see if the name is in the parser's rename map
-                        string newName = Parser.GetNewName(varField.Name);
-                        if (!string.IsNullOrEmpty(newName))
+                        // don't rename outer fields (only actual fields), 
+                        // and we're only concerned with global or local variables --
+                        // those which are defined by the script (not predefined, not the arguments object)
+                        if (varField.OuterField == null 
+                            && (varField is JSLocalField || varField is JSGlobalField))
                         {
-                            // it is! Change the name of the field, but make sure we reset the CanCrunch flag
-                            // or setting the "crunched" name won't work.
-                            // and don't bother making sure the name doesn't collide with anything else that
-                            // already exists -- if it does, that's the developer's fault.
-                            // TODO: should we at least throw a warning?
-                            varField.CanCrunch = true;
-                            varField.CrunchedName = newName;
+                            // see if the name is in the parser's rename map
+                            string newName = Parser.Settings.GetNewName(varField.Name);
+                            if (!string.IsNullOrEmpty(newName))
+                            {
+                                // it is! Change the name of the field, but make sure we reset the CanCrunch flag
+                                // or setting the "crunched" name won't work.
+                                // and don't bother making sure the name doesn't collide with anything else that
+                                // already exists -- if it does, that's the developer's fault.
+                                // TODO: should we at least throw a warning?
+                                varField.CanCrunch = true;
+                                varField.CrunchedName = newName;
 
-                            // and make sure we don't crunch it later
+                                // and make sure we don't crunch it later
+                                varField.CanCrunch = false;
+                            }
+                        }
+                    }
+                }
+
+                // if the parser settings has a list of no-rename names, then we will want to also mark any
+                // fields that match and are still slated to rename as uncrunchable so they won't get renamed.
+                // if the settings say we're not going to renaming anything automatically (KeepAll), then we 
+                // have nothing to do.
+                if (Parser.Settings.LocalRenaming != LocalRenaming.KeepAll
+                    && Parser.Settings.NoAutoRenameIdentifiers != null
+                    && Parser.Settings.NoAutoRenameIdentifiers.Count > 0)
+                {
+                    // go through the list of fields in this scope. Anything defined in the script that
+                    // is in the parser rename map should be renamed and the auto-rename flag reset so
+                    // we don't change it later.
+                    foreach (var varField in m_nameTable.Values)
+                    {
+                        // don't rename outer fields (only actual fields), 
+                        // and we're only concerned with fields that can still
+                        // be automatically renamed. If the field is all that AND is listed in
+                        // the collection, set the CanCrunch to false
+                        if (varField.OuterField == null
+                            && varField.CanCrunch
+                            && Parser.Settings.NoAutoRenameIdentifiers.Contains(varField.Name))
+                        {
+                            // no, we don't want to crunch this field
                             varField.CanCrunch = false;
                         }
                     }

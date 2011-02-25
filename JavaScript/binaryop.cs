@@ -484,9 +484,9 @@ namespace Microsoft.Ajax.Utilities
 
                     // see if this new string is the target of a replacement operation
                     string newName;
-                    if (Parser.HasRenamePairs && Parser.Settings.ManualRenamesProperties
+                    if (Parser.Settings.HasRenamePairs && Parser.Settings.ManualRenamesProperties
                         && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming)
-                        && !string.IsNullOrEmpty(newName = Parser.GetNewName(combinedString)))
+                        && !string.IsNullOrEmpty(newName = Parser.Settings.GetNewName(combinedString)))
                     {
                         // yes, it is. Now see if the new name is safe to be converted to a dot-operation.
                         if (Parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
@@ -712,7 +712,7 @@ namespace Microsoft.Ajax.Utilities
         /// <param name="right">right operand</param>
         /// <param name="result">result</param>
         /// <returns>true if result not overflow or underflow; false if it is</returns>
-        private bool NoMultiplicativeOverOrUnderFlow(ConstantWrapper left, ConstantWrapper right, ConstantWrapper result)
+        private static bool NoMultiplicativeOverOrUnderFlow(ConstantWrapper left, ConstantWrapper right, ConstantWrapper result)
         {
             // check for overflow
             bool okayToProceed = !result.IsInfinity;
@@ -733,7 +733,7 @@ namespace Microsoft.Ajax.Utilities
         /// </summary>
         /// <param name="result">result constant</param>
         /// <returns>true is not an overflow; false if it is</returns>
-        private bool NoOverflow(ConstantWrapper result)
+        private static bool NoOverflow(ConstantWrapper result)
         {
             return !result.IsInfinity;
         }

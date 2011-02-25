@@ -2235,7 +2235,7 @@ namespace Microsoft.Ajax.Utilities
                     {
                         // we want to minify the javascript expressions.
                         // create a JSParser object from the code we parsed.
-                        JSParser jsParser = new JSParser(expressionCode, null);
+                        JSParser jsParser = new JSParser(expressionCode);
 
                         // copy the file context
                         jsParser.FileContext = this.FileContext;

@@ -713,7 +713,7 @@ namespace JSUnitTest
 
             public string RunTest(string sourceCode)
             {
-                JSParser jsParser = new JSParser(sourceCode, null);
+                JSParser jsParser = new JSParser(sourceCode);
                 jsParser.CompilerError += OnCompilerError;
 
                 // kick off the parsing

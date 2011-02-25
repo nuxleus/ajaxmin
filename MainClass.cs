@@ -170,9 +170,6 @@ namespace Microsoft.Ajax.Utilities
 
         private MainClass(string[] args)
         {
-            // create the globals list
-            m_globals = new List<string>();
-
             if (args != null && args.Length > 0)
             {
                 // process the arguments
@@ -499,9 +496,15 @@ namespace Microsoft.Ajax.Utilities
                             foreach (string global in parts[1].Split(','))
                             {
                                 // better be a valid JavaScript identifier
-                                if (string.IsNullOrEmpty(global) || !JSScanner.IsValidIdentifier(global))
+                                if (!JSScanner.IsValidIdentifier(global))
                                 {
                                     throw new UsageException(m_outputMode, "InvalidSwitchArg", global, switchPart);
+                                }
+
+                                // if we haven't created the list yet, do it now
+                                if (m_globals == null)
+                                {
+                                    m_globals = new List<string>();
                                 }
 
                                 // don't add duplicates
@@ -632,6 +635,39 @@ namespace Microsoft.Ajax.Utilities
                             else
                             {
                                 throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
+                            }
+
+                            // this is a JS-only switch
+                            JavaScriptOnly();
+                            break;
+
+                        case "NORENAME":
+                            // the parts can be a comma-separate list of identifiers
+                            if (string.IsNullOrEmpty(paramPart))
+                            {
+                                throw new UsageException(m_outputMode, "SwitchRequiresArg", switchPart);
+                            }
+
+                            // use parts[1] rather than paramParts because paramParts has been forced to upper-case
+                            foreach (string ident in parts[1].Split(','))
+                            {
+                                // better be a valid JavaScript identifier
+                                if (!JSScanner.IsValidIdentifier(ident))
+                                {
+                                    throw new UsageException(m_outputMode, "InvalidSwitchArg", ident, switchPart);
+                                }
+
+                                // if we haven't created the list yet, do it now
+                                if (m_noAutoRename == null)
+                                {
+                                    m_noAutoRename = new List<string>();
+                                }
+
+                                // don't add duplicates
+                                if (!m_noAutoRename.Contains(ident))
+                                {
+                                    m_noAutoRename.Add(ident);
+                                }
                             }
 
                             // this is a JS-only switch
