@@ -81,6 +81,8 @@ namespace Microsoft.Ajax.Utilities
             get; set;
         }
 
+        public bool IgnoreConditionalCompilation { get; set; }
+
         public bool EatUnnecessaryCCOn { get; set; }
 
 		public bool AllowEmbeddedAspNetBlocks { get; set; }
@@ -473,7 +475,7 @@ namespace Microsoft.Ajax.Utilities
                             case '/':
                                 m_inSingleLineComment = true;
                                 c = GetChar(++m_currentPos);
-                                if (c == '@' && !m_peekModeOn)
+                                if (c == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
                                 {
                                     // we got //@
                                     // if the NEXT character is not an identifier character, then we need to skip
@@ -528,7 +530,7 @@ namespace Microsoft.Ajax.Utilities
                             case '*':
                                 m_inMultipleLineComment = true;
                                 bool importantComment = false;
-                                if (GetChar(++m_currentPos) == '@' && !m_peekModeOn)
+                                if (GetChar(++m_currentPos) == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
                                 {
                                     // we have /*@
                                     // if the NEXT character is not an identifier character, then we need to skip
@@ -671,12 +673,26 @@ namespace Microsoft.Ajax.Utilities
                         goto nextToken;
 
                     case '@':
+                        if (IgnoreConditionalCompilation)
+                        {
+                            // if the switch to ignore conditional compilation is on, then we don't know
+                            // anything about conditional-compilation statements, and the @-sign character
+                            // is illegal at this spot.
+                            HandleError(JSError.IllegalChar);
+                            goto nextToken;
+                        }
+
+                        // we do care about conditional compilation if we get here
                         if (m_peekModeOn)
                         {
+                            // but if we're in peek mode, we just need to know WHAT the 
+                            // next token is, and we don't need to go any deeper.
                             m_currentToken.Token = JSToken.PreprocessDirective;
                             break;
                         }
 
+                        // see if the @-sign is immediately followed by an identifier. If it is,
+                        // we'll see which one so we can tell if it's a conditional-compilation statement
                         int startPosition = m_currentPos;
                         m_currentToken.StartPosition = startPosition;
                         m_currentToken.StartLineNumber = m_currentLine;

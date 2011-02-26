@@ -268,6 +268,16 @@ namespace Microsoft.Ajax.Utilities
 							BooleanSwitch(paramPart, switchPart, false, out m_allowAspNet);
 							break;
 
+                        case "CC":
+                            BooleanSwitch(paramPart, switchPart, true, out m_ignoreConditionalCompilation);
+
+                            // actually, the flag is the opposite of the member -- turn CC ON and we DON'T
+                            // want to ignore them; turn CC OFF and we DO want to ignore them
+                            m_ignoreConditionalCompilation = !m_ignoreConditionalCompilation;
+
+                            JavaScriptOnly();
+                            break;
+
                         case "CLOBBER":
                             // just putting the clobber switch on the command line without any arguments
                             // is the same as putting -clobber:true and perfectly valid.

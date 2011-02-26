@@ -202,6 +202,7 @@ namespace Microsoft.Ajax.Utilities
             EncounteredCCOn = false;
 
             m_scanner.AllowEmbeddedAspNetBlocks = m_settings.AllowEmbeddedAspNetBlocks;
+            m_scanner.IgnoreConditionalCompilation = m_settings.IgnoreConditionalCompilation;
 
             // set the skip-debug-blocks flag on the scanner if we are stripping debug statements
             m_scanner.SkipDebugBlocks = m_settings.StripDebugStatements

@@ -343,6 +343,12 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
+        /// whether or not to ignore conditional-compilation comment syntax (true) or
+        /// to try to retain the comments in the output (false; default)
+        /// </summary>
+        public bool IgnoreConditionalCompilation { get; set; }
+
+        /// <summary>
         /// Number of spaces per indent level when in MultipleLines output mode
         /// </summary>
         public int IndentSize

@@ -91,6 +91,9 @@ namespace Microsoft.Ajax.Utilities
         // when using the manual-rename map, rename properties when this value us true 
         private bool m_renameProperties = true;
 
+        // whether to ignore or parse conditional-compilation comments
+        private bool m_ignoreConditionalCompilation; // = false;
+
         #endregion
 
         #region file processing
@@ -176,6 +179,7 @@ namespace Microsoft.Ajax.Utilities
 			settings.AllowEmbeddedAspNetBlocks = m_allowAspNet;
             settings.SetKnownGlobalNames(m_globals == null ? null : m_globals.ToArray());
             settings.SetNoAutoRename(m_noAutoRename == null ? null : m_noAutoRename.ToArray());
+            settings.IgnoreConditionalCompilation = m_ignoreConditionalCompilation;
 
             // if there are rename entries...
             if (m_renameMap != null && m_renameMap.Count > 0)

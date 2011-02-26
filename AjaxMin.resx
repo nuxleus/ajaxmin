@@ -360,6 +360,8 @@ Valid OPTS are zero or more of:
   -? &gt; same as -help.
   
 Valid JSOPTS are zero or more of:
+  -cc[:BOOL] &gt; turn on or off support for conditional-compilation comments.
+        Default is true.
   -debug[:BOOL] &gt; debug mode does not remove debug statements or function
         expression names. Default is False.
   -evals:(ignore|immediate|safeall) &gt; ignore eval statements or ensure that
