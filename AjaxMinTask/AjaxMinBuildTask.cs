@@ -135,6 +135,36 @@ namespace Microsoft.Ajax.Minifier.Tasks
             get { return this._jsCodeSettings.LocalRenaming.ToString(); }
             set { this._jsCodeSettings.LocalRenaming = ParseEnumValue<LocalRenaming>(value); }
         }
+
+        /// <summary>
+        /// <see cref="CodeSettings.AddRenamePairs"/> for more information.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
+        public string JsManualRenamePairs
+        {
+            get { return this._jsCodeSettings.RenamePairs; }
+            set { this._jsCodeSettings.RenamePairs = value; }
+        }
+
+        /// <summary>
+        /// <see cref="CodeSettings.SetNoAutoRename"/> for more information.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
+        public string JsNoAutoRename
+        {
+            get { return this._jsCodeSettings.NoAutoRenameList; }
+            set { this._jsCodeSettings.NoAutoRenameList = value; }
+        }
+
+        /// <summary>
+        /// <see cref="CodeSettings.SetKnownGlobalNames"/> for more information.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
+        public string JsKnownGlobalNames
+        {
+            get { return this._jsCodeSettings.KnownGlobalNamesList; }
+            set { this._jsCodeSettings.KnownGlobalNamesList = value; }
+        }
         
         /// <summary>
         /// <see cref="CodeSettings.MacSafariQuirks"/> for more information.
@@ -144,6 +174,16 @@ namespace Microsoft.Ajax.Minifier.Tasks
         {
             get { return this._jsCodeSettings.MacSafariQuirks; }
             set { this._jsCodeSettings.MacSafariQuirks = value; }
+        }
+
+        /// <summary>
+        /// <see cref="CodeSettings.IgnoreConditionalCompilation"/> for more information.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
+        public bool JsIgnoreConditionalCompilation
+        {
+            get { return this._jsCodeSettings.IgnoreConditionalCompilation; }
+            set { this._jsCodeSettings.IgnoreConditionalCompilation = value; }
         }
 
         /// <summary>

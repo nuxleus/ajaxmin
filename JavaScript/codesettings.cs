@@ -105,34 +105,6 @@ namespace Microsoft.Ajax.Utilities
             return successfullyAdded;
         }
 
-        public int AddRenamePairs(string renamePairs)
-        {
-            // number of pairs added to the dictionary
-            int numAdded = 0;
-
-            if (!string.IsNullOrEmpty(renamePairs))
-            {
-                // pairs are comma-separated
-                foreach (var pair in renamePairs.Split(','))
-                {
-                    // source name and new name are separated by an equal sign
-                    var parts = pair.Split('=');
-
-                    // must be exactly one equal sign
-                    if (parts.Length == 2)
-                    {
-                        // try adding the trimmed pair to the collection
-                        if (AddRenamePair(parts[0].Trim(), parts[1].Trim()))
-                        {
-                            ++numAdded;
-                        }
-                    }
-                }
-            }
-
-            return numAdded;
-        }
-
         /// <summary>
         /// Clear any rename pairs from the identifier rename map
         /// </summary>
@@ -177,6 +149,49 @@ namespace Microsoft.Ajax.Utilities
         public ReadOnlyCollection<string> NoAutoRenameIdentifiers { get; private set; }
 
         /// <summary>
+        /// Gets or sets a string representation of all the indentifier replacements as a comma-separated
+        /// list of "source=target" identifiers.
+        /// </summary>
+        public string RenamePairs
+        {
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (string sourceName in m_identifierReplacementMap.Keys)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(sourceName);
+                    sb.Append('=');
+                    sb.Append(m_identifierReplacementMap[sourceName]);
+                }
+                return sb.ToString();
+            }
+
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    // pairs are comma-separated
+                    foreach (var pair in value.Split(','))
+                    {
+                        // source name and new name are separated by an equal sign
+                        var parts = pair.Split('=');
+
+                        // must be exactly one equal sign
+                        if (parts.Length == 2)
+                        {
+                            // try adding the trimmed pair to the collection
+                            AddRenamePair(parts[0].Trim(), parts[1].Trim());
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// sets the collection of known global names to the array of string passed to this method
         /// </summary>
         /// <param name="globalArray">array of known global names</param>
@@ -210,13 +225,31 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
-        /// sets the collection of known global names to the list of names, separated by commas, contained
-        /// in the string passed to this method
+        /// Get or sets the no-automatic-renaming list as a single string of comma-separated identifiers
         /// </summary>
-        /// <param name="globalList"></param>
-        public int SetNoAutoRename(string noRenameList)
+        public string NoAutoRenameList
         {
-            return string.IsNullOrEmpty(noRenameList) ? 0 : SetNoAutoRename(noRenameList.Split(','));
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var noRename in NoAutoRenameIdentifiers)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(noRename);
+                }
+                return sb.ToString();
+            }
+
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    SetNoAutoRename(value.Split(','));
+                }
+            }
         }
 
         /// <summary>
@@ -258,13 +291,31 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
-        /// sets the collection of known global names to the list of names, separated by commas, contained
-        /// in the string passed to this method
+        /// Gets or sets the known global names list as a single comma-separated string
         /// </summary>
-        /// <param name="globalList"></param>
-        public int SetKnownGlobalNames(string globalList)
+        public string KnownGlobalNamesList
         {
-            return string.IsNullOrEmpty(globalList) ? 0 : SetKnownGlobalNames(globalList.Split(','));
+            get
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (var knownGlobal in KnownGlobalNames)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(knownGlobal);
+                }
+                return sb.ToString();
+            }
+
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    SetKnownGlobalNames(value.Split(','));
+                }
+            }
         }
 
         /// <summary>
