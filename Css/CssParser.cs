@@ -662,14 +662,16 @@ namespace Microsoft.Ajax.Utilities
                         AppendCurrent();
                         SkipSpace();
 
-                        while (!m_scanner.EndOfFile
-                            && (CurrentTokenType != TokenType.Character || CurrentTokenText != "}"))
+                        // the main guts of stuff
+                        while (ParseRule() == Parsed.True
+                          || ParseMedia() == Parsed.True
+                          || ParsePage() == Parsed.True
+                          || ParseFontFace() == Parsed.True
+                          || ParseAtKeyword() == Parsed.True
+                          || ParseAspNetBlock() == Parsed.True)
                         {
-                            parsed = ParseRule();
-                            if (parsed != Parsed.True)
-                            {
-                                break;
-                            }
+                            // any number of S, Comment, CDO or CDC elements
+                            ParseSCDOCDCComments();
                         }
                     }
                     else
