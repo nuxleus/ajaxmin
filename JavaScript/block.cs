@@ -246,14 +246,17 @@ namespace Microsoft.Ajax.Utilities
                                 // IT DOES! we can combine the var statement with the initializer in the for-statement
                                 // we already know it's a binaryop, or it wouldn't be a target for-statement
                                 BinaryOperator binaryOp = targetForNode.Initializer as BinaryOperator;
+
                                 // create a vardecl that matches our assignment initializer
+                                // ignore duplicates because this scope will already have the variable defined.
                                 VariableDeclaration varDecl = new VariableDeclaration(
                                     binaryOp.Context.Clone(),
                                     Parser,
                                     targetName,
                                     binaryOp.Operand1.Context.Clone(),
                                     binaryOp.Operand2,
-                                    0
+                                    0,
+                                    true
                                     );
                                 // append it to the preceding var-statement
                                 previousVar.Append(varDecl);
@@ -309,13 +312,15 @@ namespace Microsoft.Ajax.Utilities
                                             if (previousVar.Contains(lookup.Name))
                                             {
                                                 // create a vardecl that matches our assignment initializer
+                                                // ignore duplicates because this scope will already have the variable defined.
                                                 VariableDeclaration varDecl = new VariableDeclaration(
                                                     binaryOp.Context.Clone(),
                                                     Parser,
                                                     lookup.Name,
                                                     lookup.Context.Clone(),
                                                     binaryOp.Operand2,
-                                                    0
+                                                    0,
+                                                    true
                                                     );
                                                 // append it to the var statement before us
                                                 previousVar.Append(varDecl);

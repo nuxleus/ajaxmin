@@ -55,6 +55,11 @@ namespace Microsoft.Ajax.Utilities
         }
 
         public VariableDeclaration(Context context, JSParser parser, string identifier, Context idContext, AstNode initializer, FieldAttributes fieldAttributes)
+            : this(context, parser, identifier, idContext, initializer, fieldAttributes, false)
+        {
+        }
+
+        public VariableDeclaration(Context context, JSParser parser, string identifier, Context idContext, AstNode initializer, FieldAttributes fieldAttributes, bool ignoreDuplicates)
             : base(context, parser)
         {
             // identifier cannot be null
@@ -116,21 +121,24 @@ namespace Microsoft.Ajax.Utilities
                         field.CanCrunch = false;
                     }
                 }
-                else if (idContext != null)
+                else if (!ignoreDuplicates)
                 {
-                    // otherwise just a normal duplicate error
-                    idContext.HandleError(
-                      JSError.DuplicateName,
-                      field.IsLiteral
-                      );
-                }
-                else if (context != null)
-                {
-                    // otherwise just a normal duplicate error
-                    context.HandleError(
-                      JSError.DuplicateName,
-                      field.IsLiteral
-                      );
+                    if (idContext != null)
+                    {
+                        // otherwise just a normal duplicate error
+                        idContext.HandleError(
+                          JSError.DuplicateName,
+                          field.IsLiteral
+                          );
+                    }
+                    else if (context != null)
+                    {
+                        // otherwise just a normal duplicate error
+                        context.HandleError(
+                          JSError.DuplicateName,
+                          field.IsLiteral
+                          );
+                    }
                 }
             }
 
