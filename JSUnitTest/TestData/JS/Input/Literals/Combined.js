@@ -47,6 +47,13 @@ function foo(bar)
     try
     {
       ack = bar.foo();
+
+      // literals inside a with-scope should NOT get picked up. There's no way to know if the 
+      // variable name we eventually use will be a property on the with-object
+      with(ack)
+      {
+        alert(ack.bar + "undefined");
+      }
     }
     catch(err) // try this both with catch as local and catch scoped
     {

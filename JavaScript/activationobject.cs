@@ -57,6 +57,24 @@ namespace Microsoft.Ajax.Utilities
             get { return m_parser; }
         }
 
+        public bool IsInWithScope
+        {
+            get
+            {
+                // start with this scope
+                ActivationObject scope = this;
+
+                // go up the scope heirarchy until we are either a withscope or null
+                while (scope != null && !(scope is WithScope))
+                {
+                    scope = scope.Parent;
+                }
+
+                // if we are not null at this point, then we must be a with-scope
+                return scope != null;
+            }
+        }
+
         protected ActivationObject(ActivationObject parent, JSParser parser)
         {
             m_parent = parent;
@@ -813,7 +831,10 @@ namespace Microsoft.Ajax.Utilities
                         // increment the counter
                         literalReference.Increment();
                         // add this constant wrapper to the list
-                        literalReference.ConstantWrapperList.Add(constantWrapper);
+                        if (!literalReference.ConstantWrapperList.Contains(constantWrapper))
+                        {
+                            literalReference.ConstantWrapperList.Add(constantWrapper);
+                        }
 
                         // if this is the ref scope, or if the ref scope is not the child scope, 
                         // set the child scope to null
@@ -871,8 +892,15 @@ namespace Microsoft.Ajax.Utilities
                 m_count = 1;
                 m_childScope = childScope;
 
-                m_constantWrappers = sharedList != null ? sharedList : new List<ConstantWrapper>();
-                m_constantWrappers.Add(constantWrapper);
+                // use the shared list passed to us, or create a new one
+                m_constantWrappers = sharedList ?? new List<ConstantWrapper>();
+
+                // only add the constant wrapper passed to us IF it isn't ALREADY in the list
+                // (will only happen with a shared list)
+                if (!m_constantWrappers.Contains(constantWrapper))
+                {
+                    m_constantWrappers.Add(constantWrapper);
+                }
             }
 
             public void Increment()

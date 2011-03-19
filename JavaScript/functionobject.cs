@@ -556,6 +556,13 @@ namespace Microsoft.Ajax.Utilities
                 (isLiteral ? FieldAttributes.Literal : 0)
                 );
             varDecl.IsGenerated = true;
+
+            // make sure we set the crunchability of this field to TRUE. Doesn't matter
+            // whether it's a global or within a with-scope or what-have-you. It didn't
+            // exist in the sources (we are generating it now) so we can rename it whatever
+            // the heck we want.
+            varDecl.Field.CanCrunch = true;
+
             if (var != null)
             {
                 // the first statement is a var; just add a new declaration to the front

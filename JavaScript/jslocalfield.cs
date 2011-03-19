@@ -27,8 +27,24 @@ namespace Microsoft.Ajax.Utilities
         private bool m_isGenerated;
         internal bool IsGenerated
         {
-            get { return m_isGenerated; }
-            set { m_isGenerated = value; }
+            get 
+            {
+                // if we are pointing to an outer field, return ITS flag, not ours
+                JSLocalField outerLocal = OuterField as JSLocalField;
+                return outerLocal != null ? outerLocal.IsGenerated : m_isGenerated;
+            }
+            set 
+            {
+                // always set our flag, just in case
+                m_isGenerated = value;
+
+                // if we are pointing to an outer field, set it's flag as well
+                JSLocalField outerLocal = OuterField as JSLocalField;
+                if (outerLocal != null)
+                {
+                    outerLocal.IsGenerated = value;
+                }
+            }
         }
 
         internal JSLocalField(String name, Object value, FieldAttributes attributes)

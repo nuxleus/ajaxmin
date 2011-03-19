@@ -223,9 +223,19 @@ namespace Microsoft.Ajax.Utilities
             // AddLiteral because it hugely inflates the processing time of the application.
             if (Parser.Settings.CombineDuplicateLiterals)
             {
-                // add this literal to the scope's literal collection
+                // add this literal to the scope's literal collection. 
+                // HOWEVER, we do NOT want to add it for consideration of literal combination
+                // if any scope above us is a with-scope -- otherwise the 
+                // variable we use to combine the literals might be confused with a
+                // property on the with-object. 
+                // AND we don't want to do it if the scope is unknown, for the same reason.
+                // we won't really know if the variable we create will interfere with the 
+                // scope resolution of any variables that me in the eval string.
                 ActivationObject thisScope = Parser.ScopeStack.Peek();
-                thisScope.AddLiteral(this, thisScope);
+                if (thisScope.IsKnownAtCompileTime && !thisScope.IsInWithScope)
+                {
+                    thisScope.AddLiteral(this, thisScope);
+                }
             }
 
             // this node has no children, so don't bother calling the base

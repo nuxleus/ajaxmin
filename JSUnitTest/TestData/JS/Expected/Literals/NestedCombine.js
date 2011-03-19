@@ -1,1 +1,1 @@
-﻿function foo(c){var b="foobar",a=65535;function d(d){c&=a;function e(c){return c+b+a}return d==b?e(d):b}function e(d){function c(c){return c.indexOf(b)&a}return c(d)}if(c>a)c-=a;return d(c).substring(e(c))}function globalFunc(){return"foobar"}
+﻿function foo(b){var c="foobar",a=65535;function d(d){b&=a;function e(b){return b+c+a}return d==c?e(d):c}function e(d){function b(b){return b.indexOf(c)&a}return b(d)}if(b>a)b-=a;return d(b).substring(e(b))}function globalFunc(){return"foobar"}
