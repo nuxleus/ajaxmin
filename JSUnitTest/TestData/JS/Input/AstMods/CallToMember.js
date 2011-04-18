@@ -35,3 +35,21 @@ alert(obj["get"]);
 // NOT going to perform this transformation if the potential identifier contains
 // any characters not in the standard ASCII range.
 obj["\u00e3\u0ae9\u0ae9"];
+
+// these should NOT be changed because they aren't string literals
+obj[null];
+obj[undefined];
+obj[true];
+obj[false];
+obj[3.1415927];
+
+// these should NOT be changed because they would be "special" identifiers
+obj["null"];
+obj["true"];
+obj["false"];
+
+// this should NOT be changed because it wouldn't be an identifier at all
+obj["3.1415927"];
+
+// this CAN be changed because "undefined" is not a reserved identifier
+obj["undefined"];

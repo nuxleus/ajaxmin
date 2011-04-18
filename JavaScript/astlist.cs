@@ -182,7 +182,7 @@ namespace Microsoft.Ajax.Utilities
                     ConstantWrapper constantWrapper = m_list[0] as ConstantWrapper;
                     if (constantWrapper != null)
                     {
-                        constantValue = constantWrapper.Value.ToString();
+                        constantValue = constantWrapper.ToString();
                     }
                 }
                 return constantValue;
