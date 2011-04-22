@@ -139,7 +139,18 @@ namespace Microsoft.Ajax.Utilities
                         if (ident != null)
                         {
                             // vendor-specific identifier
-                            token = new CssToken(TokenType.Identifier, "-" + ident, m_context);
+                            // but first see if it's a vendor-specific function!
+                            if (m_currentChar == '(')
+                            {
+                                // it is -- consume the parenthesis; it's part of the token
+                                NextChar();
+                                token = new CssToken(TokenType.Function, "-" + ident + '(', m_context);
+                            }
+                            else
+                            {
+                                // nope -- just a regular identifier
+                                token = new CssToken(TokenType.Identifier, "-" + ident, m_context);
+                            }
                         }
                         else
                         {
