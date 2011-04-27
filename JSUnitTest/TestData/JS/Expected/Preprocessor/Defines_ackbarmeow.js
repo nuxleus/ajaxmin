@@ -1,0 +1,1 @@
+﻿var a="foobar",b="not foobar",c="ackbar";function meow(){alert("MEOW!")}

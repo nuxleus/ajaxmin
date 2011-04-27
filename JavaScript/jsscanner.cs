@@ -15,6 +15,8 @@
 // limitations under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Text;
 
@@ -62,6 +64,12 @@ namespace Microsoft.Ajax.Utilities
         private bool m_skipDebugBlocks;
 
         // for pre-processor
+        private Dictionary<string, string> m_defines;
+
+        private bool m_inTrueIfDef;
+
+        public bool UsePreprocessorDefines { get; set; }
+
         private bool m_inConditionalComment;
 
         private bool m_inSingleLineComment;
@@ -91,6 +99,7 @@ namespace Microsoft.Ajax.Utilities
         {
             m_keywords = s_Keywords;
             EatUnnecessaryCCOn = true;
+            UsePreprocessorDefines = true;
             SetSource(sourceContext);
         }
 
@@ -154,6 +163,30 @@ namespace Microsoft.Ajax.Utilities
             m_currentPos = m_startPos;
             m_currentLine = (sourceContext.StartLineNumber > 0) ? sourceContext.StartLineNumber : 1;
             m_gotEndOfLine = false;
+        }
+
+        public void SetPreprocessorDefines(ReadOnlyCollection<string> definedNames)
+        {
+            // this is a destructive set, blowing away any previous list
+            if (definedNames != null && definedNames.Count > 0)
+            {
+                // create a new list
+                m_defines = new Dictionary<string, string>();
+
+                // add an entrty for each non-duplicate, valid name passed to us
+                foreach (var definedName in definedNames)
+                {
+                    if (JSScanner.IsValidIdentifier(definedName) && !m_defines.ContainsKey(definedName))
+                    {
+                        m_defines.Add(definedName, definedName);
+                    }
+                }
+            }
+            else
+            {
+                // we have no defined names
+                m_defines = null;
+            }
         }
 
         internal JSToken PeekToken()
@@ -503,13 +536,118 @@ namespace Microsoft.Ajax.Utilities
                                     // conditional comment. it's superfluous.
                                     goto nextToken;
                                 }
-                                
-                                if (c == '/' && CheckSubstring(++m_currentPos, "#DEBUG"))
+
+                                // see if there is a THIRD slash character
+                                if (c == '/')
                                 {
-                                    if (m_skipDebugBlocks)
+                                    // advance past the slash
+                                    ++m_currentPos;
+
+                                    // check for some AjaxMin preprocessor comments
+                                    if (CheckSubstring(m_currentPos, "#DEBUG"))
                                     {
-                                        // skip until we hit ///#ENDDEBUG, but only if we are stripping debug statements
-                                        PPSkipToEndDebug();
+                                        if (m_skipDebugBlocks)
+                                        {
+                                            // skip until we hit ///#ENDDEBUG, but only if we are stripping debug statements
+                                            PPSkipToDirective("#ENDDEBUG");
+                                        }
+                                    }
+                                    else if (UsePreprocessorDefines)
+                                    {
+                                        if (CheckSubstring(m_currentPos, "#IFDEF"))
+                                        {
+                                            // skip past the token and any blanks
+                                            m_currentPos += 6;
+                                            SkipBlanks();
+
+                                            // if we encountered a line-break here, then ignore this directive
+                                            if (!m_gotEndOfLine)
+                                            {
+                                                // get an identifier from the input
+                                                var identifier = PPScanIdentifier();
+                                                if (!string.IsNullOrEmpty(identifier))
+                                                {
+                                                    // if there is a dictionary AND the identifier is in it...
+                                                    if (m_defines != null && m_defines.ContainsKey(identifier))
+                                                    {
+                                                        // it's defined!
+                                                        // continue processing normally.
+                                                        // set a state so that if we hit an #ELSE directive, we skip to #ENDIF
+                                                        m_inTrueIfDef = true;
+                                                    }
+                                                    else
+                                                    {
+                                                        // it's NOT defined!
+                                                        // skip to #ELSE or #ENDIF and continue processing normally.
+                                                        PPSkipToDirective("#ENDIF", "#ELSE");
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#ELSE"))
+                                        {
+                                            // if we were processing the true-block of an #IFDEF directive...
+                                            if (m_inTrueIfDef)
+                                            {
+                                                // ...then we now want to skip until the #ENDIF directive
+                                                PPSkipToDirective("#ENDIF");
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#ENDIF"))
+                                        {
+                                            // reset any state that might indicate we were in an #IFDEF construct
+                                            m_inTrueIfDef = false;
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#DEFINE"))
+                                        {
+                                            // skip past the token and any blanks
+                                            m_currentPos += 7;
+                                            SkipBlanks();
+
+                                            // if we encountered a line-break here, then ignore this directive
+                                            if (!m_gotEndOfLine)
+                                            {
+                                                // get an identifier from the input
+                                                var identifier = PPScanIdentifier();
+                                                if (!string.IsNullOrEmpty(identifier))
+                                                {
+                                                    // if there is no dictionary of defines yet, create one now
+                                                    if (m_defines == null)
+                                                    {
+                                                        m_defines = new Dictionary<string, string>();
+                                                    }
+
+                                                    // if the identifier is not already in the dictionary, add it now
+                                                    if (!m_defines.ContainsKey(identifier))
+                                                    {
+                                                        m_defines.Add(identifier, identifier);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#UNDEF"))
+                                        {
+                                            // skip past the token and any blanks
+                                            m_currentPos += 6;
+                                            SkipBlanks();
+
+                                            // if we encountered a line-break here, then ignore this directive
+                                            if (!m_gotEndOfLine)
+                                            {
+                                                // get an identifier from the input
+                                                var identifier = PPScanIdentifier();
+
+                                                // if there was an identifier and we have a dictionary of "defines" and the
+                                                // identifier is in that dictionary...
+                                                if (!string.IsNullOrEmpty(identifier)
+                                                    && m_defines != null
+                                                    && m_defines.ContainsKey(identifier))
+                                                {
+                                                    // remove the identifier from the "defines" dictionary
+                                                    m_defines.Remove(identifier);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
@@ -919,6 +1057,7 @@ namespace Microsoft.Ajax.Utilities
                     return false;
                 }
             }
+
             // if we got here, the strings match
             return true;
         }
@@ -2044,7 +2183,29 @@ namespace Microsoft.Ajax.Utilities
             return ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z');
         }
 
-        private void PPSkipToEndDebug()
+        private string PPScanIdentifier()
+        {
+            // start at the current position
+            var startPos = m_currentPos;
+
+            // see if the first character is a valid identifier start
+            if (JSScanner.IsValidIdentifierStart(GetChar(startPos)))
+            {
+                // it is -- skip to the next character
+                ++m_currentPos;
+
+                // and keep going as long as we have valid part characters
+                while (JSScanner.IsValidIdentifierPart(GetChar(m_currentPos)))
+                {
+                    ++m_currentPos;
+                }
+            }
+
+            // if we advanced at all, return the code we scanned. Otherwise return null
+            return m_currentPos > startPos ? m_strSourceCode.Substring(startPos, m_currentPos - startPos) : null;
+        }
+
+        private void PPSkipToDirective(params string[] endStrings)
         {
             while (true)
             {
@@ -2088,13 +2249,25 @@ namespace Microsoft.Ajax.Utilities
                         m_startLinePos = m_currentPos;
                         break;
 
-                    // check for ///#ENDDEBUG
+                    // check for /// (and then followed by any one of the substrings passed to us)
                     case '/':
-                        if (CheckSubstring(m_currentPos, "//#ENDDEBUG"))
+                        if (CheckSubstring(m_currentPos, "//"))
                         {
-                            // found it -- bail
-                            m_currentPos += 11;
-                            return;
+                            // skip it
+                            m_currentPos += 2;
+
+                            // now check each of the ending strings that were passed to us to see if one of
+                            // them is a match
+                            for (var ndx = 0; ndx < endStrings.Length; ++ndx)
+                            {
+                                if (CheckSubstring(m_currentPos, endStrings[ndx]))
+                                {
+                                    // found the ending string
+                                    // skip it and bail
+                                    m_currentPos += endStrings[ndx].Length;
+                                    return;
+                                }
+                            }
                         }
 
                         break;

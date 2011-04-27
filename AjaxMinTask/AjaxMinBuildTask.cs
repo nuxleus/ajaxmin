@@ -245,7 +245,7 @@ namespace Microsoft.Ajax.Minifier.Tasks
             get { return this._jsCodeSettings.StripDebugStatements; }
             set { this._jsCodeSettings.StripDebugStatements = value; }
         }
-        
+
         /// <summary>
         /// <see cref="CodeSettings.AllowEmbeddedAspNetBlocks"/> for more information.
         /// </summary>
@@ -254,6 +254,16 @@ namespace Microsoft.Ajax.Minifier.Tasks
         {
             get { return this._jsCodeSettings.AllowEmbeddedAspNetBlocks; }
             set { this._jsCodeSettings.AllowEmbeddedAspNetBlocks = value; }
+        }
+
+        /// <summary>
+        /// <see cref="CodeSettings.PreprocessorDefineList"/> for more information.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
+        public string JsPreprocessorDefines
+        {
+            get { return this._jsCodeSettings.PreprocessorDefineList; }
+            set { this._jsCodeSettings.PreprocessorDefineList = value; }
         }
 
         #endregion

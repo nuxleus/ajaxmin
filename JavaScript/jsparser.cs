@@ -208,6 +208,13 @@ namespace Microsoft.Ajax.Utilities
             m_scanner.SkipDebugBlocks = m_settings.StripDebugStatements
                  && m_settings.IsModificationAllowed(TreeModifications.StripDebugStatements);
 
+            // set any defines
+            m_scanner.UsePreprocessorDefines = m_settings.IsModificationAllowed(TreeModifications.PreprocessorDefines);
+            if (m_scanner.UsePreprocessorDefines)
+            {
+                m_scanner.SetPreprocessorDefines(m_settings.PreprocessorDefines);
+            }
+
             // the scanner will eat unnecessary @cc_on statements automatically so we are sure only
             // the first needed one is in the output. But we can turn that off with a kill switch, so
             // pass that flag to the scanner.

@@ -181,6 +181,13 @@ namespace Microsoft.Ajax.Utilities
             settings.SetNoAutoRename(m_noAutoRename == null ? null : m_noAutoRename.ToArray());
             settings.IgnoreConditionalCompilation = m_ignoreConditionalCompilation;
 
+            // if there are defined preprocessor names
+            if (m_defines != null && m_defines.Count > 0)
+            {
+                // set the list of defined names to our array of names
+                settings.SetPreprocessorDefines(m_defines.ToArray());
+            }
+
             // if there are rename entries...
             if (m_renameMap != null && m_renameMap.Count > 0)
             {

@@ -53,6 +53,11 @@ namespace Microsoft.Ajax.Utilities
         /// </summary>
         private bool m_headerWritten;
 
+        /// <summary>
+        /// list of preprocessor "defines" specified on the command-line
+        /// </summary>
+        private List<string> m_defines;
+
         #endregion
 
         #region common settings
@@ -355,6 +360,37 @@ namespace Microsoft.Ajax.Utilities
 
                             // this is a JS-only switch
                             JavaScriptOnly();
+                            break;
+
+                        case "DEFINE":
+                            // the parts can be a comma-separate list of identifiers
+                            if (string.IsNullOrEmpty(paramPart))
+                            {
+                                throw new UsageException(m_outputMode, "SwitchRequiresArg", switchPart);
+                            }
+
+                            // use parts[1] rather than paramParts because paramParts has been forced to upper-case
+                            foreach (string defineName in parts[1].Split(','))
+                            {
+                                // better be a valid JavaScript identifier
+                                if (!JSScanner.IsValidIdentifier(defineName))
+                                {
+                                    throw new UsageException(m_outputMode, "InvalidSwitchArg", defineName, switchPart);
+                                }
+
+                                // if we haven't created the list yet, do it now
+                                if (m_defines == null)
+                                {
+                                    m_defines = new List<string>();
+                                }
+
+                                // don't add duplicates
+                                if (!m_defines.Contains(defineName))
+                                {
+                                    m_defines.Add(defineName);
+                                }
+                            }
+
                             break;
 
                         case "ECHO":

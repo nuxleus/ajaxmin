@@ -319,6 +319,74 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
+        /// Collection of names to define for the preprocessor
+        /// </summary>
+        public ReadOnlyCollection<string> PreprocessorDefines { get; private set; }
+
+        /// <summary>
+        /// Set the collection of defined names for the preprocessor
+        /// </summary>
+        /// <param name="definedNames">array of defined name strings</param>
+        /// <returns>number of names successfully added to the collection</returns>
+        public int SetPreprocessorDefines(params string[] definedNames)
+        {
+            int numAdded = 0;
+            if (definedNames == null)
+            {
+                PreprocessorDefines = null;
+            }
+            else
+            {
+                // create a list with a capacity equal to the number of items in the array
+                var checkedNames = new List<string>(definedNames.Length);
+
+                // validate that each name in the array is a valid JS identifier
+                foreach (var name in definedNames)
+                {
+                    // must be a valid JS identifier
+                    string trimmedName = name.Trim();
+                    if (JSScanner.IsValidIdentifier(trimmedName))
+                    {
+                        checkedNames.Add(trimmedName);
+                    }
+                }
+                PreprocessorDefines = new ReadOnlyCollection<string>(checkedNames);
+                numAdded = checkedNames.Count;
+            }
+
+            return numAdded;
+        }
+
+        /// <summary>
+        /// string representation of the list of names defined for the preprocessor, comma-separated
+        /// </summary>
+        public string PreprocessorDefineList
+        {
+            get
+            {
+                // createa string builder and add each of the defined names to it
+                // one-by-one, separating them with a comma
+                var sb = new StringBuilder();
+                foreach (var definedName in PreprocessorDefines)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(definedName);
+                }
+                return sb.ToString();
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    SetPreprocessorDefines(value.Split(','));
+                }
+            }
+        }
+
+        /// <summary>
         /// Whether to allow embedded asp.net blocks.
         /// </summary>
         public bool AllowEmbeddedAspNetBlocks
@@ -768,5 +836,10 @@ namespace Microsoft.Ajax.Utilities
         /// Rename properties in object literals, member-dot, and member-bracket operations
         /// </summary>
         PropertyRenaming                            = 0x0000000080000000,
+
+        /// <summary>
+        /// Use preprocessor defines and the ///#IFDEF directive
+        /// </summary>
+        PreprocessorDefines                         = 0x0000000100000000,
     }
 }

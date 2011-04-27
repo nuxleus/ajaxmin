@@ -347,6 +347,8 @@ Valid OPTS are zero or more of:
   -analyze &gt; provide extra analysis output.
   -clobber[:BOOL] &gt; when false, will not overwrite existing output file.
         True always writes output file. Default is false.
+  -define:IDENT[,IDENT]* &gt; add defined names to the list of names used
+        by the preprocessor.
   -echo &gt; output is an echo of the original input.
   -enc:(in|out) ENC &gt; input or output file text encoding.
   -help &gt; display this usage message.
