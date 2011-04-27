@@ -462,10 +462,27 @@ namespace Microsoft.Ajax.Utilities
         {
             NextChar();
 
+            // by default we're just going to return a character token for the "@" sign -- unless it
+            // is followed by an identifier, in which case it's an at-symbol.
             TokenType tokenType = TokenType.Character;
+
+            // if the next character is a hyphen, then we're going to want to pull it off and see if the
+            // NEXT token is an identifier. If it's not, we'll stuff the hyphen back into the read buffer.
+            bool startsWithHyphen = m_currentChar == '-';
+            if (startsWithHyphen)
+            {
+                NextChar();
+            }
+
             string ident = GetIdent();
             if (ident != null)
             {
+                // if this started with a hyphen, then we need to add it to the start of our identifier now
+                if (startsWithHyphen)
+                {
+                    ident = '-' + ident;
+                }
+
                 switch (ident.ToUpperInvariant())
                 {
                     case "IMPORT":
@@ -561,6 +578,14 @@ namespace Microsoft.Ajax.Utilities
                         break;
                 }
             }
+            else if (startsWithHyphen)
+            {
+                // we didn't find an identifier after the "@-".
+                // we're going to return a character token for the @, but we need to push the hyphen
+                // back into the read buffer for next time
+                PushChar('-');
+            }
+
             return new CssToken(tokenType, '@' + (ident == null ? string.Empty : ident), m_context);
         }
 

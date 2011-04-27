@@ -497,7 +497,13 @@ namespace Microsoft.Ajax.Utilities
             Parsed parsed = Parsed.False;
             if (CurrentTokenType == TokenType.AtKeyword)
             {
-                ReportError(2, StringEnum.UnexpectedAtKeyword, CurrentTokenText);
+                // only report an unexpected at-keyword IF the identifier doesn't start 
+                // with a hyphen, because that would be a vendor-specific at-keyword,
+                // which is theoretically okay.
+                if (!CurrentTokenText.StartsWith("@-", StringComparison.InvariantCulture))
+                {
+                    ReportError(2, StringEnum.UnexpectedAtKeyword, CurrentTokenText);
+                }
 
                 SkipToEndOfStatement();
                 AppendCurrent();
