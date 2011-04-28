@@ -66,7 +66,7 @@ namespace Microsoft.Ajax.Utilities
         // for pre-processor
         private Dictionary<string, string> m_defines;
 
-        private bool m_inTrueIfDef;
+        private bool m_inIfDefDirective;
 
         public bool UsePreprocessorDefines { get; set; }
 
@@ -94,6 +94,10 @@ namespace Microsoft.Ajax.Utilities
         public bool EatUnnecessaryCCOn { get; set; }
 
 		public bool AllowEmbeddedAspNetBlocks { get; set; }
+
+        // turning this property on makes the scanner just return raw tokens without any
+        // conditional-compilation comment processing.
+        public bool RawTokens { get; set; }
 
         public JSScanner(Context sourceContext)
         {
@@ -231,8 +235,16 @@ namespace Microsoft.Ajax.Utilities
             try
             {
                 int thisCurrentLine = m_currentLine;
+
             nextToken:
-                SkipBlanks();
+                // skip any blanks, setting a state flag if we find any
+                bool ws = JSScanner.IsBlankSpace(GetChar(m_currentPos));
+                if (ws && !RawTokens)
+                {
+                    // we're not looking for war tokens, so just want to eat the whitespace
+                    while (JSScanner.IsBlankSpace(GetChar(++m_currentPos))) ;
+                }
+
                 m_currentToken.StartPosition = m_startPos = m_currentPos;
                 m_currentToken.StartLineNumber = m_currentLine;
                 m_currentToken.StartLinePosition = m_startLinePos;
@@ -255,7 +267,17 @@ namespace Microsoft.Ajax.Utilities
                             break;
                         }
 
-                        goto nextToken;
+                        if (RawTokens)
+                        {
+                            // if we are just looking for raw tokens, return this one as an error token
+                            token = JSToken.Error;
+                            break;
+                        }
+                        else
+                        {
+                            // otherwise eat it
+                            goto nextToken;
+                        }
 
                     case '=':
                         token = JSToken.Assign;
@@ -508,7 +530,166 @@ namespace Microsoft.Ajax.Utilities
                             case '/':
                                 m_inSingleLineComment = true;
                                 c = GetChar(++m_currentPos);
-                                if (c == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
+
+                                // see if there is a THIRD slash character
+                                if (c == '/')
+                                {
+                                    // advance past the slash
+                                    ++m_currentPos;
+
+                                    // check for some AjaxMin preprocessor comments
+                                    if (CheckSubstring(m_currentPos, "#DEBUG"))
+                                    {
+                                        if (m_skipDebugBlocks)
+                                        {
+                                            // skip until we hit ///#ENDDEBUG, but only if we are stripping debug statements
+                                            PPSkipToDirective("#ENDDEBUG");
+
+                                            // if we are asking for raw tokens, we DON'T want to return these comments or the code
+                                            // they stripped away.
+                                            if (RawTokens)
+                                            {
+                                                SkipSingleLineComment();
+                                                goto nextToken;
+                                            }
+                                        }
+                                    }
+                                    else if (UsePreprocessorDefines)
+                                    {
+                                        if (CheckSubstring(m_currentPos, "#IFDEF"))
+                                        {
+                                            // skip past the token and any blanks
+                                            m_currentPos += 6;
+                                            SkipBlanks();
+
+                                            // if we encountered a line-break here, then ignore this directive
+                                            if (!m_gotEndOfLine)
+                                            {
+                                                // get an identifier from the input
+                                                var identifier = PPScanIdentifier();
+                                                if (!string.IsNullOrEmpty(identifier))
+                                                {
+                                                    // set a state so that if we hit an #ELSE directive, we skip to #ENDIF
+                                                    m_inIfDefDirective = true;
+
+                                                    // if there is a dictionary AND the identifier is in it...
+                                                    if (m_defines == null || !m_defines.ContainsKey(identifier))
+                                                    {
+                                                        // it's NOT defined!
+                                                        // skip to #ELSE or #ENDIF and continue processing normally.
+                                                        if (PPSkipToDirective("#ENDIF", "#ELSE") == 0)
+                                                        {
+                                                            // encountered the #ENDIF directive, so we know to reset the flag
+                                                            m_inIfDefDirective = false;
+                                                        }
+                                                    }
+
+                                                    // if we are asking for raw tokens, we DON'T want to return these comments or the code
+                                                    // they may have stripped away.
+                                                    if (RawTokens)
+                                                    {
+                                                        SkipSingleLineComment();
+                                                        goto nextToken;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#ELSE") && m_inIfDefDirective)
+                                        {
+                                            // reset the state that says we were in an #IFDEF construct
+                                            m_inIfDefDirective = false;
+
+                                            // ...then we now want to skip until the #ENDIF directive
+                                            PPSkipToDirective("#ENDIF");
+
+                                            // if we are asking for raw tokens, we DON'T want to return these comments or the code
+                                            // they stripped away.
+                                            if (RawTokens)
+                                            {
+                                                SkipSingleLineComment();
+                                                goto nextToken;
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#ENDIF") && m_inIfDefDirective)
+                                        {
+                                            // reset the state that says we were in an #IFDEF construct
+                                            m_inIfDefDirective = false;
+
+                                            // if we are asking for raw tokens, we DON'T want to return this comment.
+                                            if (RawTokens)
+                                            {
+                                                SkipSingleLineComment();
+                                                goto nextToken;
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#DEFINE"))
+                                        {
+                                            // skip past the token and any blanks
+                                            m_currentPos += 7;
+                                            SkipBlanks();
+
+                                            // if we encountered a line-break here, then ignore this directive
+                                            if (!m_gotEndOfLine)
+                                            {
+                                                // get an identifier from the input
+                                                var identifier = PPScanIdentifier();
+                                                if (!string.IsNullOrEmpty(identifier))
+                                                {
+                                                    // if there is no dictionary of defines yet, create one now
+                                                    if (m_defines == null)
+                                                    {
+                                                        m_defines = new Dictionary<string, string>();
+                                                    }
+
+                                                    // if the identifier is not already in the dictionary, add it now
+                                                    if (!m_defines.ContainsKey(identifier))
+                                                    {
+                                                        m_defines.Add(identifier, identifier);
+                                                    }
+
+                                                    // if we are asking for raw tokens, we DON'T want to return this comment.
+                                                    if (RawTokens)
+                                                    {
+                                                        SkipSingleLineComment();
+                                                        goto nextToken;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        else if (CheckSubstring(m_currentPos, "#UNDEF"))
+                                        {
+                                            // skip past the token and any blanks
+                                            m_currentPos += 6;
+                                            SkipBlanks();
+
+                                            // if we encountered a line-break here, then ignore this directive
+                                            if (!m_gotEndOfLine)
+                                            {
+                                                // get an identifier from the input
+                                                var identifier = PPScanIdentifier();
+
+                                                // if there was an identifier and we have a dictionary of "defines" and the
+                                                // identifier is in that dictionary...
+                                                if (!string.IsNullOrEmpty(identifier))
+                                                {
+                                                    if (m_defines != null && m_defines.ContainsKey(identifier))
+                                                    {
+                                                        // remove the identifier from the "defines" dictionary
+                                                        m_defines.Remove(identifier);
+                                                    }
+
+                                                    // if we are asking for raw tokens, we DON'T want to return this comment.
+                                                    if (RawTokens)
+                                                    {
+                                                        SkipSingleLineComment();
+                                                        goto nextToken;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else if (!RawTokens && c == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
                                 {
                                     // we got //@
                                     // if the NEXT character is not an identifier character, then we need to skip
@@ -537,173 +718,80 @@ namespace Microsoft.Ajax.Utilities
                                     goto nextToken;
                                 }
 
-                                // see if there is a THIRD slash character
-                                if (c == '/')
-                                {
-                                    // advance past the slash
-                                    ++m_currentPos;
-
-                                    // check for some AjaxMin preprocessor comments
-                                    if (CheckSubstring(m_currentPos, "#DEBUG"))
-                                    {
-                                        if (m_skipDebugBlocks)
-                                        {
-                                            // skip until we hit ///#ENDDEBUG, but only if we are stripping debug statements
-                                            PPSkipToDirective("#ENDDEBUG");
-                                        }
-                                    }
-                                    else if (UsePreprocessorDefines)
-                                    {
-                                        if (CheckSubstring(m_currentPos, "#IFDEF"))
-                                        {
-                                            // skip past the token and any blanks
-                                            m_currentPos += 6;
-                                            SkipBlanks();
-
-                                            // if we encountered a line-break here, then ignore this directive
-                                            if (!m_gotEndOfLine)
-                                            {
-                                                // get an identifier from the input
-                                                var identifier = PPScanIdentifier();
-                                                if (!string.IsNullOrEmpty(identifier))
-                                                {
-                                                    // if there is a dictionary AND the identifier is in it...
-                                                    if (m_defines != null && m_defines.ContainsKey(identifier))
-                                                    {
-                                                        // it's defined!
-                                                        // continue processing normally.
-                                                        // set a state so that if we hit an #ELSE directive, we skip to #ENDIF
-                                                        m_inTrueIfDef = true;
-                                                    }
-                                                    else
-                                                    {
-                                                        // it's NOT defined!
-                                                        // skip to #ELSE or #ENDIF and continue processing normally.
-                                                        PPSkipToDirective("#ENDIF", "#ELSE");
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else if (CheckSubstring(m_currentPos, "#ELSE"))
-                                        {
-                                            // if we were processing the true-block of an #IFDEF directive...
-                                            if (m_inTrueIfDef)
-                                            {
-                                                // ...then we now want to skip until the #ENDIF directive
-                                                PPSkipToDirective("#ENDIF");
-                                            }
-                                        }
-                                        else if (CheckSubstring(m_currentPos, "#ENDIF"))
-                                        {
-                                            // reset any state that might indicate we were in an #IFDEF construct
-                                            m_inTrueIfDef = false;
-                                        }
-                                        else if (CheckSubstring(m_currentPos, "#DEFINE"))
-                                        {
-                                            // skip past the token and any blanks
-                                            m_currentPos += 7;
-                                            SkipBlanks();
-
-                                            // if we encountered a line-break here, then ignore this directive
-                                            if (!m_gotEndOfLine)
-                                            {
-                                                // get an identifier from the input
-                                                var identifier = PPScanIdentifier();
-                                                if (!string.IsNullOrEmpty(identifier))
-                                                {
-                                                    // if there is no dictionary of defines yet, create one now
-                                                    if (m_defines == null)
-                                                    {
-                                                        m_defines = new Dictionary<string, string>();
-                                                    }
-
-                                                    // if the identifier is not already in the dictionary, add it now
-                                                    if (!m_defines.ContainsKey(identifier))
-                                                    {
-                                                        m_defines.Add(identifier, identifier);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        else if (CheckSubstring(m_currentPos, "#UNDEF"))
-                                        {
-                                            // skip past the token and any blanks
-                                            m_currentPos += 6;
-                                            SkipBlanks();
-
-                                            // if we encountered a line-break here, then ignore this directive
-                                            if (!m_gotEndOfLine)
-                                            {
-                                                // get an identifier from the input
-                                                var identifier = PPScanIdentifier();
-
-                                                // if there was an identifier and we have a dictionary of "defines" and the
-                                                // identifier is in that dictionary...
-                                                if (!string.IsNullOrEmpty(identifier)
-                                                    && m_defines != null
-                                                    && m_defines.ContainsKey(identifier))
-                                                {
-                                                    // remove the identifier from the "defines" dictionary
-                                                    m_defines.Remove(identifier);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
                                 SkipSingleLineComment();
 
-                                // if we're still in a multiple-line comment, then we must've been in
-                                // a multi-line CONDITIONAL comment, in which case this normal one-line comment
-                                // won't turn off conditional comments just because we hit the end of line.
-                                if (!m_inMultipleLineComment && m_inConditionalComment)
+                                if (RawTokens)
                                 {
-                                    m_inConditionalComment = false;
-                                    token = JSToken.ConditionalCommentEnd;
+                                    // raw tokens -- just return the comment
+                                    token = JSToken.Comment;
                                     break;
                                 }
-
-                                goto nextToken; // read another token this last one was a comment
-
-                            case '*':
-                                m_inMultipleLineComment = true;
-                                bool importantComment = false;
-                                if (GetChar(++m_currentPos) == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
+                                else
                                 {
-                                    // we have /*@
-                                    // if the NEXT character is not an identifier character, then we need to skip
-                                    // the @ character -- otherwise leave it there
-                                    if (!IsValidIdentifierStart(GetChar(m_currentPos + 1)))
+                                    // if we're still in a multiple-line comment, then we must've been in
+                                    // a multi-line CONDITIONAL comment, in which case this normal one-line comment
+                                    // won't turn off conditional comments just because we hit the end of line.
+                                    if (!m_inMultipleLineComment && m_inConditionalComment)
                                     {
-                                        ++m_currentPos;
-                                    }
-
-                                    if (CheckForTypeComments())
-                                    {
-                                        SkipMultilineComment(false);
-                                    }
-                                    // if we aren't already in a conditional comment
-                                    else if (!m_inConditionalComment)
-                                    {
-                                        // we are in one now
-                                        m_inConditionalComment = true;
-                                        token = JSToken.ConditionalCommentStart;
+                                        m_inConditionalComment = false;
+                                        token = JSToken.ConditionalCommentEnd;
                                         break;
                                     }
 
-                                    // we were already in a conditional comment, so ignore the superfluous
-                                    // conditional comment start
-                                    goto nextToken;
-                                }
-                                
-                                if (GetChar(m_currentPos) == '!')
-                                {
-                                    // found an "important" comment that we want to preserve
-                                    importantComment = true;
+                                    goto nextToken; // read another token this last one was a comment
                                 }
 
-                                SkipMultilineComment(importantComment);
-                                goto nextToken; // read another token this last one was a comment
+                            case '*':
+                                m_inMultipleLineComment = true;
+                                if (RawTokens)
+                                {
+                                    // if we are looking for raw tokens, we don't care about important comments
+                                    // or conditional comments or what-have-you. Scan the comment and return it
+                                    // as the current token
+                                    SkipMultilineComment(false);
+                                    token = JSToken.Comment;
+                                    break;
+                                }
+                                else
+                                {
+                                    bool importantComment = false;
+                                    if (GetChar(++m_currentPos) == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
+                                    {
+                                        // we have /*@
+                                        // if the NEXT character is not an identifier character, then we need to skip
+                                        // the @ character -- otherwise leave it there
+                                        if (!IsValidIdentifierStart(GetChar(m_currentPos + 1)))
+                                        {
+                                            ++m_currentPos;
+                                        }
+
+                                        if (CheckForTypeComments())
+                                        {
+                                            SkipMultilineComment(false);
+                                        }
+                                        // if we aren't already in a conditional comment
+                                        else if (!m_inConditionalComment)
+                                        {
+                                            // we are in one now
+                                            m_inConditionalComment = true;
+                                            token = JSToken.ConditionalCommentStart;
+                                            break;
+                                        }
+
+                                        // we were already in a conditional comment, so ignore the superfluous
+                                        // conditional comment start
+                                        goto nextToken;
+                                    }
+
+                                    if (GetChar(m_currentPos) == '!')
+                                    {
+                                        // found an "important" comment that we want to preserve
+                                        importantComment = true;
+                                    }
+
+                                    SkipMultilineComment(importantComment);
+                                    goto nextToken; // read another token this last one was a comment
+                                }
 
                             case '=':
                                 m_currentPos++;
@@ -808,7 +896,17 @@ namespace Microsoft.Ajax.Utilities
                         m_startLinePos = m_currentPos;
 
                         m_inSingleLineComment = false;
-                        goto nextToken;
+                        if (RawTokens)
+                        {
+                            // if we are looking for raw tokens, then return this as the current token
+                            token = JSToken.EndOfLine;
+                            break;
+                        }
+                        else
+                        {
+                            // otherwise eat it and move on
+                            goto nextToken;
+                        }
 
                     case '@':
                         if (IgnoreConditionalCompilation)
@@ -817,7 +915,17 @@ namespace Microsoft.Ajax.Utilities
                             // anything about conditional-compilation statements, and the @-sign character
                             // is illegal at this spot.
                             HandleError(JSError.IllegalChar);
-                            goto nextToken;
+                            if (RawTokens)
+                            {
+                                // if we are just looking for raw tokens, return this one as an error token
+                                token = JSToken.Error;
+                                break;
+                            }
+                            else
+                            {
+                                // otherwise eat it
+                                goto nextToken;
+                            }
                         }
 
                         // we do care about conditional compilation if we get here
@@ -852,7 +960,17 @@ namespace Microsoft.Ajax.Utilities
                                 // otherwise we just have a @ sitting by itself!
                                 // throw an error and loop back to the next token.
                                 HandleError(JSError.IllegalChar);
-                                goto nextToken;
+                                if (RawTokens)
+                                {
+                                    // if we are just looking for raw tokens, return this one as an error token
+                                    token = JSToken.Error;
+                                    break;
+                                }
+                                else
+                                {
+                                    // otherwise eat it
+                                    goto nextToken;
+                                }
 
                             case 2:
                                 if (CheckSubstring(startPosition, "if"))
@@ -951,7 +1069,7 @@ namespace Microsoft.Ajax.Utilities
                                 if (CheckSubstring(startPosition, "cc_on"))
                                 {
                                     // if we have already turned on conditional compilation....
-                                    if (m_preProcessorOn && EatUnnecessaryCCOn)
+                                    if (!RawTokens && m_preProcessorOn && EatUnnecessaryCCOn)
                                     {
                                         // we'll just eat the token here because we don't even 
                                         // need to expose it to the parser at this time.
@@ -1015,13 +1133,34 @@ namespace Microsoft.Ajax.Utilities
                             token = JSToken.Identifier;
                             ScanIdentifier();
                         }
+                        else if (RawTokens && IsBlankSpace(c))
+                        {
+                            // we are asking for raw tokens, and this is the start of a stretch of whitespace.
+                            // advance to the end of the whitespace, and return that as the token
+                            while (JSScanner.IsBlankSpace(GetChar(m_currentPos)))
+                            {
+                                ++m_currentPos;
+                            }
+                            token = JSToken.Whitespace;
+                        }
                         else
                         {
                             m_currentToken.EndLineNumber = m_currentLine;
                             m_currentToken.EndLinePosition = m_startLinePos;
                             m_currentToken.EndPosition = m_currentPos;
+
                             HandleError(JSError.IllegalChar);
-                            goto nextToken;
+                            if (RawTokens)
+                            {
+                                // if we are just looking for raw tokens, return this one as an error token
+                                token = JSToken.Error;
+                                break;
+                            }
+                            else
+                            {
+                                // otherwise eat it
+                                goto nextToken;
+                            }
                         }
 
                         break;
@@ -2205,7 +2344,7 @@ namespace Microsoft.Ajax.Utilities
             return m_currentPos > startPos ? m_strSourceCode.Substring(startPos, m_currentPos - startPos) : null;
         }
 
-        private void PPSkipToDirective(params string[] endStrings)
+        private int PPSkipToDirective(params string[] endStrings)
         {
             while (true)
             {
@@ -2265,7 +2404,7 @@ namespace Microsoft.Ajax.Utilities
                                     // found the ending string
                                     // skip it and bail
                                     m_currentPos += endStrings[ndx].Length;
-                                    return;
+                                    return ndx;
                                 }
                             }
                         }

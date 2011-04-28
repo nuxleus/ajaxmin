@@ -41,15 +41,21 @@ namespace Microsoft.Ajax.Utilities
 
         internal void HandleError(JScriptException error)
         {
-            if (!m_parser.OnCompilerError(error))
+            if (m_parser != null)
             {
-                throw new EndOfFileException(); // this exception terminates the parser
+                if (!m_parser.OnCompilerError(error))
+                {
+                    throw new EndOfFileException(); // this exception terminates the parser
+                }
             }
         }
 
         internal void ReportUndefined(UndefinedReferenceException ex)
         {
-            m_parser.OnUndefinedReference(ex);
+            if (m_parser != null)
+            {
+                m_parser.OnUndefinedReference(ex);
+            }
         }
 
         internal bool HasAlreadySeenErrorFor(String varName)

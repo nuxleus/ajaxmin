@@ -173,7 +173,10 @@ namespace Microsoft.Ajax.Utilities
         UnsignedLong,
         Use,
 
-        EndOfLine, // this is here only because of error recovery, in reality this token is never produced
+        EndOfLine, // only returned if the RawTokens flag is set on the scanner, but also used in error-recovery
+        Whitespace, // only returned if the RawTokens flag is set on the scanner
+        Error, // only returned if the RawTokens flag is set on the scanner
+
         PreprocessDirective,
         ConditionalCommentStart,        // /*@ or //@
         ConditionalCommentEnd,          // @*/ or EOL
