@@ -174,8 +174,9 @@ namespace Microsoft.Ajax.Utilities
         Use,
 
         EndOfLine, // only returned if the RawTokens flag is set on the scanner, but also used in error-recovery
-        Whitespace, // only returned if the RawTokens flag is set on the scanner
+        WhiteSpace, // only returned if the RawTokens flag is set on the scanner
         Error, // only returned if the RawTokens flag is set on the scanner
+        RegularExpression, // only returned if the RawTokens flag is set on the scanner
 
         PreprocessDirective,
         ConditionalCommentStart,        // /*@ or //@

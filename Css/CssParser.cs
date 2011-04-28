@@ -500,7 +500,7 @@ namespace Microsoft.Ajax.Utilities
                 // only report an unexpected at-keyword IF the identifier doesn't start 
                 // with a hyphen, because that would be a vendor-specific at-keyword,
                 // which is theoretically okay.
-                if (!CurrentTokenText.StartsWith("@-", StringComparison.InvariantCulture))
+                if (!CurrentTokenText.StartsWith("@-", StringComparison.OrdinalIgnoreCase))
                 {
                     ReportError(2, StringEnum.UnexpectedAtKeyword, CurrentTokenText);
                 }

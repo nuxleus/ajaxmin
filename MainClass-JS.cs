@@ -94,6 +94,9 @@ namespace Microsoft.Ajax.Utilities
         // whether to ignore or parse conditional-compilation comments
         private bool m_ignoreConditionalCompilation; // = false;
 
+        // whether to only preprocess (true), or to completely parse and analyze code (false)
+        private bool m_preprocessOnly; // = false;
+
         #endregion
 
         #region file processing
@@ -201,50 +204,62 @@ namespace Microsoft.Ajax.Utilities
             // cast the kill switch numeric value to the appropriate TreeModifications enumeration
             settings.KillSwitch = (TreeModifications)m_killSwitch;
 
-            Block scriptBlock = parser.Parse(settings);
-            if (scriptBlock != null)
+            string resultingCode = null;
+            if (m_preprocessOnly)
             {
-                if (m_analyze)
-                {
-                    // output our report
-                    CreateReport(parser.GlobalScope);
-                }
-
-                // crunch the output and write it to debug stream
-                string crunched = scriptBlock.ToCode();
-                if (crunched.Length > 0)
-                {
-                    // always output the crunched code to debug stream
-                    System.Diagnostics.Debug.WriteLine(crunched);
-
-                    // if the last block of code didn't end in a semi-colon,
-                    // then we need to add one now
-                    if (!lastEndedSemicolon)
-                    {
-                        outputBuilder.Append(';');
-                    }
-
-                    // we'll output either the crunched code (normal) or
-                    // the raw source if we're just echoing the input
-                    string outputCode = (m_echoInput ? source : crunched);
-
-                    // send the output code to the output stream
-                    outputBuilder.Append(outputCode);
-
-                    // check if this string ended in a semi-colon so we'll know if
-                    // we need to add one between this code and the next block (if any)
-                    lastEndedSemicolon = (outputCode[outputCode.Length - 1] == ';');
-                }
-                else
-                {
-                    Debug.WriteLine(StringMgr.GetString("OutputEmpty"));
-                }
+                // we only want to preprocess the code. Call that api on the parser
+                resultingCode = parser.PreprocessOnly(settings);
             }
             else
             {
-                // no code?
-                WriteProgress(StringMgr.GetString("NoParsedCode"));
+                Block scriptBlock = parser.Parse(settings);
+                if (scriptBlock != null)
+                {
+                    if (m_analyze)
+                    {
+                        // output our report
+                        CreateReport(parser.GlobalScope);
+                    }
+
+                    // crunch the output and write it to debug stream
+                    resultingCode = scriptBlock.ToCode();
+                }
+                else
+                {
+                    // no code?
+                    WriteProgress(StringMgr.GetString("NoParsedCode"));
+                }
             }
+
+            if (!string.IsNullOrEmpty(resultingCode))
+            {
+                // always output the crunched code to debug stream
+                System.Diagnostics.Debug.WriteLine(resultingCode);
+
+                // if the last block of code didn't end in a semi-colon,
+                // then we need to add one now
+                if (!lastEndedSemicolon)
+                {
+                    outputBuilder.Append(';');
+                }
+
+                // we'll output either the crunched code (normal) or
+                // the raw source if we're just echoing the input
+                string outputCode = (m_echoInput ? source : resultingCode);
+
+                // send the output code to the output stream
+                outputBuilder.Append(outputCode);
+
+                // check if this string ended in a semi-colon so we'll know if
+                // we need to add one between this code and the next block (if any)
+                lastEndedSemicolon = (outputCode[outputCode.Length - 1] == ';');
+            }
+            else
+            {
+                // resulting code is null or empty
+                Debug.WriteLine(StringMgr.GetString("OutputEmpty"));
+            }
+
             return retVal;
         }
 

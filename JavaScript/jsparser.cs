@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace Microsoft.Ajax.Utilities
 {
@@ -184,22 +185,11 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        //---------------------------------------------------------------------------------------
-        // Parse
-        //
-        // Parser main entry point. Parse all the source code and return the root of the AST
-        //---------------------------------------------------------------------------------------
-        public Block Parse(CodeSettings settings)
+        private void InitializeScanner(CodeSettings settings, bool onlyRawTokens)
         {
             // save the settings
             // if we are passed null, just create a default settings object
             m_settings = settings ?? new CodeSettings();
-
-            // make sure the global scope knows about our known global names
-            GlobalScope.SetAssumedGlobals(m_settings.KnownGlobalNames);
-
-            // reset the cc_on flag
-            EncounteredCCOn = false;
 
             m_scanner.AllowEmbeddedAspNetBlocks = m_settings.AllowEmbeddedAspNetBlocks;
             m_scanner.IgnoreConditionalCompilation = m_settings.IgnoreConditionalCompilation;
@@ -219,6 +209,57 @@ namespace Microsoft.Ajax.Utilities
             // the first needed one is in the output. But we can turn that off with a kill switch, so
             // pass that flag to the scanner.
             m_scanner.EatUnnecessaryCCOn = m_settings.IsModificationAllowed(TreeModifications.RemoveUnnecessaryCCOnStatements);
+
+            // set the raw tokens flag
+            m_scanner.RawTokens = onlyRawTokens;
+        }
+
+        /// <summary>
+        /// Preprocess the input only - don't generate an AST tree or do any other code analysis. 
+        /// </summary>
+        /// <param name="settings">settings to use in the scanner</param>
+        /// <returns>the source as processed by the preprocessor</returns>
+        public string PreprocessOnly(CodeSettings settings)
+        {
+            // initialize the scanner
+            // make sure the RawTokens setting is on so that the scanner
+            // just returns everything (after doing preprocessor evaluations)
+            InitializeScanner(settings, true);
+
+            // create an empty string builder
+            var sb = new StringBuilder();
+
+            // get the first token
+            GetNextToken();
+
+            // until we hit the end of the file...
+            while (m_currentToken.Token != JSToken.EndOfFile)
+            {
+                // just output the token and grab the next one
+                sb.Append(m_currentToken.Code);
+                GetNextToken();
+            }
+
+            // return the resulting text
+            return sb.ToString();
+        }
+
+        //---------------------------------------------------------------------------------------
+        // Parse
+        //
+        // Parser main entry point. Parse all the source code and return the root of the AST
+        //---------------------------------------------------------------------------------------
+        public Block Parse(CodeSettings settings)
+        {
+            // initialize the scanner with our settings
+            // make sure the RawTokens setting is OFF or we won't be able to create our AST
+            InitializeScanner(settings, false);
+
+            // make sure the global scope knows about our known global names
+            GlobalScope.SetAssumedGlobals(m_settings.KnownGlobalNames);
+
+            // reset the cc_on flag
+            EncounteredCCOn = false;
 
             // parse a block of statements
             Block scriptBlock = ParseStatements();

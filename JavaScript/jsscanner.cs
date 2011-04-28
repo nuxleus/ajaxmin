@@ -99,9 +99,12 @@ namespace Microsoft.Ajax.Utilities
         // conditional-compilation comment processing.
         public bool RawTokens { get; set; }
 
+        public JSToken m_previousToken;
+
         public JSScanner(Context sourceContext)
         {
             m_keywords = s_Keywords;
+            m_previousToken = JSToken.None;
             EatUnnecessaryCCOn = true;
             UsePreprocessorDefines = true;
             SetSource(sourceContext);
@@ -793,9 +796,30 @@ namespace Microsoft.Ajax.Utilities
                                     goto nextToken; // read another token this last one was a comment
                                 }
 
-                            case '=':
-                                m_currentPos++;
-                                token = JSToken.DivideAssign;
+                            default:
+                                // if we're not just returning raw tokens, then we don't need to do this logic.
+                                // otherwise if the previous token CAN be before a regular expression....
+                                if (RawTokens && RegExpCanFollow(m_previousToken))
+                                {
+                                    // we think this is probably a regular expression.
+                                    // if it is...
+                                    if (ScanRegExp() != null)
+                                    {
+                                        // also scan the flags (if any)
+                                        ScanRegExpFlags();
+                                        token = JSToken.RegularExpression;
+                                    }
+                                    else if (c == '=')
+                                    {
+                                        m_currentPos++;
+                                        token = JSToken.DivideAssign;
+                                    }
+                                }
+                                else if (c == '=')
+                                {
+                                    m_currentPos++;
+                                    token = JSToken.DivideAssign;
+                                }
                                 break;
                         }
 
@@ -1141,7 +1165,7 @@ namespace Microsoft.Ajax.Utilities
                             {
                                 ++m_currentPos;
                             }
-                            token = JSToken.Whitespace;
+                            token = JSToken.WhiteSpace;
                         }
                         else
                         {
@@ -1183,7 +1207,29 @@ namespace Microsoft.Ajax.Utilities
                 throw new ScannerException(JSError.ErrorEndOfFile);
             }
 
+            // this is now the current token
             m_currentToken.Token = token;
+
+            // if this the kind of token we want to know about the next time, then save it
+            switch(token)
+            {
+                case JSToken.WhiteSpace:
+                case JSToken.AspNetBlock:
+                case JSToken.Comment:
+                case JSToken.UnterminatedComment:
+                case JSToken.ConditionalCompilationOn:
+                case JSToken.ConditionalCompilationSet:
+                case JSToken.ConditionalCompilationIf:
+                case JSToken.ConditionalCompilationElseIf:
+                case JSToken.ConditionalCompilationElse:
+                case JSToken.ConditionalCompilationEnd:
+                    // don't save these tokens for next time
+                    break;
+
+                default:
+                    m_previousToken = token;
+                    break;
+            }
         }
 
         private bool CheckSubstring(int startIndex, string target)
@@ -1403,6 +1449,75 @@ namespace Microsoft.Ajax.Utilities
             }
 
             return token;
+        }
+
+        private bool RegExpCanFollow(JSToken previousToken)
+        {
+            switch(previousToken)
+            {
+                case JSToken.Do:
+                case JSToken.Return:
+                case JSToken.Throw:
+                case JSToken.LeftCurly:
+                case JSToken.Semicolon:
+                case JSToken.LeftParenthesis:
+                case JSToken.LeftBracket:
+                case JSToken.ConditionalIf:
+                case JSToken.Colon:
+                case JSToken.Comma:
+                case JSToken.Case:
+                case JSToken.Else:
+                case JSToken.EndOfLine:
+                case JSToken.RightCurly:
+                case JSToken.LogicalNot:
+                case JSToken.BitwiseNot:
+                case JSToken.Delete:
+                case JSToken.Void:
+                case JSToken.New:
+                case JSToken.TypeOf:
+                case JSToken.Increment:
+                case JSToken.Decrement:
+                case JSToken.Plus:
+                case JSToken.Minus:
+                case JSToken.LogicalOr:
+                case JSToken.LogicalAnd:
+                case JSToken.BitwiseOr:
+                case JSToken.BitwiseXor:
+                case JSToken.BitwiseAnd:
+                case JSToken.Equal:
+                case JSToken.NotEqual:
+                case JSToken.StrictEqual:
+                case JSToken.StrictNotEqual:
+                case JSToken.GreaterThan:
+                case JSToken.LessThan:
+                case JSToken.LessThanEqual:
+                case JSToken.GreaterThanEqual:
+                case JSToken.LeftShift:
+                case JSToken.RightShift:
+                case JSToken.UnsignedRightShift:
+                case JSToken.Multiply:
+                case JSToken.Divide:
+                case JSToken.Modulo:
+                case JSToken.InstanceOf:
+                case JSToken.In:
+                case JSToken.Assign:
+                case JSToken.PlusAssign:
+                case JSToken.MinusAssign:
+                case JSToken.MultiplyAssign:
+                case JSToken.DivideAssign:
+                case JSToken.BitwiseAndAssign:
+                case JSToken.BitwiseOrAssign:
+                case JSToken.BitwiseXorAssign:
+                case JSToken.ModuloAssign:
+                case JSToken.LeftShiftAssign:
+                case JSToken.RightShiftAssign:
+                case JSToken.UnsignedRightShiftAssign:
+                case JSToken.None:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         internal String ScanRegExp()

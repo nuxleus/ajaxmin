@@ -735,6 +735,15 @@ namespace Microsoft.Ajax.Utilities
                             m_outputFile = args[++ndx];
                             break;
 
+                        case "PPONLY":
+                            // just putting the pponly switch on the command line without any arguments
+                            // is the same as putting -pponly:true and perfectly valid.
+                            BooleanSwitch(paramPart, switchPart, true, out m_preprocessOnly);
+
+                            // this is a JS-only switch
+                            JavaScriptOnly();
+                            break;
+
                         case "PRETTY":
                         case "P": // <-- old style
                             m_prettyPrint = true;
