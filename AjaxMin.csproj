@@ -371,6 +371,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="AjaxMin.snk" />
+    <None Include="AjaxMinCommandPrompt.bat" />
+    <None Include="AjaxMinCommandPromptVars.bat" />
+    <None Include="Documentation.url" />
     <None Include="Migrated rules for AjaxMin.ruleset" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
