@@ -1,4 +1,4 @@
-(function(el,args)
+﻿(function(el,args)
 {
   if ( !args ) { args = {}; }
   document.write('<script type="text/javascript">foo</script>');

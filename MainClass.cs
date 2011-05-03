@@ -1,4 +1,4 @@
-// MainClass.cs
+ï»¿// MainClass.cs
 //
 // Copyright 2010 Microsoft Corporation
 //
@@ -65,8 +65,8 @@ namespace Microsoft.Ajax.Utilities
         // whether to clobber existing output files
         private bool m_clobber; // = false
 
-		// Whether to allow embedded asp.net blocks.
-		private bool m_allowAspNet; // = false
+        // Whether to allow embedded asp.net blocks.
+        private bool m_allowAspNet; // = false
 
         /// <summary>
         /// Bitfield for turning off individual AST modifications if so desired
@@ -252,7 +252,7 @@ namespace Microsoft.Ajax.Utilities
                 string thisArg = args[ndx];
                 if (thisArg.Length > 1
                   && (thisArg.StartsWith("-", StringComparison.Ordinal) // this is a normal hyphen (minus character)
-                  || thisArg.StartsWith("–", StringComparison.Ordinal) // this character is what Word will convert a hyphen to
+                  || thisArg.StartsWith("â€“", StringComparison.Ordinal) // this character is what Word will convert a hyphen to
                   || thisArg.StartsWith("/", StringComparison.Ordinal)))
                 {
                     // general switch syntax is -switch:param
@@ -269,9 +269,9 @@ namespace Microsoft.Ajax.Utilities
                             m_analyze = true;
                             break;
 
-						case "ASPNET":
-							BooleanSwitch(paramPart, switchPart, false, out m_allowAspNet);
-							break;
+                        case "ASPNET":
+                            BooleanSwitch(paramPart, switchPart, false, out m_allowAspNet);
+                            break;
 
                         case "CC":
                             BooleanSwitch(paramPart, switchPart, true, out m_ignoreConditionalCompilation);
@@ -2297,7 +2297,7 @@ namespace Microsoft.Ajax.Utilities
                 else if (attr.GetType() == typeof(AssemblyCopyrightAttribute))
                 {
                     copyright = ((AssemblyCopyrightAttribute)attr).Copyright;
-                    copyright = copyright.Replace("©", "(c)");
+                    copyright = copyright.Replace("Â©", "(c)");
                 }
             }
 
