@@ -24,6 +24,14 @@ using System.Security;
 
 namespace Microsoft.Ajax.Minifier.Tasks
 {
+    public static class StringExtension
+    {
+        public static bool IsNullOrWhiteSpace(this string str)
+        {
+            return string.IsNullOrEmpty(str) || str.Trim().Length == 0;
+        }
+    }
+
     /// <summary>
     /// Provides the MS Build task for Microsoft Ajax Minifier. Please see the list of supported properties below.
     /// </summary>
@@ -386,14 +394,14 @@ namespace Microsoft.Ajax.Minifier.Tasks
             // Deal with JS minification
             if (this.JsSourceFiles != null && this.JsSourceFiles.Length > 0)
             {
-                if (string.IsNullOrWhiteSpace(this.JsSourceExtensionPattern))
+                if (this.JsSourceExtensionPattern.IsNullOrWhiteSpace())
                 {
                     Log.LogError("Microsoft Ajax Minifier: You must supply a value for JsSourceExtensionPattern.",
                                  new object[0]);
                     return false;
                 }
 
-                if (string.IsNullOrWhiteSpace(this.JsTargetExtension))
+                if (this.JsTargetExtension.IsNullOrWhiteSpace())
                 {
                     Log.LogError("Microsoft Ajax Minifier: You must supply a value for JsTargetExtension.",
                                  new object[0]);
@@ -406,14 +414,14 @@ namespace Microsoft.Ajax.Minifier.Tasks
             // Deal with CSS minification
             if (this.CssSourceFiles != null && this.CssSourceFiles.Length > 0)
             {
-                if (string.IsNullOrWhiteSpace(this.CssSourceExtensionPattern))
+                if (this.CssSourceExtensionPattern.IsNullOrWhiteSpace())
                 {
                     Log.LogError("Microsoft Ajax Minifier: You must supply a value for CssSourceExtensionPattern.",
                                  new object[0]);
                     return false;
                 }
 
-                if (string.IsNullOrWhiteSpace(this.CssTargetExtension))
+                if (this.CssTargetExtension.IsNullOrWhiteSpace())
                 {
                     Log.LogError("Microsoft Ajax Minifier: You must supply a value for CssTargetExtension.",
                                  new object[0]);
@@ -423,7 +431,7 @@ namespace Microsoft.Ajax.Minifier.Tasks
                 MinifyStyleSheets();
             }
 
-            return true;
+            return !this.Log.HasLoggedErrors;
         }
 
         /// <summary>
@@ -526,14 +534,15 @@ namespace Microsoft.Ajax.Minifier.Tasks
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Build.Utilities.TaskLoggingHelper.LogError(System.String,System.Object[])")]
         private T ParseEnumValue<T>(string strValue) where T: struct
         {
-            if (!string.IsNullOrWhiteSpace(strValue))
+            if (!strValue.IsNullOrWhiteSpace())
             {
-                T result;
-                if (Enum.TryParse(strValue, true, out result))
+                try
                 {
-                    return result;
+                    return (T)Enum.Parse(typeof(T), strValue, true);
                 }
-
+                catch (ArgumentNullException) { }
+                catch (ArgumentException) { }
+                catch (OverflowException) { }
             }
 
             // if we cannot parse it for any reason, post the error and stop the task.
