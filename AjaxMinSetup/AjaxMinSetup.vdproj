@@ -194,7 +194,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:AjaxMin, Version=4.18.4140.24969, Culture=neutral, PublicKeyToken=24297a69a7eae424, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:AjaxMin, Version=4.19.4141.18381, Culture=neutral, PublicKeyToken=24297a69a7eae424, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_078EC7FE11AE2A35394EC8E911418097"
@@ -401,15 +401,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Microsoft Ajax Minifier"
-        "ProductCode" = "8:{48B675B4-5A0B-4DD3-9410-53A107AC3A38}"
-        "PackageCode" = "8:{C7F07511-B953-4357-8236-5054177C9565}"
+        "ProductCode" = "8:{47524EA7-8F31-4E9B-BB83-EEA790CF79F2}"
+        "PackageCode" = "8:{47611694-C70E-42FA-B5DF-8321E871FA70}"
         "UpgradeCode" = "8:{A82F55C0-675A-4E8D-A988-0C5346CC5509}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:4.18"
+        "ProductVersion" = "8:4.19"
         "Manufacturer" = "8:Microsoft"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
