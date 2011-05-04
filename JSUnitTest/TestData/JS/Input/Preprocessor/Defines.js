@@ -1,7 +1,7 @@
 ﻿
 
 ///#UNDEF notdefined
-///#DEFINE foobar
+///#DEFINE FooBar
 
 ///#IFDEF foobar
 var a = "foobar";
@@ -11,7 +11,7 @@ var a = "not foobar";
 
 ///#UNDEF      foobar
 
-///#IFDEF foobar
+///#IFDEF FOOBAR
 var b = "foobar";
 ///#ELSE
 var b = "not foobar";

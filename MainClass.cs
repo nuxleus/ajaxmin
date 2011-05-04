@@ -372,8 +372,11 @@ namespace Microsoft.Ajax.Utilities
                             // use parts[1] rather than paramParts because paramParts has been forced to upper-case
                             foreach (string defineName in parts[1].Split(','))
                             {
+                                // this is supposed to be case-INsensitive, so convert to upper-case
+                                var upperCaseName = defineName.ToUpperInvariant();
+
                                 // better be a valid JavaScript identifier
-                                if (!JSScanner.IsValidIdentifier(defineName))
+                                if (!JSScanner.IsValidIdentifier(upperCaseName))
                                 {
                                     throw new UsageException(m_outputMode, "InvalidSwitchArg", defineName, switchPart);
                                 }
@@ -385,9 +388,9 @@ namespace Microsoft.Ajax.Utilities
                                 }
 
                                 // don't add duplicates
-                                if (!m_defines.Contains(defineName))
+                                if (!m_defines.Contains(upperCaseName))
                                 {
-                                    m_defines.Add(defineName);
+                                    m_defines.Add(upperCaseName);
                                 }
                             }
 

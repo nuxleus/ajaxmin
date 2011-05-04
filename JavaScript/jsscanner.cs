@@ -183,9 +183,10 @@ namespace Microsoft.Ajax.Utilities
                 // add an entrty for each non-duplicate, valid name passed to us
                 foreach (var definedName in definedNames)
                 {
-                    if (JSScanner.IsValidIdentifier(definedName) && !m_defines.ContainsKey(definedName))
+                    var upperCaseName = definedName.ToUpperInvariant();
+                    if (JSScanner.IsValidIdentifier(upperCaseName) && !m_defines.ContainsKey(upperCaseName))
                     {
-                        m_defines.Add(definedName, definedName);
+                        m_defines.Add(upperCaseName, upperCaseName);
                     }
                 }
             }
@@ -2456,7 +2457,7 @@ namespace Microsoft.Ajax.Utilities
             }
 
             // if we advanced at all, return the code we scanned. Otherwise return null
-            return m_currentPos > startPos ? m_strSourceCode.Substring(startPos, m_currentPos - startPos) : null;
+            return m_currentPos > startPos ? m_strSourceCode.Substring(startPos, m_currentPos - startPos).ToUpperInvariant() : null;
         }
 
         private int PPSkipToDirective(params string[] endStrings)

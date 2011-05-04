@@ -347,7 +347,7 @@ Valid OPTS are zero or more of:
   -analyze &gt; provide extra analysis output.
   -clobber[:BOOL] &gt; when false, will not overwrite existing output file.
         True always writes output file. Default is false.
-  -define:IDENT[,IDENT]* &gt; add defined names to the list of names used
+  -define:NAME[,NAME]* &gt; add defined case-INsensitive names to the list used 
         by the preprocessor.
   -echo &gt; output is an echo of the original input.
   -enc:(in|out) ENC &gt; input or output file text encoding.
@@ -412,6 +412,7 @@ Valid CSSOPTS are zero or more of:
 BOOL can be true, false, T, F, Yes, No, Y, or N.
 N is a valid non-negative integer.
 IDENT is a valid JavaScript identifier (case-sensitive).
+NAME is a valid JavaScript identifier (case-INsensitive).
 ENC is a valid .NET text encoding scheme name (e.g.: UTF-8).
 IFILE is a valid path to an existing source file.
 OFILE is a valid path to the output file. Existing files will be clobbered
