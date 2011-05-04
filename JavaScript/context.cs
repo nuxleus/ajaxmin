@@ -156,10 +156,21 @@ namespace Microsoft.Ajax.Utilities
         {
             if (other != null)
             {
-                EndPosition = other.EndPosition;
-                EndLineNumber = other.EndLineNumber;
-                EndLinePosition = other.EndLinePosition;
+                StartPosition = Math.Min(StartPosition, other.StartPosition);
+                StartLineNumber = Math.Min(StartLineNumber, other.StartLineNumber);
+                StartLinePosition = Math.Min(StartLinePosition, other.StartLinePosition);
+                EndPosition = Math.Max(EndPosition, other.EndPosition);
+                EndLineNumber = Math.Max(EndLineNumber, other.EndLineNumber);
+                EndLinePosition = Math.Max(EndLinePosition, other.EndLinePosition);
             }
+        }
+
+        public bool IsBefore(Context other)
+        {
+            // this context is BEFORE the other context if it starts on an earlier line,
+            // OR if it starts on the same line but at an earlier column
+            return StartLineNumber < other.StartLineNumber
+                || (StartLineNumber == other.StartLineNumber && StartColumn < other.StartColumn);
         }
     }
 }

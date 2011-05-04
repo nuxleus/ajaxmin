@@ -16,11 +16,11 @@
 
 using System;
 using System.IO;
+using System.Security;
 using System.Text.RegularExpressions;
 using Microsoft.Ajax.Utilities;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using System.Security;
 
 namespace Microsoft.Ajax.Minifier.Tasks
 {
@@ -57,6 +57,18 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// Warning level threshold for reporting errors. Defalut valus is 0 (syntax/run-time errors)
         /// </summary>
         public int WarningLevel { get; set; }
+
+        /// <summary>
+        /// Whether to treat AjaxMin warnings as build errors (true) or not (false). Default value is false.
+        /// </summary>
+        public bool TreatWarningsAsErrors { get; set; }
+
+        /// <summary>
+        /// regular expression for parsing the VS-standard error messages returned by AjaxMin
+        /// </summary>
+        private static Regex s_errorFormat = new Regex(
+            @"^(?<file>.*)\((?<sline>\d+)(-(?<eline>\d+))?,(?<scol>\d+)(-(?<ecol>\d+))?\)\:\s+((?<sub>[\w\s]+)\s+)?(?<cat>\w+)\s+(?<err>[\w]*)\:\s*(?<msg>.*)$",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         #region JavaScript parameters
 
@@ -384,11 +396,6 @@ namespace Microsoft.Ajax.Minifier.Tasks
         [SecurityCritical]
         public override bool Execute()
         {
-            if (this.Log.HasLoggedErrors)
-            {
-                return false;
-            }
-
             _minifier.WarningLevel = this.WarningLevel;
 
             // Deal with JS minification
@@ -434,6 +441,71 @@ namespace Microsoft.Ajax.Minifier.Tasks
             return !this.Log.HasLoggedErrors;
         }
 
+        private void LogAjaxMinError(string errorString)
+        {
+            Match match = s_errorFormat.Match(errorString);
+            if (match.Success)
+            {
+                // get the start line and column
+                int startLine, startColumn;
+                if (!int.TryParse(match.Result("${sline}"), out startLine))
+                {
+                    startLine = 1;
+                }
+                if (!int.TryParse(match.Result("${scol}"), out startColumn))
+                {
+                    startColumn = 1;
+                }
+
+                // the end line and column might not be specified
+                int endLine, endColumn;
+                if (!int.TryParse(match.Result("${eline}"), out endLine))
+                {
+                    endLine = 0;
+                }
+                if (!int.TryParse(match.Result("${ecol}"), out endColumn))
+                {
+                    endColumn = 0;
+                }
+
+                // log it either as an error or a warning
+                if(TreatWarningsAsErrors
+                    || string.Compare(match.Result("${cat}"), "WARNING", StringComparison.OrdinalIgnoreCase) != 0)
+                {
+                    base.Log.LogError(
+                        match.Result("${sub}"),     // subcategory 
+                        match.Result("${err}"),     // error code
+                        null,                       // help keyword
+                        match.Result("${file}"),    // file
+                        startLine,                  // start line
+                        startColumn,                // start column
+                        endLine,                    // end line
+                        endColumn,                  // end column
+                        match.Result("${msg}")      // message
+                        );
+                }
+                else
+                {
+                    base.Log.LogWarning(
+                        match.Result("${sub}"),     // subcategory 
+                        match.Result("${err}"),     // error code
+                        null,                       // help keyword
+                        match.Result("${file}"),    // file
+                        startLine,                  // start line
+                        startColumn,                // start column
+                        endLine,                    // end line
+                        endColumn,                  // end column
+                        match.Result("${msg}")      // message
+                        );
+                }
+            }
+            else
+            {
+                // weird -- couldn't parse the error string format. Well, log the entire string as a message
+                base.Log.LogError(errorString);
+            }
+        }
+
         /// <summary>
         /// Minifies JS files provided by the caller of the build task.
         /// </summary>
@@ -447,13 +519,13 @@ namespace Microsoft.Ajax.Minifier.Tasks
                 try
                 {
                     string source = File.ReadAllText(item.ItemSpec);
+                    this._minifier.FileName = item.ItemSpec;
                     string minifiedJs = this._minifier.MinifyJavaScript(source, this._jsCodeSettings);
                     if (this._minifier.Errors.Count > 0)
                     {
-                        base.Log.LogError("Microsoft Ajax Minifier: Could not minify {0}", new object[] { item.ItemSpec });
                         foreach (string error in this._minifier.Errors)
                         {
-                            base.Log.LogError("Error Message: {0}", new object[] { error });
+                            LogAjaxMinError(error);
                         }
                     }
                     else
@@ -495,13 +567,13 @@ namespace Microsoft.Ajax.Minifier.Tasks
                 try
                 {
                     string source = File.ReadAllText(item.ItemSpec);
+                    this._minifier.FileName = item.ItemSpec;
                     string contents = this._minifier.MinifyStyleSheet(source, this._cssCodeSettings);
                     if (this._minifier.Errors.Count > 0)
                     {
-                        base.Log.LogError("Microsoft Ajax Minifier: Could not minify {0}", new object[] {item.ItemSpec});
                         foreach (string error in this._minifier.Errors)
                         {
-                            base.Log.LogError("Error Message: {0}", new object[] {error});
+                            LogAjaxMinError(error);
                         }
                     }
                     else

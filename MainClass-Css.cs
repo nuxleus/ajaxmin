@@ -148,7 +148,7 @@ namespace Microsoft.Ajax.Utilities
                     null,
                     null,
                     true,
-                    "JS-IO",
+                    "AM-IO",
                     e.Message
                     ));
             }

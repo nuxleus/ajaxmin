@@ -342,12 +342,12 @@ namespace Microsoft.Ajax.Utilities
                         case JSError.AmbiguousCatchVar: return 1;
                         case JSError.AmbiguousNamedFunctionExpression: return 1;
                         case JSError.ArgumentNotReferenced: return 3;
-                        case JSError.DuplicateName: return 1;
+                        case JSError.DuplicateName: return 3;
                         case JSError.FunctionNotReferenced: return 3;
                         case JSError.KeywordUsedAsIdentifier: return 2;
                         case JSError.StatementBlockExpected: return 4;
-                        case JSError.SuspectAssignment: return 1;
-                        case JSError.SuspectSemicolon: return 2;
+                        case JSError.SuspectAssignment: return 4;
+                        case JSError.SuspectSemicolon: return 4;
                         case JSError.UndeclaredFunction: return 3;
                         case JSError.UndeclaredVariable: return 3;
                         case JSError.VariableLeftUninitialized: return 3;

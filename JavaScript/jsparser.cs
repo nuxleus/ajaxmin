@@ -1215,8 +1215,13 @@ namespace Microsoft.Ajax.Utilities
 
                 // if this is an assignment, throw a warning in case the developer
                 // meant to use == instead of =
+                // but no warning if the condition is wrapped in parens. We can know if it's wrapped in parens
+                // if the first character of the context is a paren and it's BEFORE the context of the leftmost
+                // context of the condition.
                 BinaryOperator binOp = condition as BinaryOperator;
-                if (binOp != null && binOp.OperatorToken == JSToken.Assign)
+                if (binOp != null && binOp.OperatorToken == JSToken.Assign
+                    && condition.Context != null && condition.Context.Code != null 
+                    && !(condition.Context.Code.StartsWith("(", StringComparison.Ordinal) && condition.Context.IsBefore(binOp.LeftHandSide.Context)))
                 {
                     condition.Context.HandleError(JSError.SuspectAssignment);
                 }
@@ -3437,28 +3442,43 @@ namespace Microsoft.Ajax.Utilities
 
                 // expression
                 case JSToken.LeftParenthesis:
-                    canBeAttribute = false;
-                    GetNextToken();
-                    m_noSkipTokenSet.Add(NoSkipTokenSet.s_ParenExpressionNoSkipToken);
-                    try
                     {
-                        ast = ParseExpression();
-                        if (JSToken.RightParenthesis != m_currentToken.Token)
-                            ReportError(JSError.NoRightParenthesis);
+                        canBeAttribute = false;
+                        // save the current context reference
+                        Context openParenContext = m_currentToken.Clone();
+                        GetNextToken();
+                        m_noSkipTokenSet.Add(NoSkipTokenSet.s_ParenExpressionNoSkipToken);
+                        try
+                        {
+                            // parse an expression
+                            ast = ParseExpression();
+                            
+                            // update the expression's context with the context of the open paren
+                            ast.Context.UpdateWith(openParenContext);
+                            if (JSToken.RightParenthesis != m_currentToken.Token)
+                            {
+                                ReportError(JSError.NoRightParenthesis);
+                            }
+                            else
+                            {
+                                // add the closing paren to the expression context
+                                ast.Context.UpdateWith(m_currentToken);
+                            }
+                        }
+                        catch (RecoveryTokenException exc)
+                        {
+                            if (IndexOfToken(NoSkipTokenSet.s_ParenExpressionNoSkipToken, exc) == -1)
+                                throw;
+                            else
+                                ast = exc._partiallyComputedNode;
+                        }
+                        finally
+                        {
+                            m_noSkipTokenSet.Remove(NoSkipTokenSet.s_ParenExpressionNoSkipToken);
+                        }
+                        if (ast == null) //this can only happen when catching the exception and nothing was sent up by the caller
+                            SkipTokensAndThrow();
                     }
-                    catch (RecoveryTokenException exc)
-                    {
-                        if (IndexOfToken(NoSkipTokenSet.s_ParenExpressionNoSkipToken, exc) == -1)
-                            throw;
-                        else
-                            ast = exc._partiallyComputedNode;
-                    }
-                    finally
-                    {
-                        m_noSkipTokenSet.Remove(NoSkipTokenSet.s_ParenExpressionNoSkipToken);
-                    }
-                    if (ast == null) //this can only happen when catching the exception and nothing was sent up by the caller
-                        SkipTokensAndThrow();
                     break;
 
                 // array initializer
