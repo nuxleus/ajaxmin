@@ -33,6 +33,7 @@ namespace Microsoft.Ajax.Utilities
 
         #region entire data set
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1809:AvoidExcessiveLocals")]
         static ColorNameData()
         {
             ColorNameData.ColorName = new ColorName[]
@@ -210,6 +211,7 @@ namespace Microsoft.Ajax.Utilities
     /// <summary>
     /// Query: All the items (key:Name, value:Hex)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses")]
     internal class AllColorNames : ColorQuery
     {
         internal override Dictionary<string, string> Results
@@ -235,6 +237,7 @@ namespace Microsoft.Ajax.Utilities
     /// Query: All strict items that have Name longer than Hex, 
     /// PLUS all non-strict items (key:Name, value:Hex)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses")]
     internal class StrictHexShorterThanNameAndAllNonStrict : ColorQuery
     {
         internal override Dictionary<string, string> Results
@@ -265,6 +268,7 @@ namespace Microsoft.Ajax.Utilities
     /// <summary>
     /// Query: All items that have name longer than hex (key:Name, value:Hex)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses")]
     internal class HexShorterThanName : ColorQuery
     {
         internal override Dictionary<string, string> Results
@@ -294,6 +298,7 @@ namespace Microsoft.Ajax.Utilities
     /// <summary>
     /// Query: All strict items that have hex longer than name (key:Hex, value:Name)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses")]
     internal class StrictNameShorterThanHex : ColorQuery
     {
         internal override Dictionary<string, string> Results
@@ -323,6 +328,7 @@ namespace Microsoft.Ajax.Utilities
     /// <summary>
     /// Query: All items that have hex longer than name (key:Hex, value:Name)
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses")]
     internal class NameShorterThanHex : ColorQuery
     {
         internal override Dictionary<string, string> Results

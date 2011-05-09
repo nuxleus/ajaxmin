@@ -43,14 +43,42 @@ namespace JSUnitTest
     [TestMethod()]
     public void Debugger()
     {
-      TestHelper.Instance.RunTest("-debug:Y");
+        TestHelper.Instance.RunTest("-debug:Y");
     }
 
     [DeploymentItem("AjaxMin.exe")]
     [TestMethod()]
     public void Debugger_D()
     {
-      TestHelper.Instance.RunTest("-debug:N");
+        TestHelper.Instance.RunTest("-debug:N");
+    }
+
+    [DeploymentItem("AjaxMin.exe")]
+    [TestMethod()]
+    public void Debugger_OnCustom()
+    {
+        // no flag is the same as Y -- and since turned on the debug
+        // means no replacement of debug lookups, it doesn't really matter what
+        // comes after the comma. We'll process them, but we won't be replacing anything
+        // anyway!
+        TestHelper.Instance.RunTest("-debug:,AckBar,FooBar");
+    }
+
+    [DeploymentItem("AjaxMin.exe")]
+    [TestMethod()]
+    public void Debugger_OffCustom()
+    {
+        TestHelper.Instance.RunTest("-debug:N,AckBar,FooBar,Debug,$Debug,Web.Debug");
+    }
+
+    [DeploymentItem("AjaxMin.exe")]
+    [TestMethod()]
+    public void Debugger_OffNone()
+    {
+        // adding the comma after means we want to specify the debug lookups.
+        // but since we have nothing after the comma, we replace the defaults
+        // ($Debug, Debug, WAssert) with nothing.
+        TestHelper.Instance.RunTest("-debug:N,");
     }
 
     [DeploymentItem("AjaxMin.exe")]

@@ -295,9 +295,6 @@ namespace Microsoft.Ajax.Utilities
 				m_scanner.AllowEmbeddedAspNetBlocks = this.Settings.AllowEmbeddedAspNetBlocks;
                 m_scanner.ScannerError += new EventHandler<CssScannerErrorEventArgs>(OnScannerError);
 
-                // set some options
-                m_scanner.Severity = Settings.Severity;
-
                 // create the string builder into which we will be 
                 // building our crunched stylesheet
                 m_parsed = new StringBuilder();
@@ -323,11 +320,8 @@ namespace Microsoft.Ajax.Utilities
                 }
                 catch (CssException exc)
                 {
-                    if (exc.Severity <= Settings.Severity)
-                    {
-                        // show the error
-                        OnCssError(exc);
-                    }
+                    // show the error
+                    OnCssError(exc);
                 }
 
                 // get the crunched string and dump the string builder
@@ -1051,42 +1045,6 @@ namespace Microsoft.Ajax.Utilities
                     }
                     catch (CssException e)
                     {
-                        /*
-                        // severity error 0 means always abort. Otherwise we'll
-                        // rethrow the scanner error as a sev 3 and skip this declaration.
-                        if (e.Severity == 0)
-                        {
-                            throw;
-                        }
-
-                        // don't report this error at anything worse than sev3
-                        int severity = (e.Severity < 3 ? 3 : e.Severity);
-                        if (severity < m_severity)
-                        {
-                            string msg;
-                            if (e.Severity < 4)
-                            {
-                                msg = string.Format(
-                                  CultureInfo.CurrentCulture,
-                                  CssStringMgr.GetString(StringEnum.DeclarationIgnoredFormat),
-                                  e.Message,
-                                  CssStringMgr.GetString(StringEnum.DeclarationIgnored)
-                                  );
-                            }
-                            else
-                            {
-                                msg = e.Message;
-                            }
-
-                            throw new CssParserException(
-                                e.Error,
-                                severity,
-                                e.Line,
-                                e.Char,
-                                msg
-                                );
-                        }
-                        */
                         // show the error
                         OnCssError(e);
                         
@@ -1325,10 +1283,7 @@ namespace Microsoft.Ajax.Utilities
                     }
                     catch (CssException e)
                     {
-                        if (e.Severity <= Settings.Severity)
-                        {
-                            OnCssError(e);
-                        }
+                        OnCssError(e);
 
                         // skip to end of statement and keep on trucking
                         SkipToEndOfStatement();
@@ -2307,7 +2262,7 @@ namespace Microsoft.Ajax.Utilities
 
         private void OnScriptError(object sender, JScriptExceptionEventArgs ea)
         {
-            ReportError(0, StringEnum.ExpressionError, ea.Exception.Message);
+            ReportError(0, StringEnum.ExpressionError, ea.Error.Message);
             m_expressionContainsErrors = true;
         }
 
@@ -2595,6 +2550,7 @@ namespace Microsoft.Ajax.Utilities
                 CurrentTokenType);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase")]
         private bool Append(StringBuilder sb, object obj, TokenType tokenType)
         {
             bool outputText = false;
@@ -2913,6 +2869,7 @@ namespace Microsoft.Ajax.Utilities
 
         #region color methods
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1308:NormalizeStringsToUppercase")]
         private static string CrunchHexColor(string hexColor, CssColor colorNames)
         {
             // see if this is a repeated color (#rrggbb) that we can collapse to #rgb
@@ -3005,30 +2962,69 @@ namespace Microsoft.Ajax.Utilities
             //        3 == this can lead to performance problems
             //        4 == this is just not right
 
-            // if we are greater than the severity threshold, we ignore
-            if (severity <= Settings.Severity)
-            {
-                string message = CssStringMgr.GetString(errorNumber, arguments);
-                CssParserException exc = new CssParserException(
-                    (int)errorNumber,
-                    severity,
-                    (m_currentToken != null) ? m_currentToken.Context.Start.Line : 0,
-                    (m_currentToken != null) ? m_currentToken.Context.Start.Char : 0,
-                    message
-                    );
+            string message = CssStringMgr.GetString(errorNumber, arguments);
+            CssParserException exc = new CssParserException(
+                (int)errorNumber,
+                severity,
+                (m_currentToken != null) ? m_currentToken.Context.Start.Line : 0,
+                (m_currentToken != null) ? m_currentToken.Context.Start.Char : 0,
+                message
+                );
 
-                // but warnings we want to just report and carry on
-                OnCssError(exc);
-            }
+            // but warnings we want to just report and carry on
+            OnCssError(exc);
         }
 
         public event EventHandler<CssErrorEventArgs> CssError;
 
         protected void OnCssError(CssException exception)
         {
-            if (CssError != null)
+            if (CssError != null && exception != null)
             {
-                CssError(this, new CssErrorEventArgs(exception));
+                CssError(this, new CssErrorEventArgs(exception,
+                    new ContextError(
+                        exception.Severity < 2, 
+                        exception.Severity,
+                        GetSeverityString(exception.Severity), 
+                        string.Format(CultureInfo.InvariantCulture, "CSS{0}", (exception.Error & (0xffff))),
+                        exception.HelpLink,
+                        FileContext, 
+                        exception.Line, 
+                        exception.Char, 
+                        0, 
+                        0, 
+                        exception.Message)));
+            }
+        }
+
+        private static string GetSeverityString(int severity)
+        {
+            // From jscriptexception.js:
+            //
+            //guide: 0 == there will be a run-time error if this code executes
+            //       1 == the programmer probably did not intend to do this
+            //       2 == this can lead to problems in the future.
+            //       3 == this can lead to performance problems
+            //       4 == this is just not right
+            switch (severity)
+            {
+                case 0:
+                    return CssStringMgr.GetString(StringEnum.Severity0);
+
+                case 1:
+                    return CssStringMgr.GetString(StringEnum.Severity1);
+
+                case 2:
+                    return CssStringMgr.GetString(StringEnum.Severity2);
+
+                case 3:
+                    return CssStringMgr.GetString(StringEnum.Severity3);
+
+                case 4:
+                    return CssStringMgr.GetString(StringEnum.Severity4);
+
+                default:
+                    return CssStringMgr.GetString(StringEnum.SeverityUnknown, severity);
             }
         }
 
@@ -3256,10 +3252,20 @@ namespace Microsoft.Ajax.Utilities
 
     public class CssErrorEventArgs : EventArgs
     {
+        /// <summary>
+        /// The error information with the context info.
+        /// Use this property going forward
+        /// </summary>
+        public ContextError Error { get; private set; }
+
+        /// <summary>
+        /// The CSS exception object. Don't use this; might go away in future version. Use the Error property instead.
+        /// </summary>
         public CssException Exception { get; private set; }
 
-        internal CssErrorEventArgs(CssException exc)
+        internal CssErrorEventArgs(CssException exc, ContextError error)
         {
+            Error = error;
             Exception = exc;
         }
     }

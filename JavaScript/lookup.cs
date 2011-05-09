@@ -222,22 +222,75 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        private static bool MatchMemberName(AstNode node, string lookup, int startIndex, int endIndex)
+        {
+            // the node needs to be a Member node, and if it is, the appropriate portion of the lookup
+            // string should match the name of the member.
+            var member = node as Member;
+            return member != null && string.CompareOrdinal(member.Name, 0, lookup, startIndex, endIndex - startIndex) == 0;
+        }
+
+        private static bool MatchesMemberChain(AstNode parent, string lookup, int startIndex)
+        {
+            // get the NEXT period
+            var period = lookup.IndexOf('.', startIndex);
+
+            // loop until we run out of periods
+            while (period > 0)
+            {
+                // if the parent isn't a member, or if the name of the parent doesn't match
+                // the current identifier in the chain, then we're no match and can bail
+                if (!MatchMemberName(parent, lookup, startIndex, period))
+                {
+                    return false;
+                }
+
+                // next parent, next segment, and find the next period
+                parent = parent.Parent;
+                startIndex = period + 1;
+                period = lookup.IndexOf('.', startIndex);
+            }
+
+            // now check the last segment, from start to the end of the string
+            return MatchMemberName(parent, lookup, startIndex, lookup.Length);
+        }
+
         internal override bool IsDebuggerStatement
         {
             get
             {
-                switch (m_name)
+                // we want to look through the settings object and see if we match any of the
+                // debug lookups specified therein.
+                foreach (var lookup in Parser.Settings.DebugLookups)
                 {
-                    // lookups for these objects will pop positive for a "Debug" statement
-                    case "Debug":
-                    case "$Debug":
-                    case "WAssert":
-                        return true;
-
-                    // everything else is okay by default
-                    default:
-                        return false;
+                    // see if there's a period in this lookup
+                    var firstPeriod = lookup.IndexOf('.');
+                    if (firstPeriod > 0)
+                    {
+                        // this lookup is a member chain, so check our name against that
+                        // first part before the period; if it matches, we need to walk up the parent tree
+                        if (string.CompareOrdinal(m_name, 0, lookup, 0, firstPeriod) == 0)
+                        {
+                            // we matched the first one; test the rest of the chain
+                            if (MatchesMemberChain(Parent, lookup, firstPeriod + 1))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // just a straight comparison
+                        if (string.CompareOrdinal(m_name, lookup) == 0)
+                        {
+                            // we found a match
+                            return true;
+                        }
+                    }
                 }
+
+                // if we get here, we didn't find a match
+                return false;
             }
         }
 

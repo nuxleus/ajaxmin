@@ -112,6 +112,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\ContextError.cs">
+      <Link>ContextError.cs</Link>
+    </Compile>
     <Compile Include="..\CssEncoderFallback.cs">
       <Link>CssEncoderFallback.cs</Link>
     </Compile>
@@ -385,6 +388,7 @@
     <Compile Include="..\ResourceStrings.cs">
       <Link>ResourceStrings.cs</Link>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

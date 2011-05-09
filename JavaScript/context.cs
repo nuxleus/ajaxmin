@@ -169,7 +169,9 @@ namespace Microsoft.Ajax.Utilities
         {
             // this context is BEFORE the other context if it starts on an earlier line,
             // OR if it starts on the same line but at an earlier column
-            return StartLineNumber < other.StartLineNumber
+            // (or if the other context is null)
+            return other == null
+                || StartLineNumber < other.StartLineNumber
                 || (StartLineNumber == other.StartLineNumber && StartColumn < other.StartColumn);
         }
     }

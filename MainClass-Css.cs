@@ -45,6 +45,10 @@ namespace Microsoft.Ajax.Utilities
         private int ProcessCssFile(string sourceFileName, ResourceStrings resourceStrings, StringBuilder outputBuilder, ref long sourceLength)
         {
             int retVal = 0;
+
+            // blank line before
+            WriteProgress();
+
             try
             {
                 // read our chunk of code
@@ -96,12 +100,11 @@ namespace Microsoft.Ajax.Utilities
                 // process input source...
                 CssParser parser = new CssParser();
                 parser.CssError += new EventHandler<CssErrorEventArgs>(OnCssError);
-                parser.FileContext = sourceFileName;
+                parser.FileContext = string.IsNullOrEmpty(sourceFileName) ? "stdin" : sourceFileName;
 
                 parser.Settings.CommentMode = m_cssComments;
                 parser.Settings.ExpandOutput = m_prettyPrint;
                 parser.Settings.IndentSpaces = m_indentSize;
-                parser.Settings.Severity = m_warningLevel;
                 parser.Settings.TermSemicolons = m_terminateWithSemicolon;
                 parser.Settings.ColorNames = m_colorNames;
                 parser.Settings.MinifyExpressions = m_minifyExpressions;
@@ -144,13 +147,7 @@ namespace Microsoft.Ajax.Utilities
                 // probably an error with the input file
                 retVal = 1;
                 System.Diagnostics.Debug.WriteLine(e.ToString());
-                WriteError(CreateBuildError(
-                    null,
-                    null,
-                    true,
-                    "AM-IO",
-                    e.Message
-                    ));
+                WriteError("AM-IO", e.Message);
             }
 
             return retVal;
@@ -158,41 +155,14 @@ namespace Microsoft.Ajax.Utilities
 
         void OnCssError(object sender, CssErrorEventArgs e)
         {
-            CssException error = e.Exception;
+            ContextError error = e.Error;
             // ignore severity values greater than our severity level
             if (error.Severity <= m_warningLevel)
             {
                 // we found an error
                 m_errorsFound = true;
 
-                // the error code is the lower half of the error number, in decimal, prepended with "JS"
-                // again, NOT LOCALIZABLE so the format is not in the resources
-                string code = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "CSS{0}",
-                    (error.Error & (0xffff))
-                    );
-
-                // the location is the file name followed by the line and start/end columns within parens.
-                // if the file context is empty, use "stdin" as the file name.
-                // this string is NOT LOCALIZABLE, so not putting the format in the resources
-                string context = ((CssParser)sender).FileContext;
-                string location = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}({1},{2})",
-                    (string.IsNullOrEmpty(context) ? "stdin" : context),
-                    error.Line,
-                    error.Char
-                    );
-
-                WriteError(CreateBuildError(
-                    location,
-                    GetSeverityString(error.Severity),
-                    (error.Severity < 2), // severity 0 and 1 are errors; rest are warnings
-                    code,
-                    error.Message
-                    ));
-                WriteError(string.Empty);
+                WriteError(error.ToString());
             }
         }
 

@@ -30,7 +30,6 @@ namespace Microsoft.Ajax.Utilities
             CommentMode = CssComment.Important;
             ExpandOutput = false;
             IndentSpaces = 4;
-            Severity = 1;
             TermSemicolons = false;
             MinifyExpressions = true;
 			AllowEmbeddedAspNetBlocks = false;
@@ -64,14 +63,6 @@ namespace Microsoft.Ajax.Utilities
         /// Gets or sets the number of spaces to use per indent when ExpandOutput is true.
         /// </summary>
         public int IndentSpaces
-        {
-            get; set;
-        }
-
-        /// <summary>
-        /// Gets or sets minimum Severity to report in error output.
-        /// </summary>
-        public int Severity
         {
             get; set;
         }

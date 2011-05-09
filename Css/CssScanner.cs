@@ -41,12 +41,6 @@ namespace Microsoft.Ajax.Utilities
 
         #endregion
 
-        public int Severity
-        {
-            set { m_severity = value; }
-        }
-        private int m_severity = 1;
-
         private TextReader m_reader;
         private string m_readAhead;
 
@@ -86,6 +80,7 @@ namespace Microsoft.Ajax.Utilities
             NextChar();
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         public CssToken NextToken()
         {
             // advance the context
@@ -299,8 +294,9 @@ namespace Microsoft.Ajax.Utilities
 			}
 			return new CssToken(TokenType.AspNetBlock, sb.ToString(), m_context);
 		}
-		
-		private CssToken ScanCDO()
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
+        private CssToken ScanCDO()
         {
             CssToken token = null;
             NextChar(); // points to !?
@@ -327,6 +323,7 @@ namespace Microsoft.Ajax.Utilities
             return (token != null ? token : token = new CssToken(TokenType.Character, '<', m_context));
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanCDC()
         {
             CssToken token = null;
@@ -343,6 +340,7 @@ namespace Microsoft.Ajax.Utilities
             return token;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanIncludes()
         {
             CssToken token = null;
@@ -355,6 +353,7 @@ namespace Microsoft.Ajax.Utilities
             return (token != null ? token : new CssToken(TokenType.Character, '~', m_context));
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanDashMatch()
         {
             CssToken token = null;
@@ -381,6 +380,7 @@ namespace Microsoft.Ajax.Utilities
             return token;
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanPrefixMatch()
         {
             CssToken token = null;
@@ -393,6 +393,7 @@ namespace Microsoft.Ajax.Utilities
             return (token != null ? token : new CssToken(TokenType.Character, '^', m_context));
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanSuffixMatch()
         {
             CssToken token = null;
@@ -405,6 +406,7 @@ namespace Microsoft.Ajax.Utilities
             return (token != null ? token : new CssToken(TokenType.Character, '$', m_context));
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanSubstringMatch()
         {
             CssToken token = null;
@@ -589,6 +591,7 @@ namespace Microsoft.Ajax.Utilities
             return new CssToken(tokenType, '@' + (ident == null ? string.Empty : ident), m_context);
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.CssToken.#ctor(Microsoft.Ajax.Utilities.TokenType,System.String,Microsoft.Ajax.Utilities.CssContext)")]
         private CssToken ScanImportant()
         {
             CssToken token = null;
@@ -1716,18 +1719,14 @@ namespace Microsoft.Ajax.Utilities
             //        3 == this can lead to performance problems
             //        4 == this is just not right
 
-            // ignore if over the reporting threshold
-            if (severity <= m_severity)
-            {
-                string message = CssStringMgr.GetString(error, args);
-                OnScannerError(new CssScannerException(
-                    (int)error,
-                    severity,
-                    m_context.End.Line,
-                    m_context.End.Char,
-                    message
-                    ));
-            }
+            string message = CssStringMgr.GetString(error, args);
+            OnScannerError(new CssScannerException(
+                (int)error,
+                severity,
+                m_context.End.Line,
+                m_context.End.Char,
+                message
+                ));
         }
 
         public event EventHandler<CssScannerErrorEventArgs> ScannerError;

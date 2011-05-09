@@ -67,29 +67,8 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                // assume we are not
-                bool isDebug = false;
-                // see if the root is a Member itself
-                Member member = Root as Member;
-                if (member != null)
-                {
-                    // recurse
-                    isDebug = member.IsDebuggerStatement;
-                }
-                else
-                {
-                    // see if the root is a lookup
-                    Lookup lookup = Root as Lookup;
-                    if (lookup != null)
-                    {
-                        // if the lookup is a debug statement 
-                        // or if our name is Debug and the lookup is Web or Msn (Web.Debug or Msn.Debug)
-                        // then WE are a debug statement
-                        isDebug = (lookup.IsDebuggerStatement
-                          || (Name == "Debug" && (lookup.Name == "Web" || lookup.Name == "Msn")));
-                    }
-                }
-                return isDebug;
+                // depends on whether the root is
+                return Root.IsDebuggerStatement;
             }
         }
 

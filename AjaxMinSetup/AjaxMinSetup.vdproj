@@ -194,7 +194,7 @@
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:AjaxMin, Version=4.19.4141.18381, Culture=neutral, PublicKeyToken=24297a69a7eae424, processorArchitecture=MSIL"
+            "AssemblyAsmDisplayName" = "8:AjaxMin, Version=4.19.4142.38129, Culture=neutral, PublicKeyToken=24297a69a7eae424, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
                     "_078EC7FE11AE2A35394EC8E911418097"
@@ -401,15 +401,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Microsoft Ajax Minifier"
-        "ProductCode" = "8:{47524EA7-8F31-4E9B-BB83-EEA790CF79F2}"
-        "PackageCode" = "8:{47611694-C70E-42FA-B5DF-8321E871FA70}"
+        "ProductCode" = "8:{0FCE256F-D478-43F9-B29F-88B172038AF4}"
+        "PackageCode" = "8:{C343D525-A0F7-451E-91A4-B5906063C586}"
         "UpgradeCode" = "8:{A82F55C0-675A-4E8D-A988-0C5346CC5509}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:TRUE"
-        "ProductVersion" = "8:4.19"
+        "ProductVersion" = "8:4.20"
         "Manufacturer" = "8:Microsoft"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -937,7 +937,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_0376E6797A624CEB9D82C9ABE2B1F081"
             {
-            "SourcePath" = "8:..\\AjaxMinTask\\obj\\Release\\AjaxMinTask.dll"
+            "SourcePath" = "8:..\\AjaxMinTask\\obj\\Debug\\AjaxMinTask.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_F313446C4A45462887A26858EE7CAF84"
@@ -965,7 +965,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_80F8791BDBE447E0B1CD272E4CBCEB61"
             {
-            "SourcePath" = "8:..\\AjaxMinDll\\obj\\Release\\AjaxMin.dll"
+            "SourcePath" = "8:..\\AjaxMinDll\\obj\\Debug\\AjaxMin.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_3C2DF8B0D1C044B8B9725F722F629969"
@@ -993,7 +993,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_A01D213D07B04CF3B77C25D046545E69"
             {
-            "SourcePath" = "8:..\\obj\\Release\\AjaxMin.exe"
+            "SourcePath" = "8:..\\obj\\Debug\\AjaxMin.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_3C2DF8B0D1C044B8B9725F722F629969"

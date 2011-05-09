@@ -26,9 +26,9 @@ namespace Microsoft.Ajax.Minifier.Tasks
 {
     public static class StringExtension
     {
-        public static bool IsNullOrWhiteSpace(this string str)
+        public static bool IsNullOrWhiteSpace(this string value)
         {
-            return string.IsNullOrEmpty(str) || str.Trim().Length == 0;
+            return string.IsNullOrEmpty(value) || value.Trim().Length == 0;
         }
     }
 
@@ -38,20 +38,26 @@ namespace Microsoft.Ajax.Minifier.Tasks
     [SecurityCritical]
     public class AjaxMin : Task
     {
+        #region private fields
+
         /// <summary>
         /// Internal js code settings class. Used to store build task parameter values for JS.
         /// </summary>
-        private CodeSettings _jsCodeSettings = new CodeSettings();
+        private CodeSettings m_jsCodeSettings = new CodeSettings();
 
         /// <summary>
         /// Internal css code settings class. Used to store build task parameter values for CSS.
         /// </summary>
-        private CssSettings _cssCodeSettings = new CssSettings();
+        private CssSettings m_cssCodeSettings = new CssSettings();
 
         /// <summary>
         /// AjaxMin Minifier
         /// </summary>
-        private readonly Utilities.Minifier _minifier = new Utilities.Minifier();
+        private readonly Utilities.Minifier m_minifier = new Utilities.Minifier();
+
+        #endregion
+
+        #region Common properties
 
         /// <summary>
         /// Warning level threshold for reporting errors. Defalut valus is 0 (syntax/run-time errors)
@@ -63,227 +69,208 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public bool TreatWarningsAsErrors { get; set; }
 
-        /// <summary>
-        /// regular expression for parsing the VS-standard error messages returned by AjaxMin
-        /// </summary>
-        private static Regex s_errorFormat = new Regex(
-            @"^(?<file>.*)\((?<sline>\d+)(-(?<eline>\d+))?,(?<scol>\d+)(-(?<ecol>\d+))?\)\:\s+((?<sub>[\w\s]+)\s+)?(?<cat>\w+)\s+(?<err>[\w]*)\:\s*(?<msg>.*)$",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        #endregion
 
         #region JavaScript parameters
 
         /// <summary>
         /// JavaScript source files to minify.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public ITaskItem[] JsSourceFiles { get; set; }
 
         /// <summary>
         /// Target extension for minified JS files
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsTargetExtension { get; set; }
 
         /// <summary>
         /// Source extension pattern for JS files.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsSourceExtensionPattern { get; set; }
 
         /// <summary>
         /// Ensures the final semicolon in minified JS file.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsEnsureFinalSemicolon { get; set;}
 
         /// <summary>
         /// <see cref="CodeSettings.CollapseToLiteral"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsCollapseToLiteral
         {
-            get { return this._jsCodeSettings.CollapseToLiteral;  }
-            set { this._jsCodeSettings.CollapseToLiteral = value; }
+            get { return this.m_jsCodeSettings.CollapseToLiteral;  }
+            set { this.m_jsCodeSettings.CollapseToLiteral = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.CombineDuplicateLiterals"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsCombineDuplicateLiterals
         {
-            get { return this._jsCodeSettings.CombineDuplicateLiterals; }
-            set { this._jsCodeSettings.CombineDuplicateLiterals = value; }
+            get { return this.m_jsCodeSettings.CombineDuplicateLiterals; }
+            set { this.m_jsCodeSettings.CombineDuplicateLiterals = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.EvalTreatment"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsEvalTreatment
         {
-            get { return this._jsCodeSettings.EvalTreatment.ToString(); }
-            set { this._jsCodeSettings.EvalTreatment = ParseEnumValue<EvalTreatment>(value); }
+            get { return this.m_jsCodeSettings.EvalTreatment.ToString(); }
+            set { this.m_jsCodeSettings.EvalTreatment = ParseEnumValue<EvalTreatment>(value); }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.IndentSize"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public int JsIndentSize
         {
-            get { return this._jsCodeSettings.IndentSize; }
-            set { this._jsCodeSettings.IndentSize = value; }
+            get { return this.m_jsCodeSettings.IndentSize; }
+            set { this.m_jsCodeSettings.IndentSize = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.InlineSafeStrings"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsInlineSafeStrings
         {
-            get { return this._jsCodeSettings.InlineSafeStrings; }
-            set { this._jsCodeSettings.InlineSafeStrings = value; }
+            get { return this.m_jsCodeSettings.InlineSafeStrings; }
+            set { this.m_jsCodeSettings.InlineSafeStrings = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.LocalRenaming"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsLocalRenaming
         {
-            get { return this._jsCodeSettings.LocalRenaming.ToString(); }
-            set { this._jsCodeSettings.LocalRenaming = ParseEnumValue<LocalRenaming>(value); }
+            get { return this.m_jsCodeSettings.LocalRenaming.ToString(); }
+            set { this.m_jsCodeSettings.LocalRenaming = ParseEnumValue<LocalRenaming>(value); }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.AddRenamePairs"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsManualRenamePairs
         {
-            get { return this._jsCodeSettings.RenamePairs; }
-            set { this._jsCodeSettings.RenamePairs = value; }
+            get { return this.m_jsCodeSettings.RenamePairs; }
+            set { this.m_jsCodeSettings.RenamePairs = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.SetNoAutoRename"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsNoAutoRename
         {
-            get { return this._jsCodeSettings.NoAutoRenameList; }
-            set { this._jsCodeSettings.NoAutoRenameList = value; }
+            get { return this.m_jsCodeSettings.NoAutoRenameList; }
+            set { this.m_jsCodeSettings.NoAutoRenameList = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.SetKnownGlobalNames"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsKnownGlobalNames
         {
-            get { return this._jsCodeSettings.KnownGlobalNamesList; }
-            set { this._jsCodeSettings.KnownGlobalNamesList = value; }
+            get { return this.m_jsCodeSettings.KnownGlobalNamesList; }
+            set { this.m_jsCodeSettings.KnownGlobalNamesList = value; }
+        }
+
+        /// <summary>
+        /// <see cref="CodeSettings.SetKnownGlobalNames"/> for more information.
+        /// </summary>
+        public string JsDebugLookups
+        {
+            get { return this.m_jsCodeSettings.DebugLookupList; }
+            set { this.m_jsCodeSettings.DebugLookupList = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.MacSafariQuirks"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsMacSafariQuirks
         {
-            get { return this._jsCodeSettings.MacSafariQuirks; }
-            set { this._jsCodeSettings.MacSafariQuirks = value; }
+            get { return this.m_jsCodeSettings.MacSafariQuirks; }
+            set { this.m_jsCodeSettings.MacSafariQuirks = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.IgnoreConditionalCompilation"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsIgnoreConditionalCompilation
         {
-            get { return this._jsCodeSettings.IgnoreConditionalCompilation; }
-            set { this._jsCodeSettings.IgnoreConditionalCompilation = value; }
+            get { return this.m_jsCodeSettings.IgnoreConditionalCompilation; }
+            set { this.m_jsCodeSettings.IgnoreConditionalCompilation = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.MinifyCode"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsMinifyCode
         {
-            get { return this._jsCodeSettings.MinifyCode; }
-            set { this._jsCodeSettings.MinifyCode = value; }
+            get { return this.m_jsCodeSettings.MinifyCode; }
+            set { this.m_jsCodeSettings.MinifyCode = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.OutputMode"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsOutputMode
         {
-            get { return this._jsCodeSettings.OutputMode.ToString(); }
-            set { this._jsCodeSettings.OutputMode = ParseEnumValue<OutputMode>(value); }
+            get { return this.m_jsCodeSettings.OutputMode.ToString(); }
+            set { this.m_jsCodeSettings.OutputMode = ParseEnumValue<OutputMode>(value); }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.PreserveFunctionNames"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsPreserveFunctionNames
         {
-            get { return this._jsCodeSettings.PreserveFunctionNames; }
-            set { this._jsCodeSettings.PreserveFunctionNames = value; }
+            get { return this.m_jsCodeSettings.PreserveFunctionNames; }
+            set { this.m_jsCodeSettings.PreserveFunctionNames = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.RemoveFunctionExpressionNames"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsRemoveFunctionExpressionNames
         {
-            get { return this._jsCodeSettings.RemoveFunctionExpressionNames; }
-            set { this._jsCodeSettings.RemoveFunctionExpressionNames = value; }
+            get { return this.m_jsCodeSettings.RemoveFunctionExpressionNames; }
+            set { this.m_jsCodeSettings.RemoveFunctionExpressionNames = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.RemoveUnneededCode"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsRemoveUnneededCode
         {
-            get { return this._jsCodeSettings.RemoveUnneededCode; }
-            set { this._jsCodeSettings.RemoveUnneededCode = value; }
+            get { return this.m_jsCodeSettings.RemoveUnneededCode; }
+            set { this.m_jsCodeSettings.RemoveUnneededCode = value; }
         }
         
         /// <summary>
         /// <see cref="CodeSettings.StripDebugStatements"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsStripDebugStatements
         {
-            get { return this._jsCodeSettings.StripDebugStatements; }
-            set { this._jsCodeSettings.StripDebugStatements = value; }
+            get { return this.m_jsCodeSettings.StripDebugStatements; }
+            set { this.m_jsCodeSettings.StripDebugStatements = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.AllowEmbeddedAspNetBlocks"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public bool JsAllowEmbeddedAspNetBlocks
         {
-            get { return this._jsCodeSettings.AllowEmbeddedAspNetBlocks; }
-            set { this._jsCodeSettings.AllowEmbeddedAspNetBlocks = value; }
+            get { return this.m_jsCodeSettings.AllowEmbeddedAspNetBlocks; }
+            set { this.m_jsCodeSettings.AllowEmbeddedAspNetBlocks = value; }
         }
 
         /// <summary>
         /// <see cref="CodeSettings.PreprocessorDefineList"/> for more information.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1709:IdentifiersShouldBeCasedCorrectly", MessageId = "Js")]
         public string JsPreprocessorDefines
         {
-            get { return this._jsCodeSettings.PreprocessorDefineList; }
-            set { this._jsCodeSettings.PreprocessorDefineList = value; }
+            get { return this.m_jsCodeSettings.PreprocessorDefineList; }
+            set { this.m_jsCodeSettings.PreprocessorDefineList = value; }
         }
 
         #endregion
@@ -310,8 +297,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public string CssColorNames
         {
-            get { return this._cssCodeSettings.ColorNames.ToString(); }
-            set { this._cssCodeSettings.ColorNames = ParseEnumValue<CssColor>(value); }
+            get { return this.m_cssCodeSettings.ColorNames.ToString(); }
+            set { this.m_cssCodeSettings.ColorNames = ParseEnumValue<CssColor>(value); }
         }
         
         /// <summary>
@@ -319,8 +306,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public string CssCommentMode
         {
-            get { return this._cssCodeSettings.CommentMode.ToString(); }
-            set { this._cssCodeSettings.CommentMode = ParseEnumValue<CssComment>(value); }
+            get { return this.m_cssCodeSettings.CommentMode.ToString(); }
+            set { this.m_cssCodeSettings.CommentMode = ParseEnumValue<CssComment>(value); }
         }
         
         /// <summary>
@@ -328,8 +315,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public bool CssExpandOutput
         {
-            get { return this._cssCodeSettings.ExpandOutput; }
-            set { this._cssCodeSettings.ExpandOutput = value; }
+            get { return this.m_cssCodeSettings.ExpandOutput; }
+            set { this.m_cssCodeSettings.ExpandOutput = value; }
         }
 
         /// <summary>
@@ -337,17 +324,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public int CssIndentSpaces
         {
-            get { return this._cssCodeSettings.IndentSpaces; }
-            set { this._cssCodeSettings.IndentSpaces = value; }
-        }
-
-        /// <summary>
-        /// <see cref="CssSettings.Severity"/> for more information.
-        /// </summary>
-        public int CssSeverity
-        {
-            get { return this._cssCodeSettings.Severity; }
-            set { this._cssCodeSettings.Severity = value; }
+            get { return this.m_cssCodeSettings.IndentSpaces; }
+            set { this.m_cssCodeSettings.IndentSpaces = value; }
         }
         
         /// <summary>
@@ -355,8 +333,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public bool CssTermSemicolons
         {
-            get { return this._cssCodeSettings.TermSemicolons; }
-            set { this._cssCodeSettings.TermSemicolons = value; }
+            get { return this.m_cssCodeSettings.TermSemicolons; }
+            set { this.m_cssCodeSettings.TermSemicolons = value; }
         }
 
         /// <summary>
@@ -364,8 +342,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public bool CssMinifyExpressions
         {
-            get { return this._cssCodeSettings.MinifyExpressions; }
-            set { this._cssCodeSettings.MinifyExpressions = value; }
+            get { return this.m_cssCodeSettings.MinifyExpressions; }
+            set { this.m_cssCodeSettings.MinifyExpressions = value; }
         }
 
         /// <summary>
@@ -373,8 +351,8 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// </summary>
         public bool CssAllowEmbeddedAspNetBlocks
         {
-            get { return this._cssCodeSettings.AllowEmbeddedAspNetBlocks; }
-            set { this._cssCodeSettings.AllowEmbeddedAspNetBlocks = value; }
+            get { return this.m_cssCodeSettings.AllowEmbeddedAspNetBlocks; }
+            set { this.m_cssCodeSettings.AllowEmbeddedAspNetBlocks = value; }
         }
 
         #endregion
@@ -392,26 +370,23 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// Executes the Ajax Minifier build task
         /// </summary>
         /// <returns>True if the build task successfully succeded; otherwise, false.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "Minifier"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "JsTargetExtension"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "JsSourceExtensionPattern"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "CssTargetExtension"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "CssSourceExtensionPattern"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Build.Utilities.TaskLoggingHelper.LogError(System.String,System.Object[])")]
         [SecurityCritical]
         public override bool Execute()
         {
-            _minifier.WarningLevel = this.WarningLevel;
+            m_minifier.WarningLevel = this.WarningLevel;
 
             // Deal with JS minification
             if (this.JsSourceFiles != null && this.JsSourceFiles.Length > 0)
             {
                 if (this.JsSourceExtensionPattern.IsNullOrWhiteSpace())
                 {
-                    Log.LogError("Microsoft Ajax Minifier: You must supply a value for JsSourceExtensionPattern.",
-                                 new object[0]);
+                    LogTaskError(StringEnum.RequiredParameterIsEmpty, "JsSourceExtensionPattern");
                     return false;
                 }
 
                 if (this.JsTargetExtension.IsNullOrWhiteSpace())
                 {
-                    Log.LogError("Microsoft Ajax Minifier: You must supply a value for JsTargetExtension.",
-                                 new object[0]);
+                    LogTaskError(StringEnum.RequiredParameterIsEmpty, "JsTargetExtension");
                     return false;
                 }
 
@@ -423,133 +398,71 @@ namespace Microsoft.Ajax.Minifier.Tasks
             {
                 if (this.CssSourceExtensionPattern.IsNullOrWhiteSpace())
                 {
-                    Log.LogError("Microsoft Ajax Minifier: You must supply a value for CssSourceExtensionPattern.",
-                                 new object[0]);
+                    LogTaskError(StringEnum.RequiredParameterIsEmpty, "CssSourceExtensionPattern");
                     return false;
                 }
 
                 if (this.CssTargetExtension.IsNullOrWhiteSpace())
                 {
-                    Log.LogError("Microsoft Ajax Minifier: You must supply a value for CssTargetExtension.",
-                                 new object[0]);
+                    LogTaskError(StringEnum.RequiredParameterIsEmpty, "CssTargetExtension");
                     return false;
                 }
 
                 MinifyStyleSheets();
             }
 
-            return !this.Log.HasLoggedErrors;
-        }
-
-        private void LogAjaxMinError(string errorString)
-        {
-            Match match = s_errorFormat.Match(errorString);
-            if (match.Success)
-            {
-                // get the start line and column
-                int startLine, startColumn;
-                if (!int.TryParse(match.Result("${sline}"), out startLine))
-                {
-                    startLine = 1;
-                }
-                if (!int.TryParse(match.Result("${scol}"), out startColumn))
-                {
-                    startColumn = 1;
-                }
-
-                // the end line and column might not be specified
-                int endLine, endColumn;
-                if (!int.TryParse(match.Result("${eline}"), out endLine))
-                {
-                    endLine = 0;
-                }
-                if (!int.TryParse(match.Result("${ecol}"), out endColumn))
-                {
-                    endColumn = 0;
-                }
-
-                // log it either as an error or a warning
-                if(TreatWarningsAsErrors
-                    || string.Compare(match.Result("${cat}"), "WARNING", StringComparison.OrdinalIgnoreCase) != 0)
-                {
-                    base.Log.LogError(
-                        match.Result("${sub}"),     // subcategory 
-                        match.Result("${err}"),     // error code
-                        null,                       // help keyword
-                        match.Result("${file}"),    // file
-                        startLine,                  // start line
-                        startColumn,                // start column
-                        endLine,                    // end line
-                        endColumn,                  // end column
-                        match.Result("${msg}")      // message
-                        );
-                }
-                else
-                {
-                    base.Log.LogWarning(
-                        match.Result("${sub}"),     // subcategory 
-                        match.Result("${err}"),     // error code
-                        null,                       // help keyword
-                        match.Result("${file}"),    // file
-                        startLine,                  // start line
-                        startColumn,                // start column
-                        endLine,                    // end line
-                        endColumn,                  // end column
-                        match.Result("${msg}")      // message
-                        );
-                }
-            }
-            else
-            {
-                // weird -- couldn't parse the error string format. Well, log the entire string as a message
-                base.Log.LogError(errorString);
-            }
+            return !Log.HasLoggedErrors;
         }
 
         /// <summary>
         /// Minifies JS files provided by the caller of the build task.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "Minifier"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Build.Utilities.TaskLoggingHelper.LogError(System.String,System.Object[])")]
         private void MinifyJavaScript()
         {
             foreach (ITaskItem item in this.JsSourceFiles)
             {
                 string path = Regex.Replace(item.ItemSpec, this.JsSourceExtensionPattern, this.JsTargetExtension,
                                             RegexOptions.IgnoreCase);
-                try
+                if (FileIsWritable(path))
                 {
-                    string source = File.ReadAllText(item.ItemSpec);
-                    this._minifier.FileName = item.ItemSpec;
-                    string minifiedJs = this._minifier.MinifyJavaScript(source, this._jsCodeSettings);
-                    if (this._minifier.Errors.Count > 0)
+                    try
                     {
-                        foreach (string error in this._minifier.Errors)
+                        string source = File.ReadAllText(item.ItemSpec);
+                        this.m_minifier.FileName = item.ItemSpec;
+                        string minifiedJs = this.m_minifier.MinifyJavaScript(source, this.m_jsCodeSettings);
+                        if (this.m_minifier.ErrorList.Count > 0)
                         {
-                            LogAjaxMinError(error);
+                            foreach (var error in this.m_minifier.ErrorList)
+                            {
+                                LogContextError(error);
+                            }
+                        }
+                        else
+                        {
+                            if (this.JsEnsureFinalSemicolon && !string.IsNullOrEmpty(minifiedJs))
+                            {
+                                minifiedJs = minifiedJs + ";";
+                            }
+                            try
+                            {
+                                File.WriteAllText(path, minifiedJs);
+                            }
+                            catch (UnauthorizedAccessException)
+                            {
+                                LogFileError(item.ItemSpec, StringEnum.NoWritePermission, path);
+                            }
                         }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        if (this.JsEnsureFinalSemicolon && !string.IsNullOrEmpty(minifiedJs))
-                        {
-                            minifiedJs = minifiedJs + ";";
-                        }
-                        try
-                        {
-                            File.WriteAllText(path, minifiedJs);
-                        }
-                        catch (UnauthorizedAccessException)
-                        {
-                            base.Log.LogError("The Microsoft Ajax Minifier does not have permission to write to {0}",
-                                              new object[] { path });
-                        }
+                        LogFileError(item.ItemSpec, StringEnum.DidNotMinify, path, e.Message);
+                        throw;
                     }
                 }
-                catch (Exception)
+                else
                 {
-                    base.Log.LogError("The Microsoft Ajax Minifier was not able to minify {0}",
-                                      new object[] { path });
-                    throw;
+                    // log a MESSAGE that the minification was skipped -- don't break the build
+                    Log.LogMessage(MessageImportance.High, StringManager.GetString(StringEnum.DestinationIsReadOnly, Path.GetFileName(item.ItemSpec), path));
                 }
             }
         }
@@ -557,44 +470,131 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// <summary>
         /// Minifies CSS files provided by the caller of the build task.
         /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA2204:Literals should be spelled correctly", MessageId = "Minifier"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Build.Utilities.TaskLoggingHelper.LogError(System.String,System.Object[])")]
         private void MinifyStyleSheets()
         {
             foreach (ITaskItem item in this.CssSourceFiles)
             {
                 string path = Regex.Replace(item.ItemSpec, this.CssSourceExtensionPattern, this.CssTargetExtension, RegexOptions.IgnoreCase);
-
-                try
+                if (FileIsWritable(path))
                 {
-                    string source = File.ReadAllText(item.ItemSpec);
-                    this._minifier.FileName = item.ItemSpec;
-                    string contents = this._minifier.MinifyStyleSheet(source, this._cssCodeSettings);
-                    if (this._minifier.Errors.Count > 0)
+                    try
                     {
-                        foreach (string error in this._minifier.Errors)
+                        string source = File.ReadAllText(item.ItemSpec);
+                        this.m_minifier.FileName = item.ItemSpec;
+                        string contents = this.m_minifier.MinifyStyleSheet(source, this.m_cssCodeSettings);
+                        if (this.m_minifier.ErrorList.Count > 0)
                         {
-                            LogAjaxMinError(error);
+                            foreach (var error in this.m_minifier.ErrorList)
+                            {
+                                LogContextError(error);
+                            }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                File.WriteAllText(path, contents);
+                            }
+                            catch (UnauthorizedAccessException)
+                            {
+                                LogFileError(item.ItemSpec, StringEnum.NoWritePermission, path);
+                            }
                         }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        try
-                        {
-                            File.WriteAllText(path, contents);
-                        }
-                        catch (UnauthorizedAccessException)
-                        {
-                            base.Log.LogError("The Microsoft Ajax Minifier does not have permission to write to {0}",
-                                              new object[] {path});
-                        }
+                        LogFileError(item.ItemSpec, StringEnum.DidNotMinify, path, e.Message);
+                        throw;
                     }
                 }
-                catch (Exception)
+                else
                 {
-                    base.Log.LogError("The Microsoft Ajax Minifier was not able to minify {0}", new object[] { path });
-                    throw;
+                    // log a MESSAGE that the minification was skipped -- don't break the build
+                    Log.LogMessage(MessageImportance.High, StringManager.GetString(StringEnum.DestinationIsReadOnly, Path.GetFileName(item.ItemSpec), path));
                 }
             }
+        }
+
+        #region Logging methods
+
+        /// <summary>
+        /// Call this method to log an error against the build task itself, before any specific files are processed
+        /// </summary>
+        /// <param name="messageIdentifier">String resource identifier</param>
+        /// <param name="messageArguments">any optional formatting arguments</param>
+        private void LogTaskError(StringEnum messageIdentifier, params object[] messageArguments)
+        {
+            var message = StringManager.GetString(messageIdentifier);
+            Log.LogError(message, messageArguments);
+        }
+
+        /// <summary>
+        /// Call this method to log an error against the build of a particular source file
+        /// </summary>
+        /// <param name="path">path of the input source file</param>
+        /// <param name="messageIdentifier">String resource identifier</param>
+        /// <param name="messageArguments">any optional formatting arguments</param>
+        private void LogFileError(string path, StringEnum messageIdentifier, params object[] messageArguments)
+        {
+            var message = StringManager.GetString(messageIdentifier);
+            Log.LogError(
+                null,
+                null,
+                null,
+                path,
+                0,
+                0,
+                0,
+                0,
+                message, 
+                messageArguments);
+        }
+
+        /// <summary>
+        /// Call this method to log an error using a ContentError object
+        /// </summary>
+        /// <param name="error">Error to log</param>
+        private void LogContextError(ContextError error)
+        {
+            // log it either as an error or a warning
+            if(TreatWarningsAsErrors || error.IsError)
+            {
+                Log.LogError(
+                    error.Subcategory,  // subcategory 
+                    error.ErrorCode,    // error code
+                    error.HelpKeyword,  // help keyword
+                    error.File,         // file
+                    error.StartLine,    // start line
+                    error.StartColumn,  // start column
+                    error.EndLine > error.StartLine ? error.EndLine : 0,      // end line
+                    error.EndLine > error.StartLine || error.EndColumn > error.StartColumn ? error.EndColumn : 0,    // end column
+                    error.Message       // message
+                    );
+            }
+            else
+            {
+                Log.LogWarning(
+                    error.Subcategory,  // subcategory 
+                    error.ErrorCode,    // error code
+                    error.HelpKeyword,  // help keyword
+                    error.File,         // file
+                    error.StartLine,    // start line
+                    error.StartColumn,  // start column
+                    error.EndLine > error.StartLine ? error.EndLine : 0,      // end line
+                    error.EndLine > error.StartLine || error.EndColumn > error.StartColumn ? error.EndColumn : 0,    // end column
+                    error.Message       // message
+                    );
+            }
+        }
+
+        #endregion
+
+        #region Utility methods
+
+        private static bool FileIsWritable(string path)
+        {
+            var fileInfo = new FileInfo(path);
+            return !(fileInfo.Exists && fileInfo.IsReadOnly);
         }
 
         /// <summary>
@@ -603,7 +603,6 @@ namespace Microsoft.Ajax.Minifier.Tasks
         /// <typeparam name="T">Type of the enum.</typeparam>
         /// <param name="strValue">Value of the parameter in the string form.</param>
         /// <returns>Parsed enum value</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Build.Utilities.TaskLoggingHelper.LogError(System.String,System.Object[])")]
         private T ParseEnumValue<T>(string strValue) where T: struct
         {
             if (!strValue.IsNullOrWhiteSpace())
@@ -618,8 +617,10 @@ namespace Microsoft.Ajax.Minifier.Tasks
             }
 
             // if we cannot parse it for any reason, post the error and stop the task.
-            base.Log.LogError("Invalid input parameter {0}", strValue);
+            LogTaskError(StringEnum.InvalidInputParameter, strValue);
             return default(T);
         }
+
+        #endregion
     }
 }

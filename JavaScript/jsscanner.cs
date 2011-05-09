@@ -99,7 +99,7 @@ namespace Microsoft.Ajax.Utilities
         // conditional-compilation comment processing.
         public bool RawTokens { get; set; }
 
-        public JSToken m_previousToken;
+        private JSToken m_previousToken;
 
         public JSScanner(Context sourceContext)
         {
@@ -1452,7 +1452,7 @@ namespace Microsoft.Ajax.Utilities
             return token;
         }
 
-        private bool RegExpCanFollow(JSToken previousToken)
+        private static bool RegExpCanFollow(JSToken previousToken)
         {
             switch(previousToken)
             {

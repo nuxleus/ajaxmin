@@ -27,6 +27,8 @@ namespace Microsoft.Ajax.Utilities
     /// </summary>
     public class Minifier
     {
+        #region Properties
+
         /// <summary>
         /// Warning level threshold for reporting errors.
         /// Default value is zero: syntax/run-time errors.
@@ -46,14 +48,36 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
-        /// Collection of any errors found during the crunch process
+        /// Collection of ContextError objects found during minification process
         /// </summary>
-        public ICollection<string> Errors { get { return m_errors; } }
-        private List<string> m_errors;// = null;
+        public ICollection<ContextError> ErrorList { get { return m_errorList; } }
+        private List<ContextError> m_errorList; // = null;
 
         /// <summary>
-        /// MinifyJavaScript JS string passed to it.
-        /// The Errors property will be set with any errors found during the minification process.
+        /// Collection of any error strings found during the crunch process.
+        /// Deprecated; do not use this collection. Use the ErrorList collection instead.
+        /// </summary>
+        [Obsolete("This property is deprecated; use ErrorList instead")]
+        public ICollection<string> Errors
+        {
+            get 
+            { 
+                var errorList = new List<string>(ErrorList.Count);
+                foreach (var error in ErrorList)
+                {
+                    errorList.Add(error.ToString());
+                }
+                return errorList;
+            }
+        }
+
+        #endregion
+
+        #region JavaScript methods
+
+        /// <summary>
+        /// MinifyJavaScript JS string passed to it using default code minification settings.
+        /// The ErrorList property will be set with any errors found during the minification process.
         /// </summary>
         /// <param name="source">source Javascript</param>
         /// <returns>minified Javascript</returns>
@@ -64,20 +88,8 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
-        /// MinifyJavaScript JS string passed to it.
-        /// The Errors property will be set with any errors found during the minification process.
-        /// </summary>
-        /// <param name="source">source Javascript</param>
-        /// <returns>minified Javascript</returns>
-        public string MinifyStyleSheet(string source)
-        {
-            // just pass in default settings
-            return MinifyStyleSheet(source, new CssSettings());
-        }
-
-        /// <summary>
         /// Crunched JS string passed to it, returning crunched string.
-        /// The Errors property will be set with any errors found during the minification process.
+        /// The ErrorList property will be set with any errors found during the minification process.
         /// </summary>
         /// <param name="source">source Javascript</param>
         /// <param name="codeSettings">code minification settings</param>
@@ -88,11 +100,14 @@ namespace Microsoft.Ajax.Utilities
             string crunched = string.Empty;
 
             // reset the errors builder
-            m_errors = new List<string>();
+            m_errorList = new List<ContextError>();
 
             // create the parser from the source string.
             // pass null for the assumed globals array
             JSParser parser = new JSParser(source);
+
+            // file context is a property on the parser
+            parser.FileContext = FileName;
 
             // hook the engine error event
             parser.CompilerError += OnJavaScriptError;
@@ -109,14 +124,41 @@ namespace Microsoft.Ajax.Utilities
             }
             catch (Exception e)
             {
-                m_errors.Add(e.ToString());
+                m_errorList.Add(new ContextError(
+                    true,
+                    0,
+                    null,
+                    null,
+                    null,
+                    this.FileName,
+                    0,
+                    0,
+                    0,
+                    0,
+                    e.Message));
             }
             return crunched;
         }
 
+        #endregion
+
+        #region CSS methods
+
+        /// <summary>
+        /// MinifyJavaScript CSS string passed to it using default code minification settings.
+        /// The ErrorList property will be set with any errors found during the minification process.
+        /// </summary>
+        /// <param name="source">source Javascript</param>
+        /// <returns>minified Javascript</returns>
+        public string MinifyStyleSheet(string source)
+        {
+            // just pass in default settings
+            return MinifyStyleSheet(source, new CssSettings());
+        }
+
         /// <summary>
         /// Minifies the CSS stylesheet passes to it using the given settings, returning the minified results
-        /// The Errors property will be set with any errors found during the minification process.
+        /// The ErrorList property will be set with any errors found during the minification process.
         /// </summary>
         /// <param name="source">CSS Source</param>
         /// <param name="settings">CSS minification settings</param>
@@ -125,15 +167,17 @@ namespace Microsoft.Ajax.Utilities
         {
             // initialize some values, including the error list (which shoudl start off empty)
             string minifiedResults = string.Empty;
-            m_errors = new List<string>();
+            m_errorList = new List<ContextError>();
 
             // create the parser object and if we specified some settings,
             // use it to set the Parser's settings object
             CssParser parser = new CssParser();
+            parser.FileContext = FileName;
             if (settings != null)
             {
                 parser.Settings = settings;
             }
+
             // hook the error handler
             parser.CssError += new EventHandler<CssErrorEventArgs>(OnCssError);
 
@@ -143,100 +187,43 @@ namespace Microsoft.Ajax.Utilities
                 minifiedResults = parser.Parse(source);
             }
             catch (Exception e)
-            {   
-                m_errors.Add(e.ToString());
+            {
+                m_errorList.Add(new ContextError(
+                    true,
+                    0,
+                    null,
+                    null,
+                    null,
+                    this.FileName,
+                    0,
+                    0,
+                    0,
+                    0,
+                    e.Message));
             }
             return minifiedResults;
         }
+
+        #endregion
 
         #region Error-handling Members
 
         private void OnCssError(object sender, CssErrorEventArgs e)
         {
-            CssException error = e.Exception;
+            ContextError error = e.Error;
             if (error.Severity <= WarningLevel)
             {
-                // the error code is the lower half of the error number, in decimal, prepended with "JS"
-                // again, NOT LOCALIZABLE so the format is not in the resources
-                string code = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "CSS{0}",
-                    error.Error & 0xffff);
-
-                // the location is the file name followed by the line and start/end columns within parens.
-                // if the file context is empty, use "stdin" as the file name.
-                // this string is NOT LOCALIZABLE, so not putting the format in the resources
-                string location = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}({1},{2})",
-                    string.IsNullOrEmpty(FileName) ? "MinifyStyleSheet" : FileName,
-                    error.Line,
-                    error.Char);
-
-                AddErrorMessage(
-                    location, // not localized
-                    string.Empty, // localizable, optional
-                    error.Severity < 2, // NOT localized, only two options
-                    code, // not localized, cannot contain spaces
-                    error.Message); // localizable with optional arguments
+                m_errorList.Add(error);
             }
         }
 
         private void OnJavaScriptError(object sender, JScriptExceptionEventArgs e)
         {
-            JScriptException error = e.Exception;
-            // ignore severity values greater than our severity level
+            ContextError error = e.Error;
             if (error.Severity <= WarningLevel)
             {
-                // get the offending line
-                string line = error.LineText;
-
-                // get the offending context
-                string context = error.ErrorSegment;
-
-                // if the context is empty, use the whole line
-                if (context.Length == 0)
-                {
-                    context = line;
-                }
-
-                // the error code is the lower half of the error number, in decimal, prepended with "JS"
-                // again, NOT LOCALIZABLE so the format is not in the resources
-                string code = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "JS{0}",
-                    error.Error & 0xffff);
-
-                // the location is the file name followed by the line and start/end columns within parens.
-                // if the file context is empty, use "stdin" as the file name.
-                // this string is NOT LOCALIZABLE, so not putting the format in the resources
-                string location = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}({1},{2}-{3})",
-                    string.IsNullOrEmpty(FileName) ? "MinifyJavaScript" : FileName,
-                    error.Line,
-                    error.StartColumn,
-                    error.EndColumn);
-
-                AddErrorMessage(
-                    location, // not localized
-                    string.Empty, // localizable, optional
-                    error.Severity < 2, // NOT localized, only two options
-                    code, // not localized, cannot contain spaces
-                    error.Message + ": " + context); // localizable with optional arguments
+                m_errorList.Add(error);
             }
-        }
-
-        private void AddErrorMessage(string location, string subCategory, bool isError, string code, string message)
-        {
-            m_errors.Add(string.Format(
-                CultureInfo.CurrentCulture,
-                "{0}: {1}{2} {3}: {4}",
-                location, // not localized
-                subCategory, // localizable, optional
-                (isError ? "error" : "warning"), // NOT localized, only two options
-                code, // not localized, cannot contain spaces
-                message)); // localizable
         }
 
         #endregion
@@ -294,8 +281,7 @@ namespace Microsoft.Ajax.Utilities
     public class ScriptCruncher : Minifier
     {
         /// <summary>
-        /// Crunched JS string passed to it, returning crunched string.
-        /// The Errors property will be set with any errors found during the crunch process.
+        /// Crunched JS string passed to it using default code settings, returning crunched string.
         /// This API is deprecated and will be removed in future versions. Please use
         /// Microsoft.Ajax.Utilities.Minifier.MinifyJavaScript instead.
         /// </summary>
@@ -310,7 +296,6 @@ namespace Microsoft.Ajax.Utilities
 
         /// <summary>
         /// Crunched JS string passed to it, returning crunched string.
-        /// The Errors property will be set with any errors found during the crunch process.
         /// This API is deprecated and will be removed in future versions. Please use
         /// Microsoft.Ajax.Utilities.Minifier.MinifyJavaScript instead.
         /// </summary>

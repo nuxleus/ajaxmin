@@ -153,6 +153,9 @@
     <Content Include="TestData\JS\Expected\ControlFlow\Continue.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\Debugger.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\Debugger_D.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Debugger_OffCustom.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Debugger_OffNone.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\Debugger_OnCustom.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\DoWhile.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\DoWhile_3.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\EncloseBlock.js" />

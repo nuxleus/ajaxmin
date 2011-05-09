@@ -350,9 +350,70 @@ namespace Microsoft.Ajax.Utilities
                             break;
 
                         case "DEBUG":
-                            // just putting the debug switch on the command line without any arguments
-                            // is the same as putting -debug:true and perfectly valid.
-                            BooleanSwitch(paramPart, switchPart, true, out m_stripDebugStatements);
+                            // see if the param part is a comma-delimited list
+                            if (paramPart.IndexOf(',') >= 0)
+                            {
+                                // we have a comma-separated list.
+                                // the first item is the flag (if any), and the rest (if any) are the "debug" lookup names
+                                // use parts[1] rather than paramParts because paramParts has been forced to upper-case
+                                var items = parts[1].Split(',');
+
+                                // use the first value as the debug boolean switch
+                                BooleanSwitch(items[0], switchPart, true, out m_stripDebugStatements);
+
+                                // and the rest as names.
+                                // if we haven't created the list yet, do it now
+                                if (m_debugLookups == null)
+                                {
+                                    m_debugLookups = new List<string>();
+                                }
+
+                                // start with index 1, since index 0 was the flag
+                                for (var item = 1; item < items.Length; ++item)
+                                {
+                                    // get the identifier that was specified
+                                    var identifier = items[item];
+
+                                    // a blank identifier is okay -- we just ignore it
+                                    if (!string.IsNullOrEmpty(identifier))
+                                    {
+                                        // but if it's not blank, it better be a valid JavaScript identifier or member chain
+                                        if (identifier.IndexOf('.') > 0)
+                                        {
+                                            // it's a member chain -- check that each part is a valid JS identifier
+                                            var names = identifier.Split('.');
+                                            foreach (var name in names)
+                                            {
+                                                if (!JSScanner.IsValidIdentifier(name))
+                                                {
+                                                    throw new UsageException(m_outputMode, "InvalidSwitchArg", name, switchPart);
+                                                }
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // no dot -- just an identifier
+                                            if (!JSScanner.IsValidIdentifier(identifier))
+                                            {
+                                                throw new UsageException(m_outputMode, "InvalidSwitchArg", identifier, switchPart);
+                                            }
+                                        }
+
+                                        // don't add duplicates
+                                        if (!m_debugLookups.Contains(identifier))
+                                        {
+                                            m_debugLookups.Add(identifier);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // no commas -- just use the entire param part as the boolean value.
+                                // just putting the debug switch on the command line without any arguments
+                                // is the same as putting -debug:true and perfectly valid.
+                                BooleanSwitch(paramPart, switchPart, true, out m_stripDebugStatements);
+                            }
 
                             // actually the inverse - a TRUE on the -debug switch means we DON'T want to
                             // strip debug statements, and a FALSE means we DO want to strip them
@@ -369,16 +430,14 @@ namespace Microsoft.Ajax.Utilities
                                 throw new UsageException(m_outputMode, "SwitchRequiresArg", switchPart);
                             }
 
-                            // use parts[1] rather than paramParts because paramParts has been forced to upper-case
-                            foreach (string defineName in parts[1].Split(','))
+                            // use paramPart because it has been forced to upper-case and these identifiers are
+                            // supposed to be case-insensitive
+                            foreach (string upperCaseName in paramPart.Split(','))
                             {
-                                // this is supposed to be case-INsensitive, so convert to upper-case
-                                var upperCaseName = defineName.ToUpperInvariant();
-
                                 // better be a valid JavaScript identifier
                                 if (!JSScanner.IsValidIdentifier(upperCaseName))
                                 {
-                                    throw new UsageException(m_outputMode, "InvalidSwitchArg", defineName, switchPart);
+                                    throw new UsageException(m_outputMode, "InvalidSwitchArg", upperCaseName, switchPart);
                                 }
 
                                 // if we haven't created the list yet, do it now
@@ -1252,6 +1311,7 @@ namespace Microsoft.Ajax.Utilities
                     booleanValue = false;
                     return true;
 
+                case "":
                 case null:
                     booleanValue = defaultValue;
                     return false;
@@ -1338,10 +1398,8 @@ namespace Microsoft.Ajax.Utilities
                 Console.Error.WriteLine(CreateBuildError(
                     null,
                     null,
-                    true,
                     "AM-USAGE", // NON-LOCALIZABLE error code
-                    e.Message
-                    ));
+                    e.Message));
             }
         }
 
@@ -1404,25 +1462,21 @@ namespace Microsoft.Ajax.Utilities
                             // if there is an output file name, use it.
                             if (crunchGroup.Output.Length > 0)
                             {
-                                WriteError(CreateBuildError(
-                                               crunchGroup.Output,
-                                               StringMgr.GetString("OutputFileErrorSubCat"),
-                                               true,
-                                               errorCode,
-                                               StringMgr.GetString("OutputFileError", crunchResult)
-                                               ));
+                                WriteError(crunchGroup.Output,
+                                    StringMgr.GetString("OutputFileErrorSubCat"),
+                                    errorCode,
+                                    StringMgr.GetString("OutputFileError", crunchResult)
+                                    );
                             }
                             else if (!string.IsNullOrEmpty(m_xmlInputFile))
                             {
                                 // use the XML file as the location, and the index of the group for more info
                                 // inside the message
-                                WriteError(CreateBuildError(
-                                               m_xmlInputFile,
-                                               StringMgr.GetString("OutputGroupErrorSubCat"),
-                                               true,
-                                               errorCode,
-                                               StringMgr.GetString("OutputGroupError", ndxGroup, crunchResult)
-                                               ));
+                                WriteError(m_xmlInputFile,
+                                    StringMgr.GetString("OutputGroupErrorSubCat"),
+                                    errorCode,
+                                    StringMgr.GetString("OutputGroupError", ndxGroup, crunchResult)
+                                    );
                             }
                             else
                             {
@@ -1430,13 +1484,11 @@ namespace Microsoft.Ajax.Utilities
                                 // file, then there really should only be one crunch group.
                                 // but just in case, use "stdout" as the output file and the index of the group 
                                 // in the list (which should probably just be zero)
-                                WriteError(CreateBuildError(
-                                               "stdout",
-                                               StringMgr.GetString("OutputGroupErrorSubCat"),
-                                               true,
-                                               errorCode,
-                                               StringMgr.GetString("OutputGroupError", ndxGroup, crunchResult)
-                                               ));
+                                WriteError("stdout",
+                                    StringMgr.GetString("OutputGroupErrorSubCat"),
+                                    errorCode,
+                                    StringMgr.GetString("OutputGroupError", ndxGroup, crunchResult)
+                                    );
                             }
                         }
                         // return the error. Only the last one will be used
@@ -1552,13 +1604,7 @@ namespace Microsoft.Ajax.Utilities
                         {
                             retVal = 1;
                             System.Diagnostics.Debug.WriteLine(e.ToString());
-                            WriteError(CreateBuildError(
-                                null,
-                                null,
-                                true,
-                                string.Format(CultureInfo.InvariantCulture, "JS{0}", (e.Error & 0xffff)),
-                                e.Message
-                                ));
+                            WriteError(string.Format(CultureInfo.InvariantCulture, "JS{0}", (e.Error & 0xffff)), e.Message);
                         }
 
                         // if we want to ensure the stream ends in a semi-colon (command-line option)
@@ -1584,13 +1630,7 @@ namespace Microsoft.Ajax.Utilities
             {
                 retVal = 1;
                 System.Diagnostics.Debug.WriteLine(e.ToString());
-                WriteError(CreateBuildError(
-                    null,
-                    null,
-                    true,
-                    "AM-EXCEPTION",
-                    e.Message
-                    ));
+                WriteError("AM-EXCEPTION", e.Message);
             }
 
             string crunchedCode = outputBuilder.ToString();
@@ -1626,6 +1666,9 @@ namespace Microsoft.Ajax.Utilities
                     // (unless in silent mode, but WriteProgess will take care of that)
                     ////if (m_analyze)
                     {
+                        // output blank line before
+                        WriteProgress();
+
                         // if we are echoing the input, don't bother reporting the
                         // minify savings because we don't have the minified output --
                         // we have the original output
@@ -1657,7 +1700,7 @@ namespace Microsoft.Ajax.Utilities
                         percentage = Math.Round((1 - ((double)gzipLength) / encodedBytes.Length) * 100, 1);
                         WriteProgress(StringMgr.GetString("SavingsGzipMessage", gzipLength, percentage));
 
-                        // blank line
+                        // blank line after
                         WriteProgress();
                     }
 
@@ -1710,6 +1753,9 @@ namespace Microsoft.Ajax.Utilities
                             long crunchedLength = crunchedFileInfo.Length;
                             if (crunchedLength > 0)
                             {
+                                // blank line before
+                                WriteProgress();
+
                                 // if we are just echoing the input, don't bother calculating
                                 // the minify savings because there aren't any
                                 double percentage;
@@ -1740,7 +1786,7 @@ namespace Microsoft.Ajax.Utilities
                                 percentage = Math.Round((1 - ((double) gzipLength)/crunchedLength)*100, 1);
                                 WriteProgress(StringMgr.GetString("SavingsGzipMessage", gzipLength, percentage));
 
-                                // blank line
+                                // blank line after
                                 WriteProgress();
                             }
                         }
@@ -1748,13 +1794,7 @@ namespace Microsoft.Ajax.Utilities
                     else
                     {
                         retVal = 1;
-                        WriteError(CreateBuildError(
-                            null,
-                            null,
-                            true,
-                            "AM-IO",
-                            StringMgr.GetString("NoClobberError", crunchGroup.Output)
-                            ));
+                        WriteError("AM-IO", StringMgr.GetString("NoClobberError", crunchGroup.Output));
                     }
 
                 }
@@ -1762,61 +1802,31 @@ namespace Microsoft.Ajax.Utilities
                 {
                     retVal = 1;
                     System.Diagnostics.Debug.WriteLine(e.ToString());
-                    WriteError(CreateBuildError(
-                        null,
-                        null,
-                        true,
-                        "AM-PATH",
-                        e.Message
-                        ));
+                    WriteError("AM-PATH", e.Message);
                 }
                 catch (UnauthorizedAccessException e)
                 {
                     retVal = 1;
                     System.Diagnostics.Debug.WriteLine(e.ToString());
-                    WriteError(CreateBuildError(
-                        null,
-                        null,
-                        true,
-                        "AM-AUTH",
-                        e.Message
-                        ));
+                    WriteError("AM-AUTH", e.Message);
                 }
                 catch (PathTooLongException e)
                 {
                     retVal = 1;
                     System.Diagnostics.Debug.WriteLine(e.ToString());
-                    WriteError(CreateBuildError(
-                        null,
-                        null,
-                        true,
-                        "AM-PATH",
-                        e.Message
-                        ));
+                    WriteError("AM-PATH", e.Message);
                 }
                 catch (SecurityException e)
                 {
                     retVal = 1;
                     System.Diagnostics.Debug.WriteLine(e.ToString());
-                    WriteError(CreateBuildError(
-                        null,
-                        null,
-                        true,
-                        "AM-SEC",
-                        e.Message
-                        ));
+                    WriteError("AM-SEC", e.Message);
                 }
                 catch (IOException e)
                 {
                     retVal = 1;
                     System.Diagnostics.Debug.WriteLine(e.ToString());
-                    WriteError(CreateBuildError(
-                        null,
-                        null,
-                        true,
-                        "AM-IO",
-                        e.Message
-                        ));
+                    WriteError("AM-IO", e.Message);
                 }
             }
 
@@ -2172,8 +2182,9 @@ namespace Microsoft.Ajax.Utilities
                 // if we haven't yet output our header, do so now
                 if (!m_headerWritten)
                 {
-                    outputStream.WriteLine(GetHeaderString());
-                    outputStream.WriteLine();
+                    // the header string will end with its own line-terminator, so we 
+                    // don't need to call WriteLine
+                    outputStream.Write(GetHeaderString());
                     m_headerWritten = true;
                 }
 
@@ -2203,30 +2214,47 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
-        /// Always writes string to stderr, even if in silent mode
+        /// Always write the string to stderr, even in silent mode
         /// </summary>
-        /// <param name="format">format string</param>
-        /// <param name="args">optional arguments</param>
-        private void WriteError(string format, params object[] args)
+        /// <param name="message">text to write</param>
+        private void WriteError(string message)
         {
             // don't output the header if in silent mode
             if (m_outputMode != ConsoleOutputMode.Silent && !m_headerWritten)
             {
-                Console.Error.WriteLine(GetHeaderString());
-                Console.Error.WriteLine();
+                // the header string will end with its own line-terminator, so we 
+                // don't need to call WriteLine
+                Console.Error.Write(GetHeaderString());
                 m_headerWritten = true;
             }
 
-            // try outputting the error message
-            try
-            {
-                Console.Error.WriteLine(format, args);
-            }
-            catch (FormatException)
-            {
-                // not enough args -- so don't use any
-                Console.Error.WriteLine(format);
-            }
+            // output the error message
+            Console.Error.WriteLine(message);
+        }
+
+        /// <summary>
+        /// Always writes string to stderr, even if in silent mode
+        /// </summary>
+        /// <param name="location">optional location string, uses assembly name if not provided</param>
+        /// <param name="subcategory">optional subcategory</param>
+        /// <param name="code">non-localized error code</param>
+        /// <param name="message">localized error message</param>
+        private void WriteError(string location, string subcategory, string code, string message)
+        {
+            // output the formatted error message
+            WriteError(CreateBuildError(location, subcategory, code, message));
+        }
+
+        /// <summary>
+        /// Always writes string to stderr, even if in silent mode.
+        /// Use default location and subcategory values.
+        /// </summary>
+        /// <param name="code">non-localized error code</param>
+        /// <param name="message">localized error message</param>
+        private void WriteError(string code, string message)
+        {
+            // output the formatted error message, passing null for location and subcategory
+            WriteError(null, null, code, message);
         }
 
         /// <summary>
@@ -2236,11 +2264,10 @@ namespace Microsoft.Ajax.Utilities
         /// </summary>
         /// <param name="location">source file(line,col), or empty for general tool error</param>
         /// <param name="subcategory">optional localizable subcategory (such as severity message)</param>
-        /// <param name="isError">will output "error" if true, "warning" if false</param>
         /// <param name="code">non-localizable code indicating the error -- cannot contain spaces</param>
         /// <param name="format">localized text for error, can contain format placeholders</param>
         /// <param name="args">optional arguments for the format string</param>
-        private static string CreateBuildError(string location, string subcategory, bool isError, string code, string message)
+        private static string CreateBuildError(string location, string subcategory, string code, string message)
         {
             // if we didn't specify a location string, just use the name of this tool
             if (string.IsNullOrEmpty(location))
@@ -2279,7 +2306,7 @@ namespace Microsoft.Ajax.Utilities
                 "{0}: {1}{2} {3}: {4}",
                 location, // not localized
                 subcategory, // localizable, optional
-                (isError ? "error" : "warning"), // NOT localized, only two options
+                "error", // NOT localized
                 code, // not localized, cannot contain spaces
                 message // localizable with optional arguments
                 );
@@ -2313,13 +2340,13 @@ namespace Microsoft.Ajax.Utilities
 
         private static long CalculateGzipSize(byte[] bytes)
         {
-            using (MemoryStream memoryStream = new MemoryStream())
+            using (var memoryStream = new MemoryStream())
             {
-                using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
+                using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
                 {
                     gzipStream.Write(bytes, 0, bytes.Length);
+                    return memoryStream.Position;
                 }
-                return memoryStream.Position;
             }
         }
 

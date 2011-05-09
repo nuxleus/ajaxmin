@@ -36,7 +36,7 @@ using System.Security;
 //[assembly: SecurityPermission(SecurityAction.RequestMinimum, Execution = true)]
 //[assembly: PermissionSet(SecurityAction.RequestOptional, Name = "Nothing")]
 //[assembly: SecurityCritical(SecurityCriticalScope.Explicit)]
-[assembly: AllowPartiallyTrustedCallers]
+//[assembly: AllowPartiallyTrustedCallers]
 
 // we are compliant and not visible to COM by default
 [assembly: System.CLSCompliant(true)]

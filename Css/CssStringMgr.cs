@@ -23,6 +23,12 @@ namespace Microsoft.Ajax.Utilities
     internal enum StringEnum
     {
         NoError = 0,
+        SeverityUnknown,
+        Severity0,
+        Severity1,
+        Severity2,
+        Severity3,
+        Severity4,
         UnknownError = 1000,
         UnterminatedComment,
         UnterminatedString,

@@ -140,7 +140,7 @@ namespace Microsoft.Ajax.Utilities
             m_value = value;
         }
 
-        public JSVariableField(JSVariableField outerField)
+        internal JSVariableField(JSVariableField outerField)
             : this(outerField.Name, outerField.Attributes, outerField.FieldValue)
         {
             m_outerField = outerField;

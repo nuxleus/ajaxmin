@@ -1,3 +1,8 @@
+// "Web" is the first identifier in one of the default lookup chains.
+// let's make sure the walk-up-the-chain code works if the AST members
+// end before the lookup chain ends
+Web("web");
+
 var i = new Image();
 
 while(0)
@@ -48,6 +53,9 @@ if ( !i ) { debugger }
 Web.Debug.Write("foo");
 Web.Debug.ASSERT("foo")();
 
+// an msn framework is also in the defaults
+Msn.Debug.Assert("message");
+
 // same for this one
 $Debug.Write("arf");
 
@@ -75,6 +83,12 @@ alert("DEBUG!");
 //@if(@DEBUG)
 foo(bar);
 //@end
+
+// some random calls that won't normally be stripped, but we'll use command-line switch
+// to turn some on or off
+FooBar.Write("this");
+AckBar.Assert("wakka-wakka");
+
 
 
 

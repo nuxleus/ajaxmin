@@ -124,14 +124,69 @@ namespace Microsoft.Ajax.Utilities
         }
         private Stack<ActivationObject> m_scopeStack;// = null;
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Ajax.Utilities.ContextError.#ctor(System.Boolean,System.Int32,System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String)")]
         internal bool OnCompilerError(JScriptException se)
         {
             if (CompilerError != null)
             {
-                CompilerError(this, new JScriptExceptionEventArgs(se));
+                // get the offending line
+                string line = se.LineText;
+
+                // get the offending context
+                string context = se.ErrorSegment;
+
+                // if the context is empty, use the whole line
+                if (string.IsNullOrEmpty(context))
+                {
+                    context = line;
+                }
+
+                CompilerError(this, new JScriptExceptionEventArgs(se, new ContextError(
+                    se.IsError,
+                    se.Severity,
+                    GetSeverityString(se.Severity),
+                    string.Format(CultureInfo.InvariantCulture, "JS{0}", (se.Error & (0xffff))),
+                    se.HelpLink,
+                    se.FileContext,
+                    se.Line,
+                    se.Column,
+                    se.EndLine,
+                    se.EndColumn,
+                    se.Message + ": " + context)));
             }
             //true means carry on with compilation.
             return se.CanRecover;
+        }
+
+        private static string GetSeverityString(int severity)
+        {
+            // From jscriptexception.js:
+            //
+            //guide: 0 == there will be a run-time error if this code executes
+            //       1 == the programmer probably did not intend to do this
+            //       2 == this can lead to problems in the future.
+            //       3 == this can lead to performance problems
+            //       4 == this is just not right
+            switch (severity)
+            {
+                case 0:
+                    return StringMgr.GetString("Severity0");
+
+                case 1:
+                    return StringMgr.GetString("Severity1");
+
+                case 2:
+                    return StringMgr.GetString("Severity2");
+
+                case 3:
+                    return StringMgr.GetString("Severity3");
+
+                case 4:
+                    return StringMgr.GetString("Severity4");
+
+                default:
+                    return StringMgr.GetString("SeverityUnknown", severity);
+            }
         }
 
         internal void OnUndefinedReference(UndefinedReferenceException ex)
@@ -168,7 +223,7 @@ namespace Microsoft.Ajax.Utilities
         /// </summary>
         /// <param name="source">JavaScript source to parse</param>
         /// <param name="globalVars">Obsolete - parameter IGNORED</param>
-        [Obsolete("This constructor is obsolete - set known global names via the CodeSettings object")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "globalVars"), Obsolete("This constructor is obsolete - set known global names via the CodeSettings object")]
         public JSParser(string source, string[] globalVars)
             : this(source)
         {

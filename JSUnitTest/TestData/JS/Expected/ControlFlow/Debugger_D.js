@@ -1,1 +1,1 @@
-var i=new Image;while(0);for(var p in i);for(var n=0;n<i.length;++n);do;while(0);try{i.src="foo"}catch(e){}finally{n=i}!i;if(!i)i=null;!i;var foo={};/*@cc_on@if(@DEBUG)@*/foo(bar);/*@end@*/
+Web("web");var i=new Image;while(0);for(var p in i);for(var n=0;n<i.length;++n);do;while(0);try{i.src="foo"}catch(e){}finally{n=i}!i;if(!i)i=null;!i;var foo={};/*@cc_on@if(@DEBUG)@*/foo(bar);/*@end@*/FooBar.Write("this");AckBar.Assert("wakka-wakka")

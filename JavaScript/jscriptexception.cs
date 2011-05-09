@@ -368,12 +368,20 @@ namespace Microsoft.Ajax.Utilities
 
     public class JScriptExceptionEventArgs : EventArgs
     {
-        private JScriptException m_exception;
-        public JScriptException Exception { get { return m_exception; } }
+        /// <summary>
+        /// The JavaScript error information being fired
+        /// </summary>
+        public ContextError Error { get; private set; }
 
-        public JScriptExceptionEventArgs(JScriptException exception)
+        /// <summary>
+        /// JScriptException object. Don't use this; might go away in future versions. Use Error property instead.
+        /// </summary>
+        public JScriptException Exception { get; private set; }
+
+        public JScriptExceptionEventArgs(JScriptException exception, ContextError error)
         {
-            m_exception = exception;
+            Error = error;
+            Exception = exception;
         }
     }
 

@@ -97,6 +97,9 @@ namespace Microsoft.Ajax.Utilities
         // whether to only preprocess (true), or to completely parse and analyze code (false)
         private bool m_preprocessOnly; // = false;
 
+        // list of identifier names to consider "debug" lookups
+        private List<string> m_debugLookups; // = null;
+
         #endregion
 
         #region file processing
@@ -104,6 +107,9 @@ namespace Microsoft.Ajax.Utilities
         private int ProcessJSFile(string sourceFileName, ResourceStrings resourceStrings, StringBuilder outputBuilder, ref bool lastEndedSemicolon, ref long sourceLength)
         {
             int retVal = 0;
+
+            // blank line before
+            WriteProgress();
 
             // read our chunk of code
             string source;
@@ -154,7 +160,7 @@ namespace Microsoft.Ajax.Utilities
             JSParser parser = new JSParser(source);
 
             // set up the file context for the parser
-            parser.FileContext = sourceFileName;
+            parser.FileContext = string.IsNullOrEmpty(sourceFileName) ? "stdin" : sourceFileName;
 
             // hook the engine events
             parser.CompilerError += OnCompilerError;
@@ -201,6 +207,13 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
 
+            // if the lookups collection is not null, replace any current lookups with
+            // whatever the collection is (which might be empty)
+            if (m_debugLookups != null)
+            {
+                settings.SetDebugLookups(m_debugLookups.ToArray());
+            }
+
             // cast the kill switch numeric value to the appropriate TreeModifications enumeration
             settings.KillSwitch = (TreeModifications)m_killSwitch;
 
@@ -217,6 +230,9 @@ namespace Microsoft.Ajax.Utilities
                 {
                     if (m_analyze)
                     {
+                        // blank line before
+                        WriteProgress();
+
                         // output our report
                         CreateReport(parser.GlobalScope);
                     }
@@ -429,7 +445,6 @@ namespace Microsoft.Ajax.Utilities
             }
             // write the unreferenced global report
             WriteUnrefedReport();
-            WriteProgress();
         }
 
         private ActivationObject[] GetAllFunctionScopes(GlobalScope globalScope)
@@ -839,57 +854,15 @@ namespace Microsoft.Ajax.Utilities
 
         private void OnCompilerError(object sender, JScriptExceptionEventArgs e)
         {
-            JScriptException error = e.Exception;
+            ContextError error = e.Error;
             // ignore severity values greater than our severity level
             if (error.Severity <= m_warningLevel)
             {
                 // we found an error
                 m_errorsFound = true;
 
-                // get the offending line
-                string line = error.LineText;
-
-                // get the offending context
-                string context = error.ErrorSegment;
-
-                // if the context is empty, use the whole line
-                if (context.Length == 0)
-                {
-                    context = line;
-                }
-
-                // the error code is the lower half of the error number, in decimal, prepended with "JS"
-                // again, NOT LOCALIZABLE so the format is not in the resources
-                string code = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "JS{0}",
-                    (error.Error & (0xffff))
-                    );
-
-                // the location is the file name followed by the line and start/end columns within parens.
-                // if the file context is empty, use "stdin" as the file name.
-                // this string is NOT LOCALIZABLE, so not putting the format in the resources
-                string location = string.Format(
-                    CultureInfo.InvariantCulture,
-                    "{0}({1},{2}-{3})",
-                    (string.IsNullOrEmpty(error.FileContext) ? "stdin" : error.FileContext),
-                    error.Line,
-                    error.StartColumn,
-                    error.EndColumn
-                    );
-
-                WriteError(CreateBuildError(
-                    location,
-                    GetSeverityString(error.Severity),
-                    (error.Severity < 2), // severity 0 and 1 are errors; rest are warnings
-                    code,
-                    error.Message + ": " + context // message, colon, context (which may be the entire line)
-                    ));
-                // Error;;{0}: {1}
-                //WriteError(StringMgr.GetString("ErrorLine1", GetSeverityString(error.Severity), error.Message));
-                // ;;At line {0}, col {1}-{2}: {3}
-                //WriteError(StringMgr.GetString("ErrorLine2", error.Line, error.StartColumn, error.EndColumn, context));
-                WriteError(string.Empty);
+                // write the error out
+                WriteError(error.ToString());
             }
         }
 
@@ -900,37 +873,6 @@ namespace Microsoft.Ajax.Utilities
                 m_undefined = new List<UndefinedReferenceException>();
             }
             m_undefined.Add(e.Exception);
-        }
-
-        private static string GetSeverityString(int severity)
-        {
-            // From jscriptexception.js:
-            //
-            //guide: 0 == there will be a run-time error if this code executes
-            //       1 == the programmer probably did not intend to do this
-            //       2 == this can lead to problems in the future.
-            //       3 == this can lead to performance problems
-            //       4 == this is just not right
-            switch (severity)
-            {
-                case 0:
-                    return StringMgr.GetString("Severity0");
-
-                case 1:
-                    return StringMgr.GetString("Severity1");
-
-                case 2:
-                    return StringMgr.GetString("Severity2");
-
-                case 3:
-                    return StringMgr.GetString("Severity3");
-
-                case 4:
-                    return StringMgr.GetString("Severity4");
-
-                default:
-                    return StringMgr.GetString("SeverityUnknown", severity);
-            }
         }
 
         #endregion

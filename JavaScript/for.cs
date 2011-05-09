@@ -25,6 +25,7 @@ namespace Microsoft.Ajax.Utilities
     {
         public AstNode Initializer { get; private set; }
         public AstNode Condition { get; private set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Incrementer")]
         public AstNode Incrementer { get; private set; }
         public Block Body { get; private set; }
 

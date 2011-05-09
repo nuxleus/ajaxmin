@@ -34,6 +34,7 @@ namespace Microsoft.Ajax.Utilities
         CrunchAll
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval")]
     public enum EvalTreatment
     {
         Ignore = 0,
@@ -61,7 +62,13 @@ namespace Microsoft.Ajax.Utilities
             this.AllowEmbeddedAspNetBlocks = false;
             this.EvalLiteralExpressions = true;
             this.ManualRenamesProperties = true;
+
+            // by default there are five names in the debug lookup collection
+            var initialList = new string[] { "Debug", "$Debug", "WAssert", "Msn.Debug", "Web.Debug" };
+            this.DebugLookups = new ReadOnlyCollection<string>(initialList);
         }
+
+        #region Manually rename
 
         /// <summary>
         /// dictionary of identifiers we want to manually rename
@@ -144,11 +151,6 @@ namespace Microsoft.Ajax.Utilities
         }
 
         /// <summary>
-        /// read-only collection of identifiers we do not want renamed
-        /// </summary>
-        public ReadOnlyCollection<string> NoAutoRenameIdentifiers { get; private set; }
-
-        /// <summary>
         /// Gets or sets a string representation of all the indentifier replacements as a comma-separated
         /// list of "source=target" identifiers.
         /// </summary>
@@ -190,6 +192,15 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
         }
+
+        #endregion
+
+        #region No automatic rename
+
+        /// <summary>
+        /// read-only collection of identifiers we do not want renamed
+        /// </summary>
+        public ReadOnlyCollection<string> NoAutoRenameIdentifiers { get; private set; }
 
         /// <summary>
         /// sets the collection of known global names to the array of string passed to this method
@@ -252,6 +263,10 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        #endregion
+
+        #region known globals
+        
         /// <summary>
         /// read-only collection of known global names
         /// </summary>
@@ -317,6 +332,10 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
         }
+
+        #endregion
+
+        #region Preprocessor defines
 
         /// <summary>
         /// Collection of names to define for the preprocessor
@@ -386,6 +405,108 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        #endregion
+
+        #region Debug lookups
+
+        /// <summary>
+        /// Collection of "debug" lookup identifiers
+        /// </summary>
+        public ReadOnlyCollection<string> DebugLookups { get; private set; }
+
+        /// <summary>
+        /// Set the collection of debug "lookup" identifiers
+        /// </summary>
+        /// <param name="definedNames">array of debug lookup identifier strings</param>
+        /// <returns>number of names successfully added to the collection</returns>
+        public int SetDebugLookups(params string[] debugLookups)
+        {
+            int numAdded = 0;
+            if (debugLookups == null)
+            {
+                DebugLookups = null;
+            }
+            else
+            {
+                // create a list with a capacity equal to the number of items in the array
+                var checkedNames = new List<string>(debugLookups.Length);
+
+                // validate that each name in the array is a valid JS identifier
+                foreach (var lookup in debugLookups)
+                {
+                    string trimmedName = lookup.Trim();
+
+                    // see if there is a period AFTER the first character. The string must START
+                    // with a valid JS identifier, so if it starts with a period, it's invalid anyway.
+                    if (trimmedName.IndexOf('.') > 0)
+                    {
+                        // there's a period -- this must be a member chain of valid JS identifiers
+                        var memberChain = trimmedName.Split('.');
+
+                        // assume it's good unless we find a bad identifier in the chain
+                        var isValid = true;
+                        foreach (var name in memberChain)
+                        {
+                            if (!JSScanner.IsValidIdentifier(name))
+                            {
+                                isValid = false;
+                                break;
+                            }
+                        }
+
+                        // if it's a valid chain, then we can add it to the list
+                        if (isValid && !checkedNames.Contains(trimmedName))
+                        {
+                            checkedNames.Add(trimmedName);
+                        }
+                    }
+                    else
+                    {
+                        // no period. must be a regular valid identifier.
+                        if (JSScanner.IsValidIdentifier(trimmedName) && !checkedNames.Contains(trimmedName))
+                        {
+                            checkedNames.Add(trimmedName);
+                        }
+                    }
+                }
+                DebugLookups = new ReadOnlyCollection<string>(checkedNames);
+                numAdded = checkedNames.Count;
+            }
+
+            return numAdded;
+        }
+
+        /// <summary>
+        /// string representation of the list of debug lookups, comma-separated
+        /// </summary>
+        public string DebugLookupList
+        {
+            get
+            {
+                // createa string builder and add each of the debug lookups to it
+                // one-by-one, separating them with a comma
+                var sb = new StringBuilder();
+                foreach (var debugLookup in DebugLookups)
+                {
+                    if (sb.Length > 0)
+                    {
+                        sb.Append(',');
+                    }
+                    sb.Append(debugLookup);
+                }
+                return sb.ToString();
+            }
+            set
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    SetDebugLookups(value.Split(','));
+                }
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Whether to allow embedded asp.net blocks.
         /// </summary>
@@ -446,6 +567,7 @@ namespace Microsoft.Ajax.Utilities
         /// Evaluate expressions containing only literal bool, string, numeric, or null values [true]
         /// Leave literal expressions alone and do not evaluate them [false]
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval")]
         public bool EvalLiteralExpressions
         {
             get;
@@ -456,6 +578,7 @@ namespace Microsoft.Ajax.Utilities
         /// Eval statements are safe and do not access local variables or functions [true]
         /// Code run by Eval statements may attempt to access local variables and functions [false]
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1704:IdentifiersShouldBeSpelledCorrectly", MessageId = "Eval")]
         public EvalTreatment EvalTreatment
         {
             get; set;
