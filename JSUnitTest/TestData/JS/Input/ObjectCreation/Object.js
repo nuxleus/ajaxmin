@@ -30,4 +30,13 @@ function Func(p1)
       get : 42,
       set:  "x"
     };
+
+    // end the list with a comma. We should remove it because it doesn't add anything to the object
+    var c = {
+        one: 1,
+        two: 2,
+    };
+
+    // make sure empty object literal is parsed properly
+    var d = {};
 }

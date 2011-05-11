@@ -12,4 +12,24 @@ function Func(p1)
     var arrayObj8 = new Array(arrayObj7.length);
     var arrayObj9 = new Array(arrayObj1);
     var arrayObj10= new Array(foo());
+
+    // missing items, ending with a single comma - for most browsers we could get rid of the trailing
+    // comma, HOWEVER -- some other browsers might [incorrectly] think the trailing comma means a missing
+    // value on the end. So leave it as-is -- the developer knows best.
+    var arrayObj11 = [1, , 3, 4,];
+
+    // missing items, ending with TWO commas - do NOT remove the trailing commas!
+    // the trailing commas affect the length of the array because we need to keep that
+    // missing value intact. This array has 5 elements.
+    var arrayObj12 = [1, , 3, 4, ,];
+
+    // Same with this one. This array has 6 elements.
+    var arrayObj13 = [1, , 3, 4, ,,     ];
+
+    // make sure the empty array literal is parsed okay
+    var arrayObj14 = [
+        ];
+
+    // make sure an array literal with a single missing value is parsed correctly
+    var arrayObj15 = [,];
 }

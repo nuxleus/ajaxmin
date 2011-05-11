@@ -3556,6 +3556,20 @@ namespace Microsoft.Ajax.Utilities
                                         ReportError(JSError.NoRightBracket);
                                     break;
                                 }
+                                else
+                                {
+                                    // we have a comma -- skip it
+                                    GetNextToken();
+
+                                    // if the next token is the closing brackets, then we need to
+                                    // add a missing value to the array because we end in a comma and
+                                    // we need to keep it for cross-platform compat.
+                                    // TECHNICALLY, that puts an extra item into the array for most modern browsers, but not ALL.
+                                    if (m_currentToken.Token == JSToken.RightBracket)
+                                    {
+                                        list.Append(new ConstantWrapper(Missing.Value, PrimitiveType.Other, m_currentToken.Clone(), this));
+                                    }
+                                }
                             }
                             catch (RecoveryTokenException exc)
                             {
@@ -3582,8 +3596,18 @@ namespace Microsoft.Ajax.Utilities
                         {
                             // comma -- missing array item in the list
                             list.Append(new ConstantWrapper(Missing.Value, PrimitiveType.Other, m_currentToken.Clone(), this));
+
+                            // skip over the comma
+                            GetNextToken();
+
+                            // if the next token is the closing brace, then we end with a comma -- and we need to
+                            // add ANOTHER missing value to make sure this last comma doesn't get left off.
+                            // TECHNICALLY, that puts an extra item into the array for most modern browsers, but not ALL.
+                            if (m_currentToken.Token == JSToken.RightBracket)
+                            {
+                                list.Append(new ConstantWrapper(Missing.Value, PrimitiveType.Other, m_currentToken.Clone(), this));
+                            }
                         }
-                        GetNextToken();
                     }
                     listCtx.UpdateWith(m_currentToken);
                     ast = new ArrayLiteral(listCtx, this, list);
@@ -3738,7 +3762,17 @@ namespace Microsoft.Ajax.Utilities
                                     else
                                     {
                                         if (JSToken.Comma == m_currentToken.Token)
+                                        {
+                                            // skip the comma
                                             GetNextToken();
+
+                                            // if the next token is the right-curly brace, then we ended 
+                                            // the list with a comma, which is perfectly fine
+                                            if (m_currentToken.Token == JSToken.RightCurly)
+                                            {
+                                                break;
+                                            }
+                                        }
                                         else
                                         {
                                             if (m_scanner.GotEndOfLine)
