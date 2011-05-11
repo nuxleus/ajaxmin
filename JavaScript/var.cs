@@ -138,13 +138,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                for (int ndx = 0; ndx < m_list.Count; ++ndx)
-                {
-                    if (m_list[ndx] != null)
-                    {
-                        yield return m_list[ndx];
-                    }
-                }
+                return EnumerateNonNullNodes(m_list);
             }
         }
 

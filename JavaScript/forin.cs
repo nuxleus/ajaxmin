@@ -73,18 +73,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_var != null)
-                {
-                    yield return m_var;
-                }
-                if (m_collection != null)
-                {
-                    yield return m_collection;
-                }
-                if (m_body != null)
-                {
-                    yield return m_body;
-                }
+                return EnumerateNonNullNodes(m_var, m_collection, m_body);
             }
         }
 

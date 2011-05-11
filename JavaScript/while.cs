@@ -68,14 +68,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (Condition != null)
-                {
-                    yield return Condition;
-                }
-                if (Body != null)
-                {
-                    yield return Body;
-                }
+                return EnumerateNonNullNodes(Condition, Body);
             }
         }
 

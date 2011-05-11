@@ -58,18 +58,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_condition != null)
-                {
-                    yield return m_condition;
-                }
-                if (m_trueExpression != null)
-                {
-                    yield return m_trueExpression;
-                }
-                if (m_falseExpression != null)
-                {
-                    yield return m_falseExpression;
-                }
+                return EnumerateNonNullNodes(m_condition, m_trueExpression, m_falseExpression);
             }
         }
 

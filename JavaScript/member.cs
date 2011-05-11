@@ -143,10 +143,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (Root != null)
-                {
-                    yield return Root;
-                }
+                return EnumerateNonNullNodes(Root);
             }
         }
 

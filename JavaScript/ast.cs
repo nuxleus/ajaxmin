@@ -40,6 +40,7 @@ namespace Microsoft.Ajax.Utilities
 
     public abstract class AstNode
     {
+        private static readonly IEnumerable<AstNode> s_emptyChildrenCollection = new AstNode[0];
         public AstNode Parent { get; set; }
         public Context Context { get; set; }
         public JSParser Parser { get; private set; }
@@ -141,10 +142,22 @@ namespace Microsoft.Ajax.Utilities
 
         public virtual IEnumerable<AstNode> Children
         {
-            get
+            get { return s_emptyChildrenCollection; }
+        }
+
+        internal static IEnumerable<AstNode> EnumerateNonNullNodes<T>(IList<T> nodes) where T: AstNode
+        {
+            for (int ndx = 0; ndx < nodes.Count; ++ndx)
             {
-                yield break;
+                if (nodes[ndx] != null)
+                {
+                    yield return nodes[ndx];
+                }
             }
+        }
+
+        internal static IEnumerable<AstNode> EnumerateNonNullNodes(AstNode n1, AstNode n2 = null, AstNode n3 = null, AstNode n4 = null) {
+            return EnumerateNonNullNodes(new[] { n1, n2, n3, n4 });
         }
 
         public bool IsWindowLookup

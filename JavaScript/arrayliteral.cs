@@ -56,10 +56,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_elements != null)
-                {
-                    yield return m_elements;
-                }
+                return EnumerateNonNullNodes(m_elements);
             }
         }
 

@@ -248,14 +248,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_expression != null)
-                {
-                    yield return m_expression;
-                }
-                if (m_cases != null)
-                {
-                    yield return m_cases;
-                }
+                return EnumerateNonNullNodes(m_expression, m_cases);
             }
         }
 

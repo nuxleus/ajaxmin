@@ -393,14 +393,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_func != null)
-                {
-                    yield return m_func;
-                }
-                if (m_args != null)
-                {
-                    yield return m_args;
-                }
+                return EnumerateNonNullNodes(m_func, m_args);
             }
         }
 

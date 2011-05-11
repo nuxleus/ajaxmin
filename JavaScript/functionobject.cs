@@ -348,10 +348,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (Body != null)
-                {
-                    yield return Body;
-                }
+                return EnumerateNonNullNodes(Body);
             }
         }
 

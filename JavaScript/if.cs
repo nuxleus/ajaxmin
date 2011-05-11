@@ -176,18 +176,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (Condition != null)
-                {
-                    yield return Condition;
-                }
-                if (TrueBlock != null)
-                {
-                    yield return TrueBlock;
-                }
-                if (FalseBlock != null)
-                {
-                    yield return FalseBlock;
-                }
+                return EnumerateNonNullNodes(Condition, TrueBlock, FalseBlock);
             }
         }
 

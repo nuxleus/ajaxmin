@@ -103,22 +103,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (Initializer != null)
-                {
-                    yield return Initializer;
-                }
-                if (Condition != null)
-                {
-                    yield return Condition;
-                }
-                if (Incrementer != null)
-                {
-                    yield return Incrementer;
-                }
-                if (Body != null)
-                {
-                    yield return Body;
-                }
+                return EnumerateNonNullNodes(Initializer, Condition, Incrementer, Body);
             }
         }
 

@@ -90,14 +90,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_withObject != null)
-                {
-                    yield return m_withObject;
-                }
-                if (m_block != null)
-                {
-                    yield return m_block;
-                }
+                return EnumerateNonNullNodes(m_withObject, m_block);
             }
         }
 

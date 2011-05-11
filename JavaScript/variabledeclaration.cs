@@ -215,10 +215,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_initializer != null)
-                {
-                    yield return m_initializer;
-                }
+                return EnumerateNonNullNodes(m_initializer);
             }
         }
 

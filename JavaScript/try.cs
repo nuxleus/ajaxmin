@@ -80,18 +80,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (TryBlock != null)
-                {
-                    yield return TryBlock;
-                }
-                if (CatchBlock != null)
-                {
-                    yield return CatchBlock;
-                }
-                if (FinallyBlock != null)
-                {
-                    yield return FinallyBlock;
-                }
+                return EnumerateNonNullNodes(TryBlock, CatchBlock, FinallyBlock);
             }
         }
 

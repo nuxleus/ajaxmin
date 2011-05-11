@@ -586,14 +586,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                for (int ndx = 0; ndx < m_list.Count; ++ndx)
-                {
-                    AstNode ast = m_list[ndx];
-                    if (ast != null)
-                    {
-                        yield return ast;
-                    }
-                }
+                return EnumerateNonNullNodes(m_list);
             }
         }
 
