@@ -136,6 +136,7 @@
     <Content Include="TestData\CSS\Expected\Selectors\CSS3.css" />
     <Content Include="TestData\CSS\Expected\Selectors\Grouping.css" />
     <Content Include="TestData\CSS\Expected\Selectors\Namespace.css" />
+    <Content Include="TestData\CSS\Expected\Selectors\NoSpaceUniversal.css" />
     <Content Include="TestData\CSS\Expected\Selectors\Not.css" />
     <Content Include="TestData\CSS\Expected\Selectors\PseudoClass_utf8.css" />
     <Content Include="TestData\CSS\Expected\Selectors\PseudoElement.css" />
@@ -196,6 +197,7 @@
     <Content Include="TestData\CSS\Input\Selectors\CSS3.css" />
     <Content Include="TestData\CSS\Input\Selectors\Grouping.css" />
     <Content Include="TestData\CSS\Input\Selectors\Namespace.css" />
+    <Content Include="TestData\CSS\Input\Selectors\NoSpaceUniversal.css" />
     <Content Include="TestData\CSS\Input\Selectors\Not.css" />
     <Content Include="TestData\CSS\Input\Selectors\PseudoElement.css" />
     <Content Include="TestData\CSS\Input\Selectors\PseudoClass.css" />

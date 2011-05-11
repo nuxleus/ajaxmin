@@ -1300,6 +1300,9 @@ namespace Microsoft.Ajax.Utilities
             Parsed parsed = ParseSimpleSelector();
             if (parsed == Parsed.True)
             {
+                // save whether or not we are skipping anything by checking the type before we skip
+                bool spaceWasSkipped = SkipIfSpace();
+
                 while (!m_scanner.EndOfFile)
                 {
                     Parsed parsedCombinator = ParseCombinator();
@@ -1307,14 +1310,14 @@ namespace Microsoft.Ajax.Utilities
                     {
                         // we know the selector ends with a comma or an open brace,
                         // so if the next token is one of those, we're done.
-                        // otherwise we're going to slap a space in the stream and
-                        // look for the next selector
+                        // otherwise we're going to slap a space in the stream (if we found one)
+                        // and look for the next selector
                         if (CurrentTokenType == TokenType.Character
                           && (CurrentTokenText == "," || CurrentTokenText == "{"))
                         {
                             break;
                         }
-                        else
+                        else if (spaceWasSkipped)
                         {
                             Append(' ');
                         }
@@ -1325,11 +1328,17 @@ namespace Microsoft.Ajax.Utilities
                         ReportError(0, StringEnum.ExpectedSelector, CurrentTokenText);
                         break;
                     }
+                    else
+                    {
+                        // save the "we skipped whitespace" flag before skipping the whitespace
+                        spaceWasSkipped = SkipIfSpace();
+                    }
                 }
             }
             return parsed;
         }
 
+        // does NOT skip whitespace after the selector
         private Parsed ParseSimpleSelector()
         {
             // the element name is optional
@@ -1358,14 +1367,6 @@ namespace Microsoft.Ajax.Utilities
                 {
                     break;
                 }
-            }
-            // if we found nothing, we don't want to skip whitespace.
-            // also, don't just call SkipSpace directly, since does a NextToken
-            // first, and we're already at the next token.
-            if (parsed == Parsed.True
-              && (CurrentTokenType == TokenType.Space || CurrentTokenType == TokenType.Comment))
-            {
-                SkipSpace();
             }
             return parsed;
         }
@@ -1586,6 +1587,13 @@ namespace Microsoft.Ajax.Utilities
                         SkipSpace();
                         // the argument of a NOT operator is a simple selector
                         parsed = ParseSimpleSelector();
+                        if (parsed != Parsed.True)
+                        {
+                            // TODO: error? shouldn't we ALWAYS have a simple select inside a not() function?
+                        }
+
+                        // skip any whitespace if we have it
+                        SkipIfSpace();
 
                         // don't forget the closing paren
                         if (CurrentTokenType != TokenType.Character
@@ -2389,6 +2397,10 @@ namespace Microsoft.Ajax.Utilities
 
         #region Skip... methods
 
+        /// <summary>
+        /// This method advances to the next token FIRST -- effectively skipping the current one -- 
+        /// and then skips any space tokens that FOLLOW it.
+        /// </summary>
         private void SkipSpace()
         {
             // move to the next token
@@ -2398,6 +2410,21 @@ namespace Microsoft.Ajax.Utilities
             {
                 NextToken();
             }
+        }
+
+        /// <summary>
+        /// This method only skips the space that is already the current token.
+        /// </summary>
+        /// <returns>true if space was skipped; false if the current token is not space</returns>
+        private bool SkipIfSpace()
+        {
+            bool tokenIsSpace = CurrentTokenType == TokenType.Space;
+            // while space, keep stepping
+            while (CurrentTokenType == TokenType.Space)
+            {
+                NextToken();
+            }
+            return tokenIsSpace;
         }
 
         private void SkipToEndOfStatement()

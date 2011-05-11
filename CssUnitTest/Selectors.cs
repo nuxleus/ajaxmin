@@ -89,5 +89,11 @@ namespace CssUnitTest
     {
         TestHelper.Instance.RunTest();
     }
+
+    [TestMethod]
+    public void NoSpaceUniversal()
+    {
+        TestHelper.Instance.RunTest();
+    }
   }
 }
