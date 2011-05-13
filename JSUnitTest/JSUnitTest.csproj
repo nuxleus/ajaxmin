@@ -186,6 +186,7 @@
     <Content Include="TestData\JS\Expected\FunctionCreation\BadLocation.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\BadSemicolon.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\FuncExpr.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\FunctionNames.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_h.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_hlock.js" />
@@ -350,6 +351,7 @@
     <Content Include="TestData\JS\Input\FunctionCreation\BadLocation.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\BadSemicolon.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\FuncExpr.js" />
+    <Content Include="TestData\JS\Input\FunctionCreation\FunctionNames.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\NamedFuncExpr.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\NewFunction.js" />
     <Content Include="TestData\JS\Input\FunctionCreation\VarArgList.js" />

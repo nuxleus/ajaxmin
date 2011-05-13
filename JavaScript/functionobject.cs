@@ -28,6 +28,13 @@ namespace Microsoft.Ajax.Utilities
         public FunctionType FunctionType { get; private set; }
 
         private ParameterDeclaration[] m_parameterDeclarations;
+        public ParameterDeclaration[] ParameterDeclarations
+        {
+            get
+            {
+                return m_parameterDeclarations;
+            }
+        }
 
         private bool m_leftHandFunction;// = false;
         public bool LeftHandFunctionExpression
@@ -111,8 +118,7 @@ namespace Microsoft.Ajax.Utilities
             m_identifier = identifier;
             if (m_identifier != null) { m_identifier.Parent = this; }
 
-            // make sure the parameter array is never null so we don't have to keep checking it
-            m_parameterDeclarations = parameterDeclarations ?? new ParameterDeclaration[0];
+            m_parameterDeclarations = parameterDeclarations;
 
             Body = bodyBlock;
             if (bodyBlock != null) { bodyBlock.Parent = this; }
@@ -254,51 +260,8 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public ParameterDeclaration[] GetParameterDeclarations()
-        {
-            return m_parameterDeclarations;
-        }
-
         public override AstNode Clone()
         {
-            /*
-            // create the function scope and push it on the stack
-            FunctionScope newScope = new FunctionScope(ScopeStack.Peek(), (m_functionType != FunctionType.Declaration),
-                                                       Parser);
-            ScopeStack.Push(newScope);
-            try
-            {
-                // create the parameter list
-                ParameterDeclaration[] newParameterList = new ParameterDeclaration[m_parameterDeclarations.Length];
-                for (int ndx = 0; ndx < m_parameterDeclarations.Length; ++ndx)
-                {
-                    if (m_parameterDeclarations[ndx] != null)
-                    {
-                        // creating the parameter declaration will add a field to the new function scope
-                        // use the uncrunched name so we can carry-forward the original
-                        newParameterList[ndx] = new ParameterDeclaration(
-                            m_parameterDeclarations[ndx].Context.Clone(),
-                            Parser,
-                            m_parameterDeclarations[ndx].OriginalName
-                            );
-                    }
-                }
-                // create the function object
-                return new FunctionObject(
-                    (m_identifier == null ? null : (Lookup) m_identifier.Clone()),
-                    Parser,
-                    m_functionType,
-                    newParameterList,
-                    (m_bodyBlock == null ? null : (Block) m_bodyBlock.Clone()),
-                    (Context == null ? null : Context.Clone()),
-                    newScope
-                    );
-            }
-            finally
-            {
-                ScopeStack.Pop();
-            }
-            */
             throw new NotImplementedException();
         }
 
@@ -422,50 +385,54 @@ namespace Microsoft.Ajax.Utilities
                     }
                 }
 
-                sb.Append('(');
-                if (m_parameterDeclarations.Length > 0)
+                if (m_parameterDeclarations != null)
                 {
-                    // figure out the last referenced argument so we can skip
-                    // any that aren't actually referenced
-                    int lastRef = m_parameterDeclarations.Length - 1;
-
-                    // if we're not known at compile time, then we can't leave off unreferenced parameters
-                    // (also don't leave things off if we're not hypercrunching)
-                    // (also check the kill flag for removing unused parameters)
-                    if (Parser.Settings.RemoveUnneededCode 
-                        && m_functionScope.IsKnownAtCompileTime 
-                        && Parser.Settings.MinifyCode
-                        && Parser.Settings.IsModificationAllowed(TreeModifications.RemoveUnusedParameters))
+                    sb.Append('(');
+                    if (m_parameterDeclarations.Length > 0)
                     {
-                        while (lastRef >= 0)
+                        // figure out the last referenced argument so we can skip
+                        // any that aren't actually referenced
+                        int lastRef = m_parameterDeclarations.Length - 1;
+
+                        // if we're not known at compile time, then we can't leave off unreferenced parameters
+                        // (also don't leave things off if we're not hypercrunching)
+                        // (also check the kill flag for removing unused parameters)
+                        if (Parser.Settings.RemoveUnneededCode
+                            && m_functionScope.IsKnownAtCompileTime
+                            && Parser.Settings.MinifyCode
+                            && Parser.Settings.IsModificationAllowed(TreeModifications.RemoveUnusedParameters))
                         {
-                            // we want to loop backwards until we either find a parameter that is referenced.
-                            // at that point, lastRef will be the index of the last referenced parameter so
-                            // we can output from 0 to lastRef
-                            JSArgumentField argumentField = m_parameterDeclarations[lastRef].Field;
-                            if (argumentField != null && !argumentField.IsReferenced)
+                            while (lastRef >= 0)
                             {
-                                --lastRef;
+                                // we want to loop backwards until we either find a parameter that is referenced.
+                                // at that point, lastRef will be the index of the last referenced parameter so
+                                // we can output from 0 to lastRef
+                                JSArgumentField argumentField = m_parameterDeclarations[lastRef].Field;
+                                if (argumentField != null && !argumentField.IsReferenced)
+                                {
+                                    --lastRef;
+                                }
+                                else
+                                {
+                                    // found a referenced parameter, or something weird -- stop looking
+                                    break;
+                                }
                             }
-                            else
+                        }
+
+                        for (int ndx = 0; ndx <= lastRef; ++ndx)
+                        {
+                            if (ndx > 0)
                             {
-                                // found a referenced parameter, or something weird -- stop looking
-                                break;
+                                sb.Append(',');
                             }
+                            sb.Append(m_parameterDeclarations[ndx].Name);
                         }
                     }
 
-                    for (int ndx = 0; ndx <= lastRef; ++ndx)
-                    {
-                        if (ndx > 0)
-                        {
-                            sb.Append(',');
-                        }
-                        sb.Append(m_parameterDeclarations[ndx].Name);
-                    }
+                    sb.Append(')');
                 }
 
-                sb.Append(')');
                 if (Body != null)
                 {
                     if (Body.Count == 0)
@@ -582,15 +549,19 @@ namespace Microsoft.Ajax.Utilities
             // referenced parameters after it.
             // if we find a referenced argument, then the parameter is not trimmable.
             JSArgumentField argumentField = null;
-            for (int index = m_parameterDeclarations.Length - 1; index >= 0; --index)
+            if (m_parameterDeclarations != null)
             {
-                argumentField = m_parameterDeclarations[index].Field;
-                if (argumentField != null
-                    && (argumentField == targetArgumentField || argumentField.IsReferenced))
+                for (int index = m_parameterDeclarations.Length - 1; index >= 0; --index)
                 {
-                    break;
+                    argumentField = m_parameterDeclarations[index].Field;
+                    if (argumentField != null
+                        && (argumentField == targetArgumentField || argumentField.IsReferenced))
+                    {
+                        break;
+                    }
                 }
             }
+
             // if the argument field we landed on is the same as the target argument field,
             // then we found the target argument BEFORE we found a referenced parameter. Therefore
             // the argument can be trimmed.

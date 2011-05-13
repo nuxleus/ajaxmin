@@ -100,5 +100,11 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest();
         }
+
+        [TestMethod()]
+        public void FunctionNames()
+        {
+            TestHelper.Instance.RunTest();
+        }
     }
 }

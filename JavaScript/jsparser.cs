@@ -2659,7 +2659,7 @@ namespace Microsoft.Ajax.Utilities
         private FunctionObject ParseFunction(FunctionType functionType, Context fncCtx)
         {
             Lookup name = null;
-            List<ParameterDeclaration> formalParameters;
+            List<ParameterDeclaration> formalParameters = null;
             Block body = null;
             bool inExpression = (functionType == FunctionType.Expression);
 
@@ -2690,7 +2690,8 @@ namespace Microsoft.Ajax.Utilities
 
                         // BUT if the current token is a left paren, we don't want to use it as the name.
                         // (fix for issue #14152)
-                        if (m_currentToken.Token != JSToken.LeftParenthesis)
+                        if (m_currentToken.Token != JSToken.LeftParenthesis
+                            && m_currentToken.Token != JSToken.LeftCurly)
                         {
                             identifier = m_currentToken.Code;
                             name = new Lookup(identifier, CurrentPositionContext(), this);
@@ -2716,100 +2717,137 @@ namespace Microsoft.Ajax.Utilities
 
             try
             {
-                formalParameters = new List<ParameterDeclaration>();
-                Context paramArrayContext = null;
                 // get the formal parameters
                 if (JSToken.LeftParenthesis != m_currentToken.Token)
-                    ReportError(JSError.NoLeftParenthesis);
-                GetNextToken();
-                // create the list of arguments and update the context
-                while (JSToken.RightParenthesis != m_currentToken.Token)
                 {
-                    if (paramArrayContext != null)
+                    // we expect a left paren at this point for standard cross-browser support.
+                    // BUT -- some versions of IE allow an object property expression to be a function name, like window.onclick. 
+                    // we still want to throw the error, because it syntax errors on most browsers, but we still want to
+                    // be able to parse it and return the intended results. 
+                    // Skip to the open paren and use whatever is in-between as the function name. Doesn't matter that it's 
+                    // an invalid identifier; it won't be accessible as a valid field anyway.
+                    bool expandedIndentifier = false;
+                    while (m_currentToken.Token != JSToken.LeftParenthesis
+                        && m_currentToken.Token != JSToken.LeftCurly
+                        && m_currentToken.Token != JSToken.Semicolon
+                        && m_currentToken.Token != JSToken.EndOfFile)
                     {
-                        ReportError(JSError.ParameterListNotLast, paramArrayContext, true);
-                        paramArrayContext = null;
-                    }
-                    String id = null;
-                    m_noSkipTokenSet.Add(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet);
-                    try
-                    {
-                        if (JSToken.ParameterArray == m_currentToken.Token)
-                        {
-                            paramArrayContext = m_currentToken.Clone();
-                            GetNextToken();
-                        }
-                        else if (JSToken.Identifier != m_currentToken.Token && (id = JSKeyword.CanBeIdentifier(m_currentToken.Token)) == null)
-                        {
-                            if (JSToken.LeftCurly == m_currentToken.Token)
-                            {
-                                ReportError(JSError.NoRightParenthesis);
-                                break;
-                            }
-                            else if (JSToken.Comma == m_currentToken.Token)
-                            {
-                                // We're missing an argument (or previous argument was malformed and
-                                // we skipped to the comma.)  Keep trying to parse the argument list --
-                                // we will skip the comma below.
-                                ReportError(JSError.SyntaxError, true);
-                            }
-                            else
-                            {
-                                ReportError(JSError.SyntaxError, true);
-                                SkipTokensAndThrow();
-                            }
-                        }
-                        else
-                        {
-                            if (null == id)
-                                id = m_scanner.GetIdentifier();
-                            else
-                                ForceReportInfo(JSError.KeywordUsedAsIdentifier);
-                            Context paramCtx = m_currentToken.Clone();
-                            GetNextToken();
-
-                            formalParameters.Add(new ParameterDeclaration(paramCtx, this, id));
-                        }
-
-                        // got an arg, it should be either a ',' or ')'
-                        if (JSToken.RightParenthesis == m_currentToken.Token)
-                            break;
-                        else if (JSToken.Comma != m_currentToken.Token)
-                        {
-                            // deal with error in some "intelligent" way
-                            if (JSToken.LeftCurly == m_currentToken.Token)
-                            {
-                                ReportError(JSError.NoRightParenthesis);
-                                break;
-                            }
-                            else
-                            {
-                                if (JSToken.Identifier == m_currentToken.Token)
-                                {
-                                    // it's possible that the guy was writing the type in C/C++ style (i.e. int x)
-                                    ReportError(JSError.NoCommaOrTypeDefinitionError);
-                                }
-                                else
-                                    ReportError(JSError.NoComma);
-                            }
-                        }
+                        name.Context.UpdateWith(m_currentToken);
                         GetNextToken();
+                        expandedIndentifier = true;
                     }
-                    catch (RecoveryTokenException exc)
+
+                    // if we actually expanded the identifier context, then we want to report that
+                    // the function name needs to be an indentifier. Otherwise we didn't expand the 
+                    // name, so just report that we expected an open parent at this point.
+                    if (expandedIndentifier)
                     {
-                        if (IndexOfToken(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet, exc) == -1)
-                            throw;
+                        name.Name = name.Context.Code;
+                        name.Context.HandleError(JSError.FunctionNameMustBeIdentifier, true);
                     }
-                    finally
+                    else
                     {
-                        m_noSkipTokenSet.Remove(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet);
+                        ReportError(JSError.NoLeftParenthesis, true);
                     }
                 }
-                fncCtx.UpdateWith(m_currentToken);
-                GetNextToken();
+
+                if (m_currentToken.Token == JSToken.LeftParenthesis)
+                {
+                    // skip the open paren
+                    GetNextToken();
+
+                    Context paramArrayContext = null;
+                    formalParameters = new List<ParameterDeclaration>();
+
+                    // create the list of arguments and update the context
+                    while (JSToken.RightParenthesis != m_currentToken.Token)
+                    {
+                        if (paramArrayContext != null)
+                        {
+                            ReportError(JSError.ParameterListNotLast, paramArrayContext, true);
+                            paramArrayContext = null;
+                        }
+                        String id = null;
+                        m_noSkipTokenSet.Add(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet);
+                        try
+                        {
+                            if (JSToken.ParameterArray == m_currentToken.Token)
+                            {
+                                paramArrayContext = m_currentToken.Clone();
+                                GetNextToken();
+                            }
+                            else if (JSToken.Identifier != m_currentToken.Token && (id = JSKeyword.CanBeIdentifier(m_currentToken.Token)) == null)
+                            {
+                                if (JSToken.LeftCurly == m_currentToken.Token)
+                                {
+                                    ReportError(JSError.NoRightParenthesis);
+                                    break;
+                                }
+                                else if (JSToken.Comma == m_currentToken.Token)
+                                {
+                                    // We're missing an argument (or previous argument was malformed and
+                                    // we skipped to the comma.)  Keep trying to parse the argument list --
+                                    // we will skip the comma below.
+                                    ReportError(JSError.SyntaxError, true);
+                                }
+                                else
+                                {
+                                    ReportError(JSError.SyntaxError, true);
+                                    SkipTokensAndThrow();
+                                }
+                            }
+                            else
+                            {
+                                if (null == id)
+                                    id = m_scanner.GetIdentifier();
+                                else
+                                    ForceReportInfo(JSError.KeywordUsedAsIdentifier);
+                                Context paramCtx = m_currentToken.Clone();
+                                GetNextToken();
+
+                                formalParameters.Add(new ParameterDeclaration(paramCtx, this, id));
+                            }
+
+                            // got an arg, it should be either a ',' or ')'
+                            if (JSToken.RightParenthesis == m_currentToken.Token)
+                                break;
+                            else if (JSToken.Comma != m_currentToken.Token)
+                            {
+                                // deal with error in some "intelligent" way
+                                if (JSToken.LeftCurly == m_currentToken.Token)
+                                {
+                                    ReportError(JSError.NoRightParenthesis);
+                                    break;
+                                }
+                                else
+                                {
+                                    if (JSToken.Identifier == m_currentToken.Token)
+                                    {
+                                        // it's possible that the guy was writing the type in C/C++ style (i.e. int x)
+                                        ReportError(JSError.NoCommaOrTypeDefinitionError);
+                                    }
+                                    else
+                                        ReportError(JSError.NoComma);
+                                }
+                            }
+                            GetNextToken();
+                        }
+                        catch (RecoveryTokenException exc)
+                        {
+                            if (IndexOfToken(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet, exc) == -1)
+                                throw;
+                        }
+                        finally
+                        {
+                            m_noSkipTokenSet.Remove(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet);
+                        }
+                    }
+
+                    fncCtx.UpdateWith(m_currentToken);
+                    GetNextToken();
+                }
 
                 // read the function body of non-abstract functions.
-
                 if (JSToken.LeftCurly != m_currentToken.Token)
                     ReportError(JSError.NoLeftCurly, true);
 
@@ -2851,7 +2889,7 @@ namespace Microsoft.Ajax.Utilities
                           name,
                           this,
                           (inExpression ? FunctionType.Expression : FunctionType.Declaration),
-                          formalParameters.ToArray(),
+                          formalParameters == null ? null : formalParameters.ToArray(),
                           body,
                           fncCtx,
                           functionScope
@@ -2879,14 +2917,13 @@ namespace Microsoft.Ajax.Utilities
             }
 
             return new FunctionObject(
-              name,
-              this,
-              functionType,
-              formalParameters.ToArray(),
-              body,
-              fncCtx,
-              functionScope
-              );
+                name,
+                this,
+                functionType,
+                formalParameters == null ? null : formalParameters.ToArray(),
+                body,
+                fncCtx,
+                functionScope);
         }
 
         //---------------------------------------------------------------------------------------

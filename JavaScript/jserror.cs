@@ -96,6 +96,7 @@ namespace Microsoft.Ajax.Utilities
 		UnterminatedAspNetBlock = 1283, // Unterminated asp.net block.
         MisplacedFunctionDeclaration = 1284, // function declaration other than where SourceElements are expected
         OctalLiteralsDeprecated = 1285, // octal literal encountered; possible cross-browser issues
+        FunctionNameMustBeIdentifier = 1286, // function names must be a single identifier
 
         //5000 - 6000 JScript errors that can occur during execution. Typically (also) used in "throw new JScriptException".
         IllegalAssignment = 5008, // "Illegal assignment"
