@@ -964,5 +964,11 @@ namespace Microsoft.Ajax.Utilities
         /// Use preprocessor defines and the ///#IFDEF directive
         /// </summary>
         PreprocessorDefines                         = 0x0000000100000000,
+
+        /// <summary>
+        /// Remove the quotes arounf objectl literal property names when
+        /// the names are valid identifiers.
+        /// </summary>
+        RemoveQuotesFromObjectLiteralNames          = 0x0000000200000000,
     }
 }

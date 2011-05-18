@@ -45,7 +45,8 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToCode(ToCodeFormat format)
         {
-            if (PrimitiveType == PrimitiveType.String)
+            if (PrimitiveType == PrimitiveType.String
+                && Parser.Settings.IsModificationAllowed(TreeModifications.RemoveQuotesFromObjectLiteralNames))
             {
                 string rawValue = Value.ToString();
 
