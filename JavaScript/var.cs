@@ -235,7 +235,6 @@ namespace Microsoft.Ajax.Utilities
             StringBuilder sb = new StringBuilder();
             sb.Append("var ");
             Parser.Settings.Indent();
-            bool useNewline = !(Parent is ForNode || Parent is ForIn);
 
             bool first = true;
             for (int ndx = 0; ndx < m_list.Count; ++ndx)
@@ -246,10 +245,7 @@ namespace Microsoft.Ajax.Utilities
                     if (!first)
                     {
                         sb.Append(',');
-                        if (useNewline)
-                        {
-                            Parser.Settings.NewLine(sb);
-                        }
+                        Parser.Settings.NewLine(sb);
                     }
                     sb.Append(vdecl.ToCode());
                     first = false;
