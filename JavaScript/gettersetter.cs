@@ -30,12 +30,13 @@ namespace Microsoft.Ajax.Utilities
             m_isGetter = isGetter;
         }
 
-        /*
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-          return new GetterSetter(m_identifier, m_isGetter, Context.Clone(), Parser);
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
-        */
 
         public override string ToCode(ToCodeFormat format)
         {

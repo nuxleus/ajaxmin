@@ -31,19 +31,12 @@ namespace Microsoft.Ajax.Utilities
             m_list = new List<AstNode>();
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            // create a new empty list
-            AstNodeList newList = new AstNodeList((Context == null ? null : Context.Clone()), Parser);
-            // and clone all the items into it (skipping nulls)
-            for (int ndx = 0; ndx < m_list.Count; ++ndx)
+            if (visitor != null)
             {
-                if (m_list[ndx] != null)
-                {
-                    newList.Append(m_list[ndx].Clone());
-                }
+                visitor.Visit(this);
             }
-            return newList;
         }
 
         public int Count

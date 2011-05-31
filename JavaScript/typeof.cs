@@ -23,13 +23,12 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new TypeOfNode(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (Operand == null ? null : Operand.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)
@@ -49,51 +48,6 @@ namespace Microsoft.Ajax.Utilities
             {
                 // don't need the space
                 return "typeof" + operandString;
-            }
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                // see if our operand is a ConstantWrapper
-                ConstantWrapper literalOperand = Operand as ConstantWrapper;
-                if (literalOperand != null)
-                {
-                    // either number, string, boolean, or null.
-                    // the operand is a literal. Therefore we already know what the typeof
-                    // operator will return. Just short-circuit that behavior now and replace the operator
-                    // with a string literal of the proper value
-                    string typeName = null;
-                    if (literalOperand.IsStringLiteral)
-                    {
-                        // "string"
-                        typeName = "string";
-                    }
-                    else if (literalOperand.IsNumericLiteral)
-                    {
-                        // "number"
-                        typeName = "number";
-                    }
-                    else if (literalOperand.IsBooleanLiteral)
-                    {
-                        // "boolean"
-                        typeName = "boolean";
-                    }
-                    else if (literalOperand.Value == null)
-                    {
-                        // "object"
-                        typeName = "object";
-                    }
-
-                    if (!string.IsNullOrEmpty(typeName))
-                    {
-                        Parent.ReplaceChild(this, new ConstantWrapper(typeName, PrimitiveType.String, Context, Parser));
-                    }
-                }
             }
         }
     }

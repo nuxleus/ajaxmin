@@ -21,51 +21,26 @@ namespace Microsoft.Ajax.Utilities
 {
     public sealed class ForIn : AstNode
     {
-        private AstNode m_var;
-        private AstNode m_collection;
-        private Block m_body;
+        public AstNode Variable { get; private set; }
+        public AstNode Collection { get; private set; }
+        public Block Body { get; private set; }
 
         public ForIn(Context context, JSParser parser, AstNode var, AstNode collection, AstNode body)
             : base(context, parser)
         {
-            m_var = var;
-            m_collection = collection;
-            m_body = ForceToBlock(body);
-            if (m_body != null) m_body.Parent = this;
-            if (m_var != null) m_var.Parent = this;
-            if (m_collection != null) m_collection.Parent = this;
+            Variable = var;
+            Collection = collection;
+            Body = ForceToBlock(body);
+            if (Body != null) Body.Parent = this;
+            if (Variable != null) Variable.Parent = this;
+            if (Collection != null) Collection.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ForIn(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (m_var == null ? null : m_var.Clone()),
-                (m_collection == null ? null : m_collection.Clone()),
-                (m_body == null ? null : m_body.Clone())
-                );
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // if we are stripping debugger statements and the body is
-            // just a debugger statement, replace it with a null
-            if (Parser.Settings.StripDebugStatements
-                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
-                 && m_body != null 
-                 && m_body.IsDebuggerStatement)
+            if (visitor != null)
             {
-                m_body = null;
-            }
-
-            // recurse
-            base.AnalyzeNode();
-
-            // if the body is now empty, make it null
-            if (m_body != null && m_body.Count == 0)
-            {
-                m_body = null;
+                visitor.Visit(this);
             }
         }
 
@@ -73,28 +48,28 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return EnumerateNonNullNodes(m_var, m_collection, m_body);
+                return EnumerateNonNullNodes(Variable, Collection, Body);
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_var == oldNode)
+            if (Variable == oldNode)
             {
-                m_var = newNode;
+                Variable = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_collection == oldNode)
+            if (Collection == oldNode)
             {
-                m_collection = newNode;
+                Collection = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_body == oldNode)
+            if (Body == oldNode)
             {
-                m_body = ForceToBlock(newNode);
-                if (m_body != null) { m_body.Parent = this; }
+                Body = ForceToBlock(newNode);
+                if (Body != null) { Body.Parent = this; }
                 return true;
             }
             return false;
@@ -103,7 +78,7 @@ namespace Microsoft.Ajax.Utilities
         internal override bool EncloseBlock(EncloseBlockType type)
         {
             // pass the query on to the body
-            return m_body == null ? false : m_body.EncloseBlock(type);
+            return Body == null ? false : Body.EncloseBlock(type);
         }
 
         internal override bool RequiresSeparator
@@ -111,7 +86,7 @@ namespace Microsoft.Ajax.Utilities
             get
             {
                 // requires a separator if the body does
-                return m_body == null ? true : m_body.RequiresSeparator;
+                return Body == null ? true : Body.RequiresSeparator;
             }
         }
 
@@ -119,7 +94,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return m_body == null ? true : m_body.EndsWithEmptyBlock;
+                return Body == null ? true : Body.EndsWithEmptyBlock;
             }
         }
 
@@ -128,7 +103,7 @@ namespace Microsoft.Ajax.Utilities
             StringBuilder sb = new StringBuilder();
             sb.Append("for(");
 
-            string var = m_var.ToCode();
+            string var = Variable.ToCode();
             sb.Append(var);
             if (JSScanner.EndsWithIdentifierPart(var))
             {
@@ -136,18 +111,18 @@ namespace Microsoft.Ajax.Utilities
             }
             sb.Append("in");
 
-            string collection = m_collection.ToCode();
+            string collection = Collection.ToCode();
             if (JSScanner.StartsWithIdentifierPart(collection))
             {
                 sb.Append(' ');
             }
-            sb.Append(m_collection.ToCode());
+            sb.Append(Collection.ToCode());
             sb.Append(')');
 
             string bodyString = (
-              m_body == null
+              Body == null
               ? string.Empty
-              : m_body.ToCode()
+              : Body.ToCode()
               );
             sb.Append(bodyString);
             return sb.ToString();

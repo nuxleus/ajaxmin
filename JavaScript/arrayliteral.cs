@@ -31,15 +31,6 @@ namespace Microsoft.Ajax.Utilities
             if (m_elements != null) { m_elements.Parent = this; }
         }
 
-        public override AstNode Clone()
-        {
-            return new ArrayLiteral(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              (m_elements == null ? null : (AstNodeList)m_elements.Clone())
-              );
-        }
-
         public override string ToCode(ToCodeFormat format)
         {
             StringBuilder sb = new StringBuilder();
@@ -57,6 +48,14 @@ namespace Microsoft.Ajax.Utilities
             get
             {
                 return EnumerateNonNullNodes(m_elements);
+            }
+        }
+
+        public override void Accept(IVisitor visitor)
+        {
+            if (visitor != null)
+            {
+                visitor.Visit(this);
             }
         }
 

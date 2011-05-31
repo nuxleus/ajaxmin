@@ -44,15 +44,12 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new LabeledStatement(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              m_label,
-              m_nestCount,
-              (m_statement == null ? null : m_statement.Clone())
-              );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal override bool RequiresSeparator

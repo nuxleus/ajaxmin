@@ -21,7 +21,6 @@ namespace Microsoft.Ajax.Utilities
     {
         //0 - 1000 legacy scripting errors, not JScript specific.
         NoError = 0,
-        InternalError = 51, // "Internal error"
 
         //1000 - 2000 JScript errors that occur during compilation only. (regard Eval and Function as compilation). Typically used only in HandleError.
         SyntaxError = 1002, // "Syntax error"
@@ -48,8 +47,6 @@ namespace Microsoft.Ajax.Utilities
         NoMemberIdentifier = 1028, // "Expected identifier or string"
         NoCCEnd = 1029, // "Expected '@end'"
         CCOff = 1030, // "Conditional compilation is turned off"
-        NotConst = 1031, // "Expected constant"
-        NoAt = 1032, // "Expected '@'"
         NoCatch = 1033, // "Expected 'catch'"
         InvalidElse = 1034, // "Unmatched 'else'; no 'if' defined"
         NoComma = 1100, // "Expected ','"
@@ -59,12 +56,7 @@ namespace Microsoft.Ajax.Utilities
         CCInvalidElseIf = 1106, // "Unmatched '@elif'; no '@if' defined"
         ErrorEndOfFile = 1107, // "Expecting more source characters"
         DuplicateName = 1111, // "Identifier already in use"
-        InvalidPositionDirective = 1114, // "Unknown position directive"
-        MustBeEndOfLine = 1115, // "Directive may not be followed by other code on the same line"
-        WrongDirective = 1118, // "Wrong debugger directive or wrong position for the directive"
-        CannotNestPositionDirective = 1119, // "Position directive must be ended before a new one can be started"
         UndeclaredVariable = 1135, // "Variable has not been declared"
-        VariableLeftUninitialized = 1136, // "Uninitialized variables are dangerous and slow to use. Did you intend to leave it uninitialized?"
         KeywordUsedAsIdentifier = 1137, // "'xxxx' is a new reserved word and should not be used as an identifier"
         UndeclaredFunction = 1138, // "Function has not been declared"
         NoCommaOrTypeDefinitionError = 1191, // "Expected ',' or illegal type declaration, write '<Identifier> : <Type>' not '<Type> <Identifier>'"
@@ -73,11 +65,9 @@ namespace Microsoft.Ajax.Utilities
         ExpressionExpected = 1195, // "Expected expression"
         UnexpectedSemicolon = 1196, // "Unexpected ';'"
         TooManyTokensSkipped = 1197, // "Too many tokens have been skipped in the process of recovering from errors. The file may not be a JScript.NET file"
-        DoesNotHaveAnAddress = 1203, //"Expression does not have an address"
         SuspectAssignment = 1206, //"Did you intend to write an assignment here?"
         SuspectSemicolon = 1207, //"Did you intend to have an empty statement for this branch of the if statement?"
         ParameterListNotLast = 1240, //"A variable argument list must be the last argument
-        CCInvalidInDebugger = 1256, //"Conditional compilation directives and variables cannot be used in the debugger"
         StatementBlockExpected = 1267, //"A statement block is expected"
         VariableDefinedNotReferenced = 1268, //"A variabled was defined but not set or referenced"
         ArgumentNotReferenced = 1270, //"Argument was defined but not referenced"

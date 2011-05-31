@@ -139,6 +139,9 @@
     <Compile Include="..\JavaScript\activationobject.cs">
       <Link>JavaScript\activationobject.cs</Link>
     </Compile>
+    <Compile Include="..\JavaScript\AnalyzeNodeVisitor.cs">
+      <Link>JavaScript\AnalyzeNodeVisitor.cs</Link>
+    </Compile>
     <Compile Include="..\JavaScript\arrayliteral.cs">
       <Link>JavaScript\arrayliteral.cs</Link>
     </Compile>
@@ -229,6 +232,12 @@
     <Compile Include="..\JavaScript\eval.cs">
       <Link>JavaScript\eval.cs</Link>
     </Compile>
+    <Compile Include="..\JavaScript\EvaluateLiteralVisitor.cs">
+      <Link>JavaScript\EvaluateLiteralVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\JavaScript\FinalPassVisitor.cs">
+      <Link>JavaScript\FinalPassVisitor.cs</Link>
+    </Compile>
     <Compile Include="..\JavaScript\for.cs">
       <Link>JavaScript\for.cs</Link>
     </Compile>
@@ -255,6 +264,9 @@
     </Compile>
     <Compile Include="..\JavaScript\importantcomment.cs">
       <Link>JavaScript\importantcomment.cs</Link>
+    </Compile>
+    <Compile Include="..\JavaScript\IVisitor.cs">
+      <Link>JavaScript\IVisitor.cs</Link>
     </Compile>
     <Compile Include="..\JavaScript\jsargumentfield.cs">
       <Link>JavaScript\jsargumentfield.cs</Link>
@@ -351,6 +363,9 @@
     </Compile>
     <Compile Include="..\JavaScript\throw.cs">
       <Link>JavaScript\throw.cs</Link>
+    </Compile>
+    <Compile Include="..\JavaScript\TreeVisitor.cs">
+      <Link>JavaScript\TreeVisitor.cs</Link>
     </Compile>
     <Compile Include="..\JavaScript\try.cs">
       <Link>JavaScript\try.cs</Link>

@@ -40,9 +40,13 @@ namespace Microsoft.Ajax.Utilities
                 return m_statements.Count > 0 ? m_statements[m_statements.Count - 1].RequiresSeparator : true;
             }
         }
-        public override AstNode Clone()
+
+        public override void Accept(IVisitor visitor)
         {
-            throw new NotImplementedException();
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public void Append(AstNode statement)

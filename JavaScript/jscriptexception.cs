@@ -61,7 +61,7 @@ namespace Microsoft.Ajax.Utilities
         {
             m_valueObject = Missing.Value;
             m_context = (context == null ? null : context.Clone());
-            m_fileContext = (context == null ? null : context.FileContext);
+            m_fileContext = (context == null ? null : context.Document.FileContext);
             m_code = HResult = unchecked((int)(0x800A0000 + (int)errorNumber));
         }
 
@@ -207,7 +207,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return (m_context == null ? string.Empty : m_context.SourceString);
+                return (m_context == null ? string.Empty : m_context.Document.Source);
             }
         }
 
@@ -219,7 +219,7 @@ namespace Microsoft.Ajax.Utilities
                 if (m_context != null)
                 {
                     int lineStart = m_context.StartLinePosition;
-                    string source = m_context.SourceString;
+                    string source = m_context.Document.Source;
 
                     if (lineStart < source.Length)
                     {
@@ -253,21 +253,22 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
+                string source = m_context.Document.Source;
                 // just pull out the string that's between start position and end position
-                if (m_context.StartPosition >= m_context.SourceString.Length)
+                if (m_context.StartPosition >= source.Length)
                 {
                     return string.Empty;
                 }
                 else
                 {
                     int length = m_context.EndPosition - m_context.StartPosition;
-                    if (m_context.StartPosition + length <= m_context.SourceString.Length)
+                    if (m_context.StartPosition + length <= source.Length)
                     {
-                        return m_context.SourceString.Substring(m_context.StartPosition, length).Trim();
+                        return source.Substring(m_context.StartPosition, length).Trim();
                     }
                     else
                     {
-                        return m_context.SourceString.Substring(m_context.StartPosition).Trim();
+                        return source.Substring(m_context.StartPosition).Trim();
                     }
                 }
             }
@@ -311,7 +312,6 @@ namespace Microsoft.Ajax.Utilities
                         case JSError.UndeclaredFunction:
                         case JSError.UndeclaredVariable:
                         case JSError.VariableDefinedNotReferenced:
-                        case JSError.VariableLeftUninitialized:
                             return StringMgr.GetString(code, m_context.Code);
                     }
                 }
@@ -350,7 +350,6 @@ namespace Microsoft.Ajax.Utilities
                         case JSError.SuspectSemicolon: return 4;
                         case JSError.UndeclaredFunction: return 3;
                         case JSError.UndeclaredVariable: return 3;
-                        case JSError.VariableLeftUninitialized: return 3;
                         case JSError.VariableDefinedNotReferenced: return 3;
                         case JSError.WithNotRecommended: return 4;
                         case JSError.ObjectConstructorTakesNoArguments: return 4;

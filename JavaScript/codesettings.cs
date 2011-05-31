@@ -970,5 +970,12 @@ namespace Microsoft.Ajax.Utilities
         /// the names are valid identifiers.
         /// </summary>
         RemoveQuotesFromObjectLiteralNames          = 0x0000000200000000,
+
+        /// <summary>
+        /// Change boolean literals to not operators.
+        /// true  -> !0
+        /// false -> !1
+        /// </summary>
+        BooleanLiteralsToNotOperators               = 0x0000000400000000,
     }
 }

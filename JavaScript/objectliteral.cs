@@ -22,10 +22,10 @@ namespace Microsoft.Ajax.Utilities
     public sealed class ObjectLiteral : AstNode
     {
         private ObjectLiteralField[] m_keys;
-        //public ObjectLiteralField[] Keys { get { return m_keys; } }
+        public IList<ObjectLiteralField> Keys { get { return m_keys; } }
 
         private AstNode[] m_values;
-        //public AstNode[] Values { get { return m_values; } }
+        public IList<AstNode> Values { get { return m_values; } }
 
         // return the length of the keys, since we can't set the keys or values with differing lengths,
         // returning one should be the same for both
@@ -62,25 +62,12 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            // we need to manually clone the keys and values, so determine
-            // the minimum length, allocate the arrays, and clone each item
-            int count = (m_keys.Length < m_values.Length ? m_keys.Length : m_values.Length);
-            ObjectLiteralField[] clonedKeys = new ObjectLiteralField[count];
-            AstNode[] clonedValues = new AstNode[count];
-            for (int ndx = 0; ndx < count; ++ndx)
+            if (visitor != null)
             {
-                clonedKeys[ndx] = (ObjectLiteralField)m_keys[ndx].Clone();
-                clonedValues[ndx] = m_values[ndx].Clone();
+                visitor.Visit(this);
             }
-
-            return new ObjectLiteral(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                clonedKeys,
-                clonedValues
-                );
         }
 
         public override IEnumerable<AstNode> Children

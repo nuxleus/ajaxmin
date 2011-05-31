@@ -42,16 +42,12 @@ namespace Microsoft.Ajax.Utilities
             if (Initializer != null) Initializer.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ForNode(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (Initializer == null ? null : Initializer.Clone()),
-                (Condition == null ? null : Condition.Clone()),
-                (Incrementer == null ? null : Incrementer.Clone()),
-                (Body == null ? null : Body.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 		
 		internal override bool RequiresSeparator
@@ -75,28 +71,6 @@ namespace Microsoft.Ajax.Utilities
         {
             // pass the query on to the body
             return Body == null ? false : Body.EncloseBlock(type);
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // if we are stripping debugger statements and the body is
-            // just a debugger statement, replace it with a null
-            if (Parser.Settings.StripDebugStatements
-                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
-                 && Body != null 
-                 && Body.IsDebuggerStatement)
-            {
-                Body = null;
-            }
-
-            // recurse
-            base.AnalyzeNode();
-
-            // if the body is now empty, make it null
-            if (Body != null && Body.Count == 0)
-            {
-                Body = null;
-            }
         }
 
         public override IEnumerable<AstNode> Children
@@ -171,39 +145,6 @@ namespace Microsoft.Ajax.Utilities
               );
             sb.Append(bodyString);
             return sb.ToString();
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                ConstantWrapper constantCondition = Condition as ConstantWrapper;
-                if (constantCondition != null)
-                {
-                    try
-                    {
-                        // if condition is always false, change it to a zero (only one byte)
-                        // and if it is always true, remove it (default behavior)
-                        if (constantCondition.ToBoolean())
-                        {
-                            // always true -- don't need a condition at all
-                            Condition = null;
-                        }
-                        else if (constantCondition.IsNotOneOrPositiveZero)
-                        {
-                            // always false and it's not already a zero. Make it so (only one byte)
-                            Condition = new ConstantWrapper(0, PrimitiveType.Number, null, Parser);
-                        }
-                    }
-                    catch (InvalidCastException)
-                    {
-                        // ignore any invalid cast exceptions
-                    }
-                }
-            }
         }
     }
 }

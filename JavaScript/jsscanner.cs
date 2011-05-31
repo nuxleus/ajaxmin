@@ -33,9 +33,9 @@ namespace Microsoft.Ajax.Utilities
 
         private int m_currentPos;
 
-        private int m_currentLine;
+        public int CurrentLine { get; private set; }
 
-        private int m_startLinePos;
+        public int StartLinePosition { get; private set; }
 
         // token information
         private Context m_currentToken;
@@ -47,7 +47,7 @@ namespace Microsoft.Ajax.Utilities
         private int m_idLastPosOnBuilder;
 
         // flags
-        private bool m_gotEndOfLine;
+        public bool GotEndOfLine { get; private set; }
 
         private bool m_peekModeOn;
 
@@ -60,8 +60,6 @@ namespace Microsoft.Ajax.Utilities
         private bool m_preProcessorOn;
 
         private int m_ccIfLevel;
-
-        private bool m_skipDebugBlocks;
 
         // for pre-processor
         private Dictionary<string, string> m_defines;
@@ -110,18 +108,7 @@ namespace Microsoft.Ajax.Utilities
             SetSource(sourceContext);
         }
 
-        public bool SkipDebugBlocks
-        {
-            get
-            {
-                return m_skipDebugBlocks;
-            }
-
-            set
-            {
-                m_skipDebugBlocks = value;
-            }
-        }
+        public bool SkipDebugBlocks { get; set; }
 
         public static bool IsKeyword(string name)
         {
@@ -157,9 +144,9 @@ namespace Microsoft.Ajax.Utilities
                 throw new ArgumentException(StringMgr.GetString("InternalCompilerError"));
             }
 
-            m_strSourceCode = sourceContext.SourceString;
+            m_strSourceCode = sourceContext.Document.Source;
             m_startPos = sourceContext.StartPosition;
-            m_startLinePos = sourceContext.StartLinePosition;
+            StartLinePosition = sourceContext.StartLinePosition;
             m_endPos = (0 < sourceContext.EndPosition && sourceContext.EndPosition < m_strSourceCode.Length) 
                 ? sourceContext.EndPosition 
                 : m_strSourceCode.Length;
@@ -168,8 +155,8 @@ namespace Microsoft.Ajax.Utilities
             m_identifier = new StringBuilder(128);
             m_idLastPosOnBuilder = 0;
             m_currentPos = m_startPos;
-            m_currentLine = (sourceContext.StartLineNumber > 0) ? sourceContext.StartLineNumber : 1;
-            m_gotEndOfLine = false;
+            CurrentLine = (sourceContext.StartLineNumber > 0) ? sourceContext.StartLineNumber : 1;
+            GotEndOfLine = false;
         }
 
         public void SetPreprocessorDefines(ReadOnlyCollection<string> definedNames)
@@ -200,9 +187,9 @@ namespace Microsoft.Ajax.Utilities
         internal JSToken PeekToken()
         {
             int thisCurrentPos = m_currentPos;
-            int thisCurrentLine = m_currentLine;
-            int thisStartLinePos = m_startLinePos;
-            bool thisGotEndOfLine = m_gotEndOfLine;
+            int thisCurrentLine = CurrentLine;
+            int thisStartLinePos = StartLinePosition;
+            bool thisGotEndOfLine = GotEndOfLine;
             int thisLastPosOnBuilder = m_idLastPosOnBuilder;
             m_peekModeOn = true;
             JSToken token;
@@ -219,9 +206,9 @@ namespace Microsoft.Ajax.Utilities
             {
                 m_currentToken = thisCurrentToken;
                 m_currentPos = thisCurrentPos;
-                m_currentLine = thisCurrentLine;
-                m_startLinePos = thisStartLinePos;
-                m_gotEndOfLine = thisGotEndOfLine;
+                CurrentLine = thisCurrentLine;
+                StartLinePosition = thisStartLinePos;
+                GotEndOfLine = thisGotEndOfLine;
                 m_identifier.Length = 0;
                 m_idLastPosOnBuilder = thisLastPosOnBuilder;
                 m_peekModeOn = false;
@@ -234,11 +221,11 @@ namespace Microsoft.Ajax.Utilities
         public void GetNextToken()
         {
             JSToken token = JSToken.None;
-            m_gotEndOfLine = false;
+            GotEndOfLine = false;
             ImportantComment = null;
             try
             {
-                int thisCurrentLine = m_currentLine;
+                int thisCurrentLine = CurrentLine;
 
             nextToken:
                 // skip any blanks, setting a state flag if we find any
@@ -250,8 +237,8 @@ namespace Microsoft.Ajax.Utilities
                 }
 
                 m_currentToken.StartPosition = m_startPos = m_currentPos;
-                m_currentToken.StartLineNumber = m_currentLine;
-                m_currentToken.StartLinePosition = m_startLinePos;
+                m_currentToken.StartLineNumber = CurrentLine;
+                m_currentToken.StartLinePosition = StartLinePosition;
                 char c = GetChar(m_currentPos++);
                 switch (c)
                 {
@@ -262,8 +249,8 @@ namespace Microsoft.Ajax.Utilities
                             token = JSToken.EndOfFile;
                             if (m_ccIfLevel > 0)
                             {
-                                m_currentToken.EndLineNumber = m_currentLine;
-                                m_currentToken.EndLinePosition = m_startLinePos;
+                                m_currentToken.EndLineNumber = CurrentLine;
+                                m_currentToken.EndLinePosition = StartLinePosition;
                                 m_currentToken.EndPosition = m_currentPos;
                                 HandleError(JSError.NoCCEnd);
                             }
@@ -314,20 +301,11 @@ namespace Microsoft.Ajax.Utilities
                         if ('=' == GetChar(m_currentPos))
                         {
                             m_currentPos++;
-                            switch (token)
-                            {
-                                case JSToken.GreaterThan:
-                                    token = JSToken.GreaterThanEqual;
-                                    break;
-
-                                case JSToken.RightShift:
-                                    token = JSToken.RightShiftAssign;
-                                    break;
-
-                                case JSToken.UnsignedRightShift:
-                                    token = JSToken.UnsignedRightShiftAssign;
-                                    break;
-                            }
+                            token = token == JSToken.GreaterThan
+                                ? JSToken.GreaterThanEqual
+                                : token == JSToken.RightShift ? JSToken.RightShiftAssign
+                                : token == JSToken.UnsignedRightShift ? JSToken.UnsignedRightShiftAssign
+                                : token;
                         }
 
                         break;
@@ -544,7 +522,7 @@ namespace Microsoft.Ajax.Utilities
                                     // check for some AjaxMin preprocessor comments
                                     if (CheckSubstring(m_currentPos, "#DEBUG"))
                                     {
-                                        if (m_skipDebugBlocks)
+                                        if (SkipDebugBlocks)
                                         {
                                             // skip until we hit ///#ENDDEBUG, but only if we are stripping debug statements
                                             PPSkipToDirective("#ENDDEBUG");
@@ -567,7 +545,7 @@ namespace Microsoft.Ajax.Utilities
                                             SkipBlanks();
 
                                             // if we encountered a line-break here, then ignore this directive
-                                            if (!m_gotEndOfLine)
+                                            if (!GotEndOfLine)
                                             {
                                                 // get an identifier from the input
                                                 var identifier = PPScanIdentifier();
@@ -633,7 +611,7 @@ namespace Microsoft.Ajax.Utilities
                                             SkipBlanks();
 
                                             // if we encountered a line-break here, then ignore this directive
-                                            if (!m_gotEndOfLine)
+                                            if (!GotEndOfLine)
                                             {
                                                 // get an identifier from the input
                                                 var identifier = PPScanIdentifier();
@@ -667,7 +645,7 @@ namespace Microsoft.Ajax.Utilities
                                             SkipBlanks();
 
                                             // if we encountered a line-break here, then ignore this directive
-                                            if (!m_gotEndOfLine)
+                                            if (!GotEndOfLine)
                                             {
                                                 // get an identifier from the input
                                                 var identifier = PPScanIdentifier();
@@ -917,8 +895,8 @@ namespace Microsoft.Ajax.Utilities
                             break;
                         }
 
-                        m_currentLine++;
-                        m_startLinePos = m_currentPos;
+                        CurrentLine++;
+                        StartLinePosition = m_currentPos;
 
                         m_inSingleLineComment = false;
                         if (RawTokens)
@@ -966,8 +944,8 @@ namespace Microsoft.Ajax.Utilities
                         // we'll see which one so we can tell if it's a conditional-compilation statement
                         int startPosition = m_currentPos;
                         m_currentToken.StartPosition = startPosition;
-                        m_currentToken.StartLineNumber = m_currentLine;
-                        m_currentToken.StartLinePosition = m_startLinePos;
+                        m_currentToken.StartLineNumber = CurrentLine;
+                        m_currentToken.StartLinePosition = StartLinePosition;
                         ScanIdentifier();
                         switch (m_currentPos - startPosition)
                         {
@@ -1170,8 +1148,8 @@ namespace Microsoft.Ajax.Utilities
                         }
                         else
                         {
-                            m_currentToken.EndLineNumber = m_currentLine;
-                            m_currentToken.EndLinePosition = m_startLinePos;
+                            m_currentToken.EndLineNumber = CurrentLine;
+                            m_currentToken.EndLinePosition = StartLinePosition;
                             m_currentToken.EndPosition = m_currentPos;
 
                             HandleError(JSError.IllegalChar);
@@ -1190,21 +1168,21 @@ namespace Microsoft.Ajax.Utilities
 
                         break;
                 }
-                m_currentToken.EndLineNumber = m_currentLine;
-                m_currentToken.EndLinePosition = m_startLinePos;
+                m_currentToken.EndLineNumber = CurrentLine;
+                m_currentToken.EndLinePosition = StartLinePosition;
                 m_currentToken.EndPosition = m_currentPos;
-                m_gotEndOfLine = (m_currentLine > thisCurrentLine || token == JSToken.EndOfFile) ? true : false;
-                if (m_gotEndOfLine && token == JSToken.StringLiteral && m_currentToken.StartLineNumber == thisCurrentLine)
+                GotEndOfLine = (CurrentLine > thisCurrentLine || token == JSToken.EndOfFile) ? true : false;
+                if (GotEndOfLine && token == JSToken.StringLiteral && m_currentToken.StartLineNumber == thisCurrentLine)
                 {
-                    m_gotEndOfLine = false;
+                    GotEndOfLine = false;
                 }
             }
             catch (IndexOutOfRangeException)
             {
                 m_currentToken.Token = JSToken.None;
                 m_currentToken.EndPosition = m_currentPos;
-                m_currentToken.EndLineNumber = m_currentLine;
-                m_currentToken.EndLinePosition = m_startLinePos;
+                m_currentToken.EndLineNumber = CurrentLine;
+                m_currentToken.EndLinePosition = StartLinePosition;
                 throw new ScannerException(JSError.ErrorEndOfFile);
             }
 
@@ -1274,35 +1252,11 @@ namespace Microsoft.Ajax.Utilities
             return (char)0;
         }
 
-        public int CurrentLine
-        {
-            get
-            {
-                return m_currentLine;
-            }
-        }
-
-        public int StartLinePosition
-        {
-            get
-            {
-                return m_startLinePos;
-            }
-        }
-
         public string StringLiteral
         {
             get
             {
                 return m_escapedString;
-            }
-        }
-
-        public bool GotEndOfLine
-        {
-            get
-            {
-                return m_gotEndOfLine;
             }
         }
 
@@ -1552,8 +1506,8 @@ namespace Microsoft.Ajax.Utilities
                     }
 
                     m_currentToken.EndPosition = m_currentPos;
-                    m_currentToken.EndLinePosition = m_startLinePos;
-                    m_currentToken.EndLineNumber = m_currentLine;
+                    m_currentToken.EndLinePosition = StartLinePosition;
+                    m_currentToken.EndLineNumber = CurrentLine;
                     return m_strSourceCode.Substring(
                         m_currentToken.StartPosition + 1,
                         m_currentToken.EndPosition - m_currentToken.StartPosition - 2);
@@ -1580,8 +1534,8 @@ namespace Microsoft.Ajax.Utilities
             if (pos != m_currentPos)
             {
                 m_currentToken.EndPosition = m_currentPos;
-                m_currentToken.EndLineNumber = m_currentLine;
-                m_currentToken.EndLinePosition = m_startLinePos;
+                m_currentToken.EndLineNumber = CurrentLine;
+                m_currentToken.EndLinePosition = StartLinePosition;
                 return m_strSourceCode.Substring(pos, m_currentToken.EndPosition - pos);
             }
 
@@ -1602,8 +1556,8 @@ namespace Microsoft.Ajax.Utilities
 			}
 
 			m_currentToken.EndPosition = m_currentPos;
-			m_currentToken.EndLineNumber = m_currentLine;
-			m_currentToken.EndLinePosition = m_startLinePos;
+			m_currentToken.EndLineNumber = CurrentLine;
+			m_currentToken.EndLinePosition = StartLinePosition;
 
 			if (m_currentPos >= m_endPos)
 			{
@@ -1694,8 +1648,8 @@ namespace Microsoft.Ajax.Utilities
                         case '\n':
                         case (char)0x2028:
                         case (char)0x2029:
-                            m_currentLine++;
-                            m_startLinePos = m_currentPos;
+                            CurrentLine++;
+                            StartLinePosition = m_currentPos;
                             break;
 
                         // classic single char escape sequences
@@ -1983,7 +1937,7 @@ namespace Microsoft.Ajax.Utilities
                 else
                 {
                     int numDelimiters = (GetChar(m_currentPos - 1) == cStringTerminator ? 2 : 1);
-                    m_escapedString = m_currentToken.SourceString.Substring(m_currentToken.StartPosition + 1, m_currentPos - m_currentToken.StartPosition - numDelimiters);
+                    m_escapedString = m_strSourceCode.Substring(m_currentToken.StartPosition + 1, m_currentPos - m_currentToken.StartPosition - numDelimiters);
                 }
             }
         }
@@ -1991,8 +1945,8 @@ namespace Microsoft.Ajax.Utilities
         private void SkipSingleLineComment()
         {
             while (!IsEndLineOrEOF(GetChar(m_currentPos++), 0)) ;
-            m_currentLine++;
-            m_startLinePos = m_currentPos;
+            CurrentLine++;
+            StartLinePosition = m_currentPos;
             m_inSingleLineComment = false;
         }
 
@@ -2024,8 +1978,8 @@ namespace Microsoft.Ajax.Utilities
                     if (IsLineTerminator(c, 1))
                     {
                         c = GetChar(++m_currentPos);
-                        m_currentLine++;
-                        m_startLinePos = m_currentPos + 1;
+                        CurrentLine++;
+                        StartLinePosition = m_currentPos + 1;
                     }
                 }
 
@@ -2036,8 +1990,8 @@ namespace Microsoft.Ajax.Utilities
 
                 if (IsLineTerminator(c, 1))
                 {
-                    m_currentLine++;
-                    m_startLinePos = m_currentPos + 1;
+                    CurrentLine++;
+                    StartLinePosition = m_currentPos + 1;
                 }
 
                 ++m_currentPos;
@@ -2050,8 +2004,8 @@ namespace Microsoft.Ajax.Utilities
             }
 
             m_currentToken.EndPosition = m_currentPos;
-            m_currentToken.EndLinePosition = m_startLinePos;
-            m_currentToken.EndLineNumber = m_currentLine;
+            m_currentToken.EndLinePosition = StartLinePosition;
+            m_currentToken.EndLineNumber = CurrentLine;
             throw new ScannerException(JSError.NoCommentEnd);
         }
 
@@ -2068,8 +2022,8 @@ namespace Microsoft.Ajax.Utilities
 
             // save the context of the important comment
             ImportantComment.EndPosition = m_currentPos;
-            ImportantComment.EndLineNumber = m_currentLine;
-            ImportantComment.EndLinePosition = m_startLinePos;
+            ImportantComment.EndLineNumber = CurrentLine;
+            ImportantComment.EndLinePosition = StartLinePosition;
         }
 
         private void SkipBlanks()
@@ -2473,8 +2427,8 @@ namespace Microsoft.Ajax.Utilities
                         {
                             m_currentPos--;
                             m_currentToken.EndPosition = m_currentPos;
-                            m_currentToken.EndLineNumber = m_currentLine;
-                            m_currentToken.EndLinePosition = m_startLinePos;
+                            m_currentToken.EndLineNumber = CurrentLine;
+                            m_currentToken.EndLinePosition = StartLinePosition;
                             HandleError(JSError.NoCCEnd);
                             throw new ScannerException(JSError.ErrorEndOfFile);
                         }
@@ -2488,20 +2442,20 @@ namespace Microsoft.Ajax.Utilities
                             m_currentPos++;
                         }
 
-                        m_currentLine++;
-                        m_startLinePos = m_currentPos;
+                        CurrentLine++;
+                        StartLinePosition = m_currentPos;
                         break;
                     case '\n':
-                        m_currentLine++;
-                        m_startLinePos = m_currentPos;
+                        CurrentLine++;
+                        StartLinePosition = m_currentPos;
                         break;
                     case (char)0x2028:
-                        m_currentLine++;
-                        m_startLinePos = m_currentPos;
+                        CurrentLine++;
+                        StartLinePosition = m_currentPos;
                         break;
                     case (char)0x2029:
-                        m_currentLine++;
-                        m_startLinePos = m_currentPos;
+                        CurrentLine++;
+                        StartLinePosition = m_currentPos;
                         break;
 
                     // check for /// (and then followed by any one of the substrings passed to us)
@@ -2533,8 +2487,8 @@ namespace Microsoft.Ajax.Utilities
         private void HandleError(JSError error)
         {
             m_currentToken.EndPosition = m_currentPos;
-            m_currentToken.EndLinePosition = m_startLinePos;
-            m_currentToken.EndLineNumber = m_currentLine;
+            m_currentToken.EndLinePosition = StartLinePosition;
+            m_currentToken.EndLineNumber = CurrentLine;
             m_currentToken.HandleError(error);
         }
 

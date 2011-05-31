@@ -25,13 +25,12 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new Delete(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (Operand == null ? null : Operand.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)

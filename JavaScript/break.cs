@@ -20,63 +20,41 @@ namespace Microsoft.Ajax.Utilities
 {
     public sealed class Break : AstNode
     {
-        private int m_nestLevel;
-
-        private string m_label;
-        internal string Label { get { return m_label; } }
+        public int NestLevel { get; private set; }
+        public string Label { get; set; }
 
         public Break(Context context, JSParser parser, int count, string label)
             : base(context, parser)
         {
-            m_label = (label == null || label.Length == 0) ? null : label;
-            m_nestLevel = count;
+            Label = (label == null || label.Length == 0) ? null : label;
+            NestLevel = count;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new Break(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              m_nestLevel,
-              m_label);
-        }
-
-        internal override void AnalyzeNode()
-        {
-            if (m_label != null)
+            if (visitor != null)
             {
-                // if the nest level is zero, then we might be able to remove the label altogether
-                // IF local renaming is not KeepAll AND the kill switch for removing them isn't set.
-                // the nest level will be zero if the label is undefined.
-                if (m_nestLevel == 0
-                    && Parser.Settings.LocalRenaming != LocalRenaming.KeepAll
-                    && Parser.Settings.IsModificationAllowed(TreeModifications.RemoveUnnecessaryLabels))
-                {
-                    m_label = null;
-                }
+                visitor.Visit(this);
             }
-
-            // don't need to call the base; this statement has no children to recurse
-            //base.AnalyzeNode();
         }
 
         public override string ToCode(ToCodeFormat format)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append("break");
-            if (m_label != null)
+            if (Label != null)
             {
                 sb.Append(' ');
                 if (Parser.Settings.LocalRenaming != LocalRenaming.KeepAll
                     && Parser.Settings.IsModificationAllowed(TreeModifications.LocalRenaming))
                 {
                     // hypercrunched -- only depends on nesting level
-                    sb.Append(CrunchEnumerator.CrunchedLabel(m_nestLevel));
+                    sb.Append(CrunchEnumerator.CrunchedLabel(NestLevel));
                 }
                 else
                 {
                     // not hypercrunched -- just output label
-                    sb.Append(m_label);
+                    sb.Append(Label);
                 }
             }
 

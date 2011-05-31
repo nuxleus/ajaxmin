@@ -23,13 +23,12 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new VoidNode(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (Operand == null ? null : Operand.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)
@@ -49,26 +48,6 @@ namespace Microsoft.Ajax.Utilities
             {
                 // no separator needed
                 return "void" + operandString;
-            }
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                // see if our operand is a ConstantWrapper
-                ConstantWrapper literalOperand = Operand as ConstantWrapper;
-                if (literalOperand != null)
-                {
-                    // either number, string, boolean, or null.
-                    // the void operator evaluates its operand and returns undefined. Since evaluating a literal
-                    // does nothing, then it doesn't matter what the heck it is. Replace it with a zero -- a one-
-                    // character literal.
-                    ReplaceChild(literalOperand, new ConstantWrapper(0, PrimitiveType.Number, Context, Parser));
-                }
             }
         }
     }

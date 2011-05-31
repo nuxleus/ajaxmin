@@ -65,14 +65,12 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new SwitchCase(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (m_caseValue == null ? null : m_caseValue.Clone()),
-                (m_statements == null ? null : (Block) m_statements.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal override string GetFunctionGuess(AstNode target)

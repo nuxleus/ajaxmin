@@ -28,7 +28,7 @@ namespace Microsoft.Ajax.Utilities
         public FunctionType FunctionType { get; private set; }
 
         private ParameterDeclaration[] m_parameterDeclarations;
-        public ParameterDeclaration[] ParameterDeclarations
+        public IList<ParameterDeclaration> ParameterDeclarations
         {
             get
             {
@@ -49,36 +49,19 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        // we'll want to roll over if for some reason we ever hit the max
-        private static int s_uniqueNumber;// = 0;
-        private int UniqueNumber
-        {
-            get
-            {
-                lock (this)
-                {
-                    if (s_uniqueNumber == int.MaxValue)
-                    {
-                        s_uniqueNumber = 0;
-                    }
-                    return s_uniqueNumber++;
-                }
-            }
-        }
-
-        private Lookup m_identifier;
+        public Lookup Identifier { get; private set; }
         private string m_name;
         public string Name
         {
             get
             {
-                return (m_identifier != null ? m_identifier.Name : m_name);
+                return (Identifier != null ? Identifier.Name : m_name);
             }
             set
             {
-                if (m_identifier != null)
+                if (Identifier != null)
                 {
-                    m_identifier.Name = value;
+                    Identifier.Name = value;
                 }
                 else
                 {
@@ -86,7 +69,7 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
         }
-        public Context IdContext { get { return (m_identifier == null ? null : m_identifier.Context); } }
+        public Context IdContext { get { return (Identifier == null ? null : Identifier.Context); } }
 
 
         private JSVariableField m_variableField;
@@ -115,8 +98,8 @@ namespace Microsoft.Ajax.Utilities
             }
 
             m_name = string.Empty;
-            m_identifier = identifier;
-            if (m_identifier != null) { m_identifier.Parent = this; }
+            Identifier = identifier;
+            if (Identifier != null) { Identifier.Parent = this; }
 
             m_parameterDeclarations = parameterDeclarations;
 
@@ -127,7 +110,7 @@ namespace Microsoft.Ajax.Utilities
             // so that any references get properly resolved once we start analyzing the parent scope
             // see if this is not anonymnous AND not a getter/setter
             bool isGetterSetter = (FunctionType == FunctionType.Getter || FunctionType == FunctionType.Setter);
-            if (m_identifier != null && !isGetterSetter)
+            if (Identifier != null && !isGetterSetter)
             {
                 // yes -- add the function name to the current enclosing
                 // check whether the function name is in use already
@@ -140,7 +123,7 @@ namespace Microsoft.Ajax.Utilities
                 }
 
                 // if the enclosing scope already contains this name, then we know we have a dup
-                string functionName = m_identifier.Name;
+                string functionName = Identifier.Name;
                 m_variableField = enclosingScope[functionName];
                 if (m_variableField != null)
                 {
@@ -176,7 +159,7 @@ namespace Microsoft.Ajax.Utilities
 
                                 // hook our function object up to the named field
                                 m_variableField = namedExpressionField;
-                                m_identifier.VariableField = namedExpressionField;
+                                Identifier.VariableField = namedExpressionField;
 
                                 // we're done; quit.
                                 return;
@@ -192,7 +175,7 @@ namespace Microsoft.Ajax.Utilities
 
                                 // hook our function object up to the named field
                                 m_variableField = namedExpressionField;
-                                m_identifier.VariableField = namedExpressionField;
+                                Identifier.VariableField = namedExpressionField;
 
                                 // we're done; quit.
                                 return;
@@ -203,7 +186,7 @@ namespace Microsoft.Ajax.Utilities
                                 // defined a local variable of the same name. Not good. Throw the 
                                 // error but keep them attached because the names have to be synced
                                 // to keep the same meaning in all browsers.
-                                m_identifier.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, true);
+                                Identifier.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, true);
 
                                 // if we are preserving function names, then we need to mark this field
                                 // as not crunchable
@@ -222,7 +205,7 @@ namespace Microsoft.Ajax.Utilities
                     else
                     {
                         // function declaration -- duplicate name
-                        m_identifier.Context.HandleError(JSError.DuplicateName, false);
+                        Identifier.Context.HandleError(JSError.DuplicateName, false);
                     }
                 }
                 else
@@ -237,7 +220,7 @@ namespace Microsoft.Ajax.Utilities
                 // set the identifier variable field now. We *know* what the field is now, and during
                 // Analyze mode we aren't going to recurse into the identifier because that would add 
                 // a reference to it.
-                m_identifier.VariableField = m_variableField;
+                Identifier.VariableField = m_variableField;
 
                 // if we're here, we have a name. if this is a function expression, then we have
                 // a named function expression and we need to do a little more work to prepare for
@@ -260,9 +243,12 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            throw new NotImplementedException();
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal bool IsReferenced(int fieldRefCount)
@@ -283,28 +269,6 @@ namespace Microsoft.Ajax.Utilities
                 isReferenced = m_functionScope.IsReferenced(null);
             }
             return isReferenced;
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // get the name of this function, calculate something if it's anonymous
-            m_name = (m_identifier == null ? GuessAtName() : m_identifier.Name);
-
-            // don't analyze the identifier or we'll add an extra reference to it.
-            // and we don't need to analyze the parameters because they were fielded-up
-            // back when the function object was created, too
-
-            // push the stack and analyze the body
-            ScopeStack.Push(m_functionScope);
-            try
-            {
-                // recurse
-                base.AnalyzeNode();
-            }
-            finally
-            {
-                ScopeStack.Pop();
-            }
         }
 
         public override IEnumerable<AstNode> Children
@@ -368,7 +332,7 @@ namespace Microsoft.Ajax.Utilities
                 if (format != ToCodeFormat.NoFunction)
                 {
                     sb.Append("function");
-                    if (m_identifier != null)
+                    if (Identifier != null)
                     {
                         // we don't want to show the name for named function expressions where the
                         // name is never referenced. Don't use IsReferenced because that will always
@@ -380,7 +344,7 @@ namespace Microsoft.Ajax.Utilities
                             || m_variableField.RefCount > 0)
                         {
                             sb.Append(' ');
-                            sb.Append(m_identifier.ToCode());
+                            sb.Append(Identifier.ToCode());
                         }
                     }
                 }
@@ -456,44 +420,6 @@ namespace Microsoft.Ajax.Utilities
         internal override bool RequiresSeparator
         {
             get { return false; }
-        }
-
-        private string GuessAtName()
-        {
-            AstNode parent = Parent;
-            if (parent != null)
-            {
-                if (parent is AstNodeList)
-                {
-                    // if the parent is an ASTList, then we're really interested
-                    // in our parent's parent (probably a call)
-                    parent = parent.Parent;
-                }
-                CallNode call = parent as CallNode;
-                if (call != null && call.IsConstructor)
-                {
-                    // if this function expression is the object of a new, then we want the parent
-                    parent = parent.Parent;
-                }
-
-                string guess = parent.GetFunctionGuess(this);
-                if (guess != null && guess.Length > 0)
-                {
-                    if (guess.StartsWith("\"", StringComparison.Ordinal)
-                      && guess.EndsWith("\"", StringComparison.Ordinal))
-                    {
-                        // don't need to wrap it in quotes -- it already is
-                        return guess;
-                    }
-                    // wrap the guessed name in quotes
-                    return string.Format(CultureInfo.InvariantCulture, "\"{0}\"", guess);
-                }
-                else
-                {
-                    return string.Format(CultureInfo.InvariantCulture, "anonymous_{0}", UniqueNumber);
-                }
-            }
-            return string.Empty;
         }
 
         internal void AddGeneratedVar(string name, AstNode initializer, bool isLiteral)
@@ -591,7 +517,7 @@ namespace Microsoft.Ajax.Utilities
             m_variableField = nfeField;
 
             // and so is out identifier
-            m_identifier.VariableField = nfeField;
+            Identifier.VariableField = nfeField;
         }
     }
 }

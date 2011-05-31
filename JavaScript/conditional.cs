@@ -43,22 +43,19 @@ namespace Microsoft.Ajax.Utilities
             if (falseExpression != null) falseExpression.Parent = this;
         }
 
-        public override AstNode Clone()
-        {
-            return new Conditional(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (m_condition == null ? null : m_condition.Clone()),
-                (m_trueExpression == null ? null : m_trueExpression.Clone()),
-                (m_falseExpression == null ? null : m_falseExpression.Clone())
-                );
-        }
-
         public override IEnumerable<AstNode> Children
         {
             get
             {
                 return EnumerateNonNullNodes(m_condition, m_trueExpression, m_falseExpression);
+            }
+        }
+
+        public override void Accept(IVisitor visitor)
+        {
+            if (visitor != null)
+            {
+                visitor.Visit(this);
             }
         }
 
@@ -171,32 +168,6 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(')');
             }
             return sb.ToString();
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                // if the condition is a literal, evaluating the condition doesn't do anything, AND
-                // we know now whether it's true or not.
-                ConstantWrapper literalCondition = m_condition as ConstantWrapper;
-                if (literalCondition != null)
-                {
-                    try
-                    {
-                        // if the boolean represenation of the literal is true, we can replace the condition operator
-                        // with the true expression; otherwise we can replace it with the false expression
-                        Parent.ReplaceChild(this, literalCondition.ToBoolean() ? m_trueExpression : m_falseExpression);
-                    }
-                    catch (InvalidCastException)
-                    {
-                        // ignore any invalid cast errors
-                    }
-                }
-            }
         }
     }
 }

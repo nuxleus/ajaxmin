@@ -20,36 +20,39 @@ namespace Microsoft.Ajax.Utilities
 {
     public class ConditionalCompilationIf : ConditionalCompilationStatement
     {
-        private AstNode m_condition;
+        public AstNode Condition { get; private set; }
 
         public ConditionalCompilationIf(Context context, JSParser parser, AstNode condition)
             : base(context, parser)
         {
-            m_condition = condition;
-            if (m_condition != null)
+            Condition = condition;
+            if (Condition != null)
             {
-                m_condition.Parent = this;
+                Condition.Parent = this;
             }
-        }
-
-        public override AstNode Clone()
-        {
-            return new ConditionalCompilationIf(Context, Parser, m_condition);
         }
 
         public override IEnumerable<AstNode> Children
         {
             get
             {
-                return EnumerateNonNullNodes(m_condition);
+                return EnumerateNonNullNodes(Condition);
+            }
+        }
+
+        public override void Accept(IVisitor visitor)
+        {
+            if (visitor != null)
+            {
+                visitor.Visit(this);
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_condition == oldNode)
+            if (Condition == oldNode)
             {
-                m_condition = newNode;
+                Condition = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
@@ -58,7 +61,7 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToCode(ToCodeFormat format)
         {
-            return "@if(" + m_condition.ToCode() + ")";
+            return "@if(" + Condition.ToCode() + ")";
         }
     }
 }

@@ -21,7 +21,6 @@ namespace Microsoft.Ajax.Utilities
     public class Context
     {
         public DocumentContext Document { get; private set; }
-        public string SourceString { get; private set; }
 
         public int StartLineNumber { get; internal set; }
         public int StartLinePosition { get; internal set; }
@@ -30,31 +29,33 @@ namespace Microsoft.Ajax.Utilities
         public int EndLinePosition { get; internal set; }
         public int EndPosition { get; internal set; }
         public JSToken Token { get; internal set; }
-        public string FileContext { get; internal set; }
 
         private int m_errorReported;
 
         public Context(JSParser parser)
-            : this(new DocumentContext(parser), "[generated code]")
+            : this(new DocumentContext(parser, "[generated code]"))
         {
         }
 
-        public Context(DocumentContext document, string sourceCode)
+        public Context(DocumentContext document)
         {
+            if (document == null)
+            {
+                throw new ArgumentNullException("DocumentContext cannot be null");
+            }
+
             Document = document;
-            SourceString = sourceCode;
             StartLineNumber = 1;
             EndLineNumber = 1;
-            EndPosition = (sourceCode == null) ? -1 : sourceCode.Length;
+            EndPosition = (Document.Source == null) ? -1 : Document.Source.Length;
             Token = JSToken.None;
             m_errorReported = 1000000;
         }
 
-        public Context(DocumentContext document, string sourceCode, int lineNumber, int startLinePos, int startPos, int endLineNumber,
-                         int endLinePos, int endPos, JSToken token, string fileContext)
+        public Context(DocumentContext document, int lineNumber, int startLinePos, int startPos, int endLineNumber,
+                         int endLinePos, int endPos, JSToken token)
         {
             Document = document;
-            SourceString = sourceCode;
             StartLineNumber = lineNumber;
             StartLinePosition = startLinePos;
             StartPosition = startPos;
@@ -63,13 +64,12 @@ namespace Microsoft.Ajax.Utilities
             EndPosition = endPos;
             Token = token;
             m_errorReported = 1000000;
-            FileContext = fileContext;
         }
 
         public Context Clone()
         {
-            Context context = new Context(Document, SourceString, StartLineNumber, StartLinePosition, StartPosition,
-                               EndLineNumber, EndLinePosition, EndPosition, Token, FileContext);
+            Context context = new Context(Document, StartLineNumber, StartLinePosition, StartPosition,
+                               EndLineNumber, EndLinePosition, EndPosition, Token);
             context.m_errorReported = m_errorReported;
             return context;
         }
@@ -80,15 +80,13 @@ namespace Microsoft.Ajax.Utilities
               ? this.Clone()
               : new Context(
                 Document,
-                SourceString,
                 StartLineNumber,
                 StartLinePosition,
                 StartPosition,
                 other.EndLineNumber,
                 other.EndLinePosition,
                 other.EndPosition,
-                Token,
-                FileContext
+                Token
                 )
               );
         }
@@ -113,8 +111,8 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return (EndPosition > StartPosition && EndPosition <= SourceString.Length)
-                  ? SourceString.Substring(StartPosition, EndPosition - StartPosition)
+                return (EndPosition > StartPosition && EndPosition <= Document.Source.Length)
+                  ? Document.Source.Substring(StartPosition, EndPosition - StartPosition)
                   : null;
             }
         }

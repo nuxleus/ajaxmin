@@ -36,11 +36,6 @@ namespace Microsoft.Ajax.Utilities
             FieldTable.Add(field);
         }
 
-        /*public override BlockScope Clone()
-        {
-            return new CatchScope(Parser.ScopeStack.Peek(), Context, Parser);
-        }*/
-
         public override JSVariableField CreateField(JSVariableField outerField)
         {
             return new JSLocalField(outerField);

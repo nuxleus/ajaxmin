@@ -1,0 +1,985 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Microsoft.Ajax.Utilities.ContextError" Collapsed="true">
+    <Position X="118" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAIAEAAAAAAAABAgFIAgAEAAAIAQAAAA=</HashCode>
+      <FileName>ContextError.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ColorName" Collapsed="true">
+    <Position X="111" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAAAgQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ColorNameData" Collapsed="true">
+    <Position X="112.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ColorQuery" Collapsed="true">
+    <Position X="5.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ColorSlice&lt;T&gt;" Collapsed="true">
+    <Position X="114.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.AllColorNames" Collapsed="true">
+    <Position X="0.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.StrictHexShorterThanNameAndAllNonStrict" Collapsed="true">
+    <Position X="3" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.HexShorterThanName" Collapsed="true">
+    <Position X="5.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.StrictNameShorterThanHex" Collapsed="true">
+    <Position X="7.5" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.NameShorterThanHex" Collapsed="true">
+    <Position X="9.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssColorName.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssParser" Collapsed="true">
+    <Position X="116.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AdoxS2AySAgMHKR6EpAoA6CAMIAwITEQoggjGQACAQk=</HashCode>
+      <FileName>Css\CssParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssException" Collapsed="true">
+    <Position X="1.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAgAAQCAAAAAgIAgAAAAACAAAAABAAQBAQA=</HashCode>
+      <FileName>Css\CssParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssParserException" Collapsed="true">
+    <Position X="0.5" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssErrorEventArgs" Collapsed="true">
+    <Position X="114.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>Css\CssParser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssScanner" Collapsed="true">
+    <Position X="118" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQMAIYAQIEAWIRtggREABAAOkKBRAQIAAQwwgmcQDEA=</HashCode>
+      <FileName>Css\CssScanner.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssScannerException" Collapsed="true">
+    <Position X="2.75" Y="2" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Css\CssScanner.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssScannerErrorEventArgs" Collapsed="true">
+    <Position X="119.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>Css\CssScanner.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssSettings" Collapsed="true">
+    <Position X="109.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAgQAAAAAABQAAAQAAACAAA=</HashCode>
+      <FileName>Css\CssSettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssStringMgr" Collapsed="true">
+    <Position X="111" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAACAAAAAABAAAAAAAAAAAAAABAAAAAAA=</HashCode>
+      <FileName>Css\CssStringMgr.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssToken" Collapsed="true">
+    <Position X="112.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAEAgAAAAAAAAAAAAIAAAAAAAAACAAAAgA=</HashCode>
+      <FileName>Css\CssToken.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssContext" Collapsed="true">
+    <Position X="109.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAACIACAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABA=</HashCode>
+      <FileName>Css\CssToken.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Position" Collapsed="true">
+    <Position X="112.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAhAIAAAAAAAAIAAAAAAACAAAAAAAAABABA=</HashCode>
+      <FileName>Css\CssToken.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssEncoderFallback" Collapsed="true">
+    <Position X="111" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAACAAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>CssEncoderFallback.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CssEncoderFallbackBuffer" Collapsed="true">
+    <Position X="112.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAACAABAAEAAAAAAgAAAAAAEAAAAAAAAAACGI=</HashCode>
+      <FileName>CssEncoderFallback.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ActivationObject" Collapsed="true">
+    <Position X="4" Y="13.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>FAQgEYAFgACAASgAGUIEcAABAAAAIAEAAAFAIAAAQCI=</HashCode>
+      <FileName>JavaScript\activationobject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.AnalyzeNodeVisitor" Collapsed="true">
+    <Position X="0.75" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAACCAASACAA4AAAAEAAAAAQAAAAAAAAAAAAAQAAA=</HashCode>
+      <FileName>JavaScript\AnalyzeNodeVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ArrayLiteral" Collapsed="true">
+    <Position X="50.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAEAAAAAAAAAAAAAQAAAAAAACI=</HashCode>
+      <FileName>JavaScript\arrayliteral.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.AspNetBlockNode" Collapsed="true">
+    <Position X="68.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIBAEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\aspnetblocknode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.AstNode" Collapsed="true">
+    <Position X="56" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIggUAAAAigAAAAAAQAEQGIAAAAAAAAAIQAAAAQAACI=</HashCode>
+      <FileName>JavaScript\ast.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.AstNodeList" Collapsed="true">
+    <Position X="100" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAQAAAAAAAACAAEAAQABAAgAQAACAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\astlist.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.BinaryOperator" Collapsed="true">
+    <Position X="5.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAABAgCAAAQAEECAAAAQAAAAAAQAAAAQAgCA=</HashCode>
+      <FileName>JavaScript\binaryop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Block" Collapsed="true">
+    <Position X="12.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AKgMUEAAAAAAAAAACAAEIAYABAAAQQAACAAAAABAACI=</HashCode>
+      <FileName>JavaScript\block.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.BlockScope" Collapsed="true">
+    <Position X="4" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAgAEAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\blockscope.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Break" Collapsed="true">
+    <Position X="37" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\break.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CallNode" Collapsed="true">
+    <Position X="39.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAkAAAACAAAAAQAAAEAAKAKAAAAAAAIQAAAAQAACI=</HashCode>
+      <FileName>JavaScript\call.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CatchScope" Collapsed="true">
+    <Position X="5.25" Y="16.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAAAAAAQgAAAIAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\catchscope.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationComment" Collapsed="true">
+    <Position X="52.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAACAAAAAAAEAAAAAAAABQAAAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\cccomment.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationElseIf" Collapsed="true">
+    <Position X="16.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAACAAAAAAAAEAAAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\ccelif.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationElse" Collapsed="true">
+    <Position X="19" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\ccelse.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationEnd" Collapsed="true">
+    <Position X="21.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\ccend.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationIf" Collapsed="true">
+    <Position X="23.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAACAAAAAAAAEAAAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\ccif.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationOn" Collapsed="true">
+    <Position X="25.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\ccon.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationSet" Collapsed="true">
+    <Position X="14.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAEAAAAAAQAAAAAAAAACAAAACA=</HashCode>
+      <FileName>JavaScript\ccset.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConditionalCompilationStatement" Collapsed="true">
+    <Position X="20" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\ccstatement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CodeSettings" Collapsed="true">
+    <Position X="109.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>yRAAiAYgAAQHIAUAEEIADEiIAASAEAAICAQWAGAjAYA=</HashCode>
+      <FileName>JavaScript\codesettings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Conditional" Collapsed="true">
+    <Position X="70.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gIIAEAACAAjAAAAAAAAEAAAAAAAAAAAAAAAAAAQAECA=</HashCode>
+      <FileName>JavaScript\conditional.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConstantWrapper" Collapsed="true">
+    <Position X="79.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AJAAEAgABBDAgAREAIQAICAAAAAAAAkIAIAgIjIMYCA=</HashCode>
+      <FileName>JavaScript\constantwrapper.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ConstantWrapperPP" Collapsed="true">
+    <Position X="91" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAACAAAAAAACCAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\constantwrapperpp.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Context" Collapsed="true">
+    <Position X="116.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAABAYUAAAAIAAAAAgAQIAAAAAAAACAAICoBABABA=</HashCode>
+      <FileName>JavaScript\context.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ContinueNode" Collapsed="true">
+    <Position X="7.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\continue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.CrunchEnumerator" Collapsed="true">
+    <Position X="119.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAAAQAAAAAAAACAAIEAAAAA=</HashCode>
+      <FileName>JavaScript\crunchenumerator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.DebuggerNode" Collapsed="true">
+    <Position X="32.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>JavaScript\debugger.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Delete" Collapsed="true">
+    <Position X="59.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\delete.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.DocumentContext" Collapsed="true">
+    <Position X="114.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAgAAAAAKAAAEAAIAAAAAAAAAAAAAAgAAAAA=</HashCode>
+      <FileName>JavaScript\documentcontext.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.DoWhile" Collapsed="true">
+    <Position X="46" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAACAAAAAAAAFAAIAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\dowhile.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.EvaluateNode" Collapsed="true">
+    <Position X="55" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAEAAAAAAAAAAAAAUAAAAAAACA=</HashCode>
+      <FileName>JavaScript\eval.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.EvaluateLiteralVisitor" Collapsed="true">
+    <Position X="3" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACBQAGAABQiAQAQAgAEFABAJAAAAARBCCCBBiQRBAKE=</HashCode>
+      <FileName>JavaScript\EvaluateLiteralVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.FinalPassVisitor" Collapsed="true">
+    <Position X="5.25" Y="11.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\FinalPassVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ForNode" Collapsed="true">
+    <Position X="86.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgAEAAAAACAAAAAAAAFAAIAAAEAAAAAAAAAAAAABCA=</HashCode>
+      <FileName>JavaScript\for.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ForIn" Collapsed="true">
+    <Position X="93.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgAEAAAAAAAQAAAAAAFAAIAAAAAAAAAAAQAAAAAACA=</HashCode>
+      <FileName>JavaScript\forin.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.FunctionObject" Collapsed="true">
+    <Position X="102.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>lIAAUgAAAAEAECBAAQEFgAQAAAAAAAAACAAAQAgAYCE=</HashCode>
+      <FileName>JavaScript\functionobject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.FunctionScope" Collapsed="true">
+    <Position X="0.75" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEAQBEAAAAAAAAgAAAMAAAACIgAAAAAAAABAAABAIAA=</HashCode>
+      <FileName>JavaScript\functionscope.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.GetterSetter" Collapsed="true">
+    <Position X="79.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAEAEAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\gettersetter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.GlobalObject" Collapsed="true">
+    <Position X="116.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAA=</HashCode>
+      <FileName>JavaScript\globalobject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.GlobalScope" Collapsed="true">
+    <Position X="7.5" Y="14.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAIAAAACAAQgACQIAAAAAAAAAAAAAAQAAIAAgAAI=</HashCode>
+      <FileName>JavaScript\globalscope.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.IfNode" Collapsed="true">
+    <Position X="41.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgAEAAEAACAAAAAAAAEAAIAAAAAEgAAAAAEIAAAACA=</HashCode>
+      <FileName>JavaScript\if.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ImportantComment" Collapsed="true">
+    <Position X="48.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AoAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\importantcomment.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSArgumentField" Collapsed="true">
+    <Position X="10" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsargumentfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSArgumentsField" Collapsed="true">
+    <Position X="12.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsargumentsfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JScriptException" Collapsed="true">
+    <Position X="118" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAQAAAAAAAUAYAIAEBAQAAoAACBIAAgAAAxIAQBAAA=</HashCode>
+      <FileName>JavaScript\jscriptexception.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JScriptExceptionEventArgs" Collapsed="true">
+    <Position X="119.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jscriptexception.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.UndefinedReferenceException" Collapsed="true">
+    <Position X="109.25" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>kAAAIAAAAAAEAAAEAABAAAQgIAAAAAAAAAAAAAAJAAA=</HashCode>
+      <FileName>JavaScript\jscriptexception.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.UndefinedReferenceEventArgs" Collapsed="true">
+    <Position X="119.75" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jscriptexception.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSGlobalField" Collapsed="true">
+    <Position X="3.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsglobalfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSKeyword" Collapsed="true">
+    <Position X="112.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAQAAAgAAgAAABAAAAAAAAgAAAAAAAAAAAEABAA=</HashCode>
+      <FileName>JavaScript\jskeyword.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSLocalField" Collapsed="true">
+    <Position X="7.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAIAAAAAAgA=</HashCode>
+      <FileName>JavaScript\jslocalfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSNamedFunctionExpressionField" Collapsed="true">
+    <Position X="5.5" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsnfefield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSParser" Collapsed="true">
+    <Position X="114.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABgoAABwGCgwA6UIwRSBwoKIEqBQIGIBgCCQRGEbAAo=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ParserException" Collapsed="true">
+    <Position X="11" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAIAAAAABAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.UnexpectedTokenException" Collapsed="true">
+    <Position X="8.75" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.EndOfFileException" Collapsed="true">
+    <Position X="11" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.RecoveryTokenException" Collapsed="true">
+    <Position X="13.25" Y="12" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAACAAAQAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.NoSkipTokenSet" Collapsed="true">
+    <Position X="109.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAICYAAAAwAAABICkAAABAgBAAAAACEIBAIAAgUAKAA=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSPredefinedField" Collapsed="true">
+    <Position X="1" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAgAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAEAAAAI=</HashCode>
+      <FileName>JavaScript\jspredefinedfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSScanner" Collapsed="true">
+    <Position X="116.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ENAIxUBqACiQIAQQjcUhhVgIL4wYAA8ggIGagOEDSUY=</HashCode>
+      <FileName>JavaScript\jsscanner.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSVariableField" Collapsed="true">
+    <Position X="6.5" Y="6.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>VAAAgEAACKBAgQAMBAEAoAQQAAQAAJAIAAAQKAAABQg=</HashCode>
+      <FileName>JavaScript\jsvariablefield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSWithField" Collapsed="true">
+    <Position X="7.75" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jswithfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.LabeledStatement" Collapsed="true">
+    <Position X="73" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgAEEAAEAACAAAgAAAEAAIAAAAAAAAAAAAAAAQAACA=</HashCode>
+      <FileName>JavaScript\labeledstatement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Lookup" Collapsed="true">
+    <Position X="88.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EIAAEAAAAAAAEAAEAAAAIAQACAAAAAAAAQAAAAEAAgI=</HashCode>
+      <FileName>JavaScript\lookup.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Member" Collapsed="true">
+    <Position X="95.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAACAAAAAEAAQAAAAAAAAAAQAAAAQAACI=</HashCode>
+      <FileName>JavaScript\member.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Missing" Collapsed="true">
+    <Position X="119.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAEAgAAAAAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>JavaScript\missing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.NumericUnary" Collapsed="true">
+    <Position X="57.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\numericunary.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ObjectLiteral" Collapsed="true">
+    <Position X="28" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAACAAEACQAAAAAAAAAAQAgAAAAACA=</HashCode>
+      <FileName>JavaScript\objectliteral.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ObjectLiteralField" Collapsed="true">
+    <Position X="79.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\objectliteralfield.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ParameterDeclaration" Collapsed="true">
+    <Position X="111" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAQAAAgAEAAAAAAAAAAQAAAAAAAAAAAAAAAEAgAA=</HashCode>
+      <FileName>JavaScript\parameterdeclaration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.PostOrPrefixOperator" Collapsed="true">
+    <Position X="64" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAA=</HashCode>
+      <FileName>JavaScript\postorprefixoperator.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.RegExpLiteral" Collapsed="true">
+    <Position X="75.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAACAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\regexpliteral.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ReturnNode" Collapsed="true">
+    <Position X="82" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAEAAAAAAAAAAAAAUAAAAEAACA=</HashCode>
+      <FileName>JavaScript\return.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ScannerException" Collapsed="true">
+    <Position X="116.25" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQAAAAAAAQIgAAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>JavaScript\scannerexception.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.StringMgr" Collapsed="true">
+    <Position X="118" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAABAAAAAAAAAAAAAAABAAAAAABAAAAAIABAAAEAAA=</HashCode>
+      <FileName>JavaScript\stringmgr.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Switch" Collapsed="true">
+    <Position X="104.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAEAAAEAAAAAAAQAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\switch.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.SwitchCase" Collapsed="true">
+    <Position X="10" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEQAAAAACAAAAAAAEAAAAAAAABAAAAQAAAAAAICA=</HashCode>
+      <FileName>JavaScript\switchcase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ThisLiteral" Collapsed="true">
+    <Position X="30.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\thisliteral.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ThrowNode" Collapsed="true">
+    <Position X="34.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAEAAAAAAAAAAAAAEAAAAAAACA=</HashCode>
+      <FileName>JavaScript\throw.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.TreeVisitor" Collapsed="true">
+    <Position X="3" Y="10.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\TreeVisitor.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.TryNode" Collapsed="true">
+    <Position X="43.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAhIAAAEAAQAEQAAAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\try.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.TypeOfNode" Collapsed="true">
+    <Position X="61.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\typeof.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.UnaryOperator" Collapsed="true">
+    <Position X="61.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAQAAAAEAgCA=</HashCode>
+      <FileName>JavaScript\unaryop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.Var" Collapsed="true">
+    <Position X="77.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAACACEAAQABAAAAQAACAAAAAAQACA=</HashCode>
+      <FileName>JavaScript\var.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.VariableDeclaration" Collapsed="true">
+    <Position X="84.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAACAAAEBAAAAAAAABAAAQAAQAAAhiA=</HashCode>
+      <FileName>JavaScript\variabledeclaration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.VoidNode" Collapsed="true">
+    <Position X="66.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\voidop.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.WhileNode" Collapsed="true">
+    <Position X="97.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgAEAAAAACAAAAAAAAFAAIAAAAAAAAAAAAAAAAAACA=</HashCode>
+      <FileName>JavaScript\while.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.WithNode" Collapsed="true">
+    <Position X="106.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIgAEAAAAAAAAAAAAAQFAAIAAAAAAAAAAQAAAAAAACA=</HashCode>
+      <FileName>JavaScript\with.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.WithScope" Collapsed="true">
+    <Position X="3" Y="16.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAABAAAAAAgAAAAAAAAAAAAAAAAAAABAAAAAAAA=</HashCode>
+      <FileName>JavaScript\withscope.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSEncoderFallback" Collapsed="true">
+    <Position X="109.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAACAAAAAACAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JSEncoderFallback.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.JSEncoderFallbackBuffer" Collapsed="true">
+    <Position X="111" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAACAABAAEAAAAAAAAAAAAAEAAAAAAAAAACGI=</HashCode>
+      <FileName>JSEncoderFallback.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.MainClass" Collapsed="true">
+    <Position X="118" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ADUQiAAiSEwNgHNASBCaEgFEqAAQKFATBQDBpxNWgB4=</HashCode>
+      <FileName>MainClass-Css.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.UsageException" Collapsed="true">
+    <Position X="111" Y="5.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAIAAAAAA=</HashCode>
+      <FileName>MainClass.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Microsoft.Ajax.Utilities.ResourceStrings" Collapsed="true">
+    <Position X="114.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAEAAAAAABAACAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ResourceStrings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="Microsoft.Ajax.Utilities.IVisitor" Collapsed="true">
+    <Position X="109.25" Y="6.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\IVisitor.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Enum Name="Microsoft.Ajax.Utilities.CssComment" Collapsed="true">
+    <Position X="112.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAQAAAAAAIAAAAEAAAA=</HashCode>
+      <FileName>Css\CssParser.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.CssColor" Collapsed="true">
+    <Position X="111" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAAAgAAAAAAAAAAAAAgAAAAAAA=</HashCode>
+      <FileName>Css\CssParser.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.StringEnum" Collapsed="true">
+    <Position X="112.75" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>Q2AAgigDJACFiMAAABUbIkwJgEFwAQQQBCIBBGUgAAA=</HashCode>
+      <FileName>Css\CssStringMgr.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.TokenType" Collapsed="true">
+    <Position X="116.25" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>MAAABCCUAAIAAUJAQEAMEAIgRLggQAAIiUAgQQELi6A=</HashCode>
+      <FileName>Css\CssToken.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.ToCodeFormat" Collapsed="true">
+    <Position X="114.5" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAQAAAgAAAKAQCAAAAAAAAIAAAAAAAAEAAAAEA=</HashCode>
+      <FileName>JavaScript\ast.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.EncloseBlockType" Collapsed="true">
+    <Position X="114.5" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAQAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\ast.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.OutputMode" Collapsed="true">
+    <Position X="118" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAg=</HashCode>
+      <FileName>JavaScript\codesettings.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.LocalRenaming" Collapsed="true">
+    <Position X="114.5" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAACAAAACACAAAAAAAA=</HashCode>
+      <FileName>JavaScript\codesettings.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.EvalTreatment" Collapsed="true">
+    <Position X="116.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACABAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAA=</HashCode>
+      <FileName>JavaScript\codesettings.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.TreeModifications" Collapsed="true">
+    <Position X="118" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIAAAhMAkCQWAQAAAAUAwAEAECkAOBABACAQIAEQEYA=</HashCode>
+      <FileName>JavaScript\codesettings.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.PrimitiveType" Collapsed="true">
+    <Position X="109.25" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAQAAAAAAQEAAAAAAAAAAAAAAAAIAAAAAAAA=</HashCode>
+      <FileName>JavaScript\constantwrapper.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.JSError" Collapsed="true">
+    <Position X="111" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAsJIgVAKyAQaTgUBhtAICcCAIBLBAAAIAECAC4gFgM=</HashCode>
+      <FileName>JavaScript\jserror.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.FunctionType" Collapsed="true">
+    <Position X="118" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAQAAAAAAAAIAAAAAAAAAAAAAQAAAACAAAAAA=</HashCode>
+      <FileName>JavaScript\jsparser.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.GlobalObjectInstance" Collapsed="true">
+    <Position X="119.75" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAQAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAA=</HashCode>
+      <FileName>JavaScript\jspredefinedfield.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.JSToken" Collapsed="true">
+    <Position X="112.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>hCDACHXNkWy5BeLQoKt1JCIpPgEOICwOeTpZ/AUybu0=</HashCode>
+      <FileName>JavaScript\jstoken.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.ReferenceType" Collapsed="true">
+    <Position X="111" Y="9.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAAAAAAAAAAAAAAAIAAAAAAAAAAAQAAAAAAAA=</HashCode>
+      <FileName>JavaScript\lookup.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.OpPrec" Collapsed="true">
+    <Position X="116.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAYAQACAAAAQCASAAEAAAACAAMAAAACQQAAIAAAAAQ=</HashCode>
+      <FileName>JavaScript\opprec.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.PostOrPrefix" Collapsed="true">
+    <Position X="119.75" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAABAAAAAAAAAAAAAAAAAABAAAAAAAQA=</HashCode>
+      <FileName>JavaScript\postorprefixoperator.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.ConsoleOutputMode" Collapsed="true">
+    <Position X="109.25" Y="7.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AACAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>MainClass.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Enum Name="Microsoft.Ajax.Utilities.InputType" Collapsed="true">
+    <Position X="109.25" Y="8.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAABAAAAAAAABA=</HashCode>
+      <FileName>MainClass.cs</FileName>
+    </TypeIdentifier>
+  </Enum>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

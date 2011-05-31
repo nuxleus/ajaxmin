@@ -18,54 +18,52 @@ using System.Collections.Generic;
 
 namespace Microsoft.Ajax.Utilities
 {
-  public abstract class UnaryOperator : AstNode
-  {
-    private AstNode m_operand;
-    public AstNode Operand { get { return m_operand; } }
-
-    private JSToken m_operatorToken;
-    protected JSToken OperatorToken { get { return m_operatorToken; } }
-
-    protected UnaryOperator(Context context, JSParser parser, AstNode operand, JSToken operatorToken)
-      : base(context, parser)
+    public abstract class UnaryOperator : AstNode
     {
-      m_operand = operand;
-      m_operatorToken = operatorToken;
-      if (m_operand != null) m_operand.Parent = this;
-    }
+        public AstNode Operand { get; private set; }
 
-    internal override string GetFunctionGuess(AstNode target)
-    {
-      return m_operand.GetFunctionGuess(target);
-    }
+        public JSToken OperatorToken { get; private set; }
 
-    public override IEnumerable<AstNode> Children
-    {
-      get
-      {
-        return EnumerateNonNullNodes(m_operand);
-      }
-    }
+        protected UnaryOperator(Context context, JSParser parser, AstNode operand, JSToken operatorToken)
+            : base(context, parser)
+        {
+            Operand = operand;
+            OperatorToken = operatorToken;
+            if (Operand != null) Operand.Parent = this;
+        }
 
-    public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
-    {
-      if (m_operand == oldNode)
-      {
-        m_operand = newNode;
-        if (newNode != null) { newNode.Parent = this; }
-        return true;
-      }
-      return false;
-    }
+        internal override string GetFunctionGuess(AstNode target)
+        {
+            return Operand.GetFunctionGuess(target);
+        }
 
-    protected bool NeedsParentheses
-    {
-      // binary and conditional operators are all lesser-precedence than unaries
-      get
-      {
-        // we only need parens if the operand is a binary op or a conditional op
-        return (m_operand is BinaryOperator || m_operand is Conditional);
-      }
+        public override IEnumerable<AstNode> Children
+        {
+            get
+            {
+                return EnumerateNonNullNodes(Operand);
+            }
+        }
+
+        public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
+        {
+            if (Operand == oldNode)
+            {
+                Operand = newNode;
+                if (newNode != null) { newNode.Parent = this; }
+                return true;
+            }
+            return false;
+        }
+
+        protected bool NeedsParentheses
+        {
+            // binary and conditional operators are all lesser-precedence than unaries
+            get
+            {
+                // we only need parens if the operand is a binary op or a conditional op
+                return (Operand is BinaryOperator || Operand is Conditional);
+            }
+        }
     }
-  }
 }

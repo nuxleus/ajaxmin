@@ -30,30 +30,12 @@ namespace Microsoft.Ajax.Utilities
             if (m_operand != null) operand.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new EvaluateNode(
-            (Context == null ? null : Context.Clone()),
-            Parser,
-            (m_operand == null ? null : m_operand.Clone())
-            );
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // if the developer hasn't explicitly flagged eval statements as safe...
-            if (Parser.Settings.EvalTreatment != EvalTreatment.Ignore)
+            if (visitor != null)
             {
-                // mark this scope as unknown so we don't
-                // crunch out locals we might reference in the eval at runtime
-                ActivationObject enclosingScope = ScopeStack.Peek();
-                if (enclosingScope != null)
-                {
-                    enclosingScope.IsKnownAtCompileTime = false;
-                }
+                visitor.Visit(this);
             }
-            // then just do the default analysis
-            base.AnalyzeNode();
         }
 
         internal override string GetFunctionGuess(AstNode target)

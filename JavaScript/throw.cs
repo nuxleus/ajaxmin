@@ -30,13 +30,12 @@ namespace Microsoft.Ajax.Utilities
             if (m_operand != null) m_operand.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ThrowNode(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              (m_operand == null ? null : m_operand.Clone())
-              );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override IEnumerable<AstNode> Children

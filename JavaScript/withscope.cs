@@ -27,11 +27,6 @@ namespace Microsoft.Ajax.Utilities
             //IsKnownAtCompileTime = false;
         }
 
-        /*public override BlockScope Clone()
-        {
-            return new WithScope(Parser.ScopeStack.Peek(), Context, Parser);
-        }*/
-
         public override JSVariableField FindReference(string name)
         {
             // call the base class, which will walk up the chain to find wherever the name lives

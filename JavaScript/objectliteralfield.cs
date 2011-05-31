@@ -25,22 +25,12 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
-        internal override void AnalyzeNode()
+        public override void Accept(IVisitor visitor)
         {
-            if (PrimitiveType == PrimitiveType.String
-                && Parser.Settings.HasRenamePairs && Parser.Settings.ManualRenamesProperties
-                && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming))
+            if (visitor != null)
             {
-                string newName = Parser.Settings.GetNewName(Value.ToString());
-                if (!string.IsNullOrEmpty(newName))
-                {
-                    Value = newName;
-                }
+                visitor.Visit(this);
             }
-
-            // don't call the base -- we don't want to add the literal to
-            // the combination logic, which is what the ConstantWrapper (base class) does
-            //base.AnalyzeNode();
         }
 
         public override string ToCode(ToCodeFormat format)

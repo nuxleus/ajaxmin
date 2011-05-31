@@ -35,16 +35,19 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public override AstNode Clone()
-        {
-            return new ConditionalCompilationSet(Context, Parser, m_variableName, m_value);
-        }
-
         public override IEnumerable<AstNode> Children
         {
             get
             {
                 return EnumerateNonNullNodes(m_value);
+            }
+        }
+
+        public override void Accept(IVisitor visitor)
+        {
+            if (visitor != null)
+            {
+                visitor.Visit(this);
             }
         }
 

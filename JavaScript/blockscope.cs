@@ -33,8 +33,6 @@ namespace Microsoft.Ajax.Utilities
             m_context = (context == null ? new Context(parser) : context.Clone());
         }
 
-        //public abstract BlockScope Clone();
-
         public override JSVariableField this[string name]
         {
             get

@@ -28,15 +28,12 @@ namespace Microsoft.Ajax.Utilities
             m_postOrPrefixOperator = postOrPrefixOperator;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new PostOrPrefixOperator(
-                Context.Clone(),
-                Parser,
-                (Operand == null ? null : Operand.Clone()),
-                OperatorToken,
-                m_postOrPrefixOperator
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)

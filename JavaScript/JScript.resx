@@ -192,12 +192,6 @@
   <data name="1030" xml:space="preserve">
     <value>Conditional compilation is turned off</value>
   </data>
-  <data name="1031" xml:space="preserve">
-    <value>Expected constant</value>
-  </data>
-  <data name="1032" xml:space="preserve">
-    <value>Expected '@'</value>
-  </data>
   <data name="1033" xml:space="preserve">
     <value>Expected 'catch'</value>
   </data>
@@ -225,23 +219,8 @@
   <data name="1111" xml:space="preserve">
     <value>Identifier already in use;;'{0}' is already defined</value>
   </data>
-  <data name="1114" xml:space="preserve">
-    <value>Unknown position directive</value>
-  </data>
-  <data name="1115" xml:space="preserve">
-    <value>Directive may not be followed by other code on the same line</value>
-  </data>
-  <data name="1118" xml:space="preserve">
-    <value>Wrong debugger directive or wrong position for the directive</value>
-  </data>
-  <data name="1119" xml:space="preserve">
-    <value>Position directives cannot be nested</value>
-  </data>
   <data name="1135" xml:space="preserve">
     <value>Variable has not been declared;;Variable '{0}' has not been declared</value>
-  </data>
-  <data name="1136" xml:space="preserve">
-    <value>Leaving variables uninitialized is dangerous and makes them slow to use. Did you intend to leave this variable uninitialized?;;Leaving variables uninitialized is dangerous and makes them slow to use. Did you intend to leave '{0}' uninitialized?</value>
   </data>
   <data name="1137" xml:space="preserve">
     <value>This is a new reserved word and should not be used as an identifier;;'{0}' is a new reserved word and should not be used as an identifier</value>
@@ -264,9 +243,6 @@
   <data name="1197" xml:space="preserve">
     <value>Too many errors. The file might not be a JScript .NET file</value>
   </data>
-  <data name="1203" xml:space="preserve">
-    <value>Expression does not have an address</value>
-  </data>
   <data name="1206" xml:space="preserve">
     <value>Did you intend to write an assignment here?</value>
   </data>
@@ -275,9 +251,6 @@
   </data>
   <data name="1240" xml:space="preserve">
     <value>A variable argument list must be the last argument</value>
-  </data>
-  <data name="1256" xml:space="preserve">
-    <value>Conditional compilation directives and variables cannot be used in the debugger</value>
   </data>
   <data name="1264" xml:space="preserve">
     <value>The specified type is not CLS compliant</value>

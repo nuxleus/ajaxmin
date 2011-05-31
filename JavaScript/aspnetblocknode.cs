@@ -17,11 +17,13 @@ namespace Microsoft.Ajax.Utilities
 			this.blockTerminatedByExplicitSemicolon = blockTerminatedByExplicitSemicolon;
 		}
 
-		public override AstNode Clone()
-		{
-			return new AspNetBlockNode((Context == null ? null : Context.Clone()), Parser,
-				aspNetBlockText, blockTerminatedByExplicitSemicolon);
-		}
+        public override void Accept(IVisitor visitor)
+        {
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
+        }
 
 		public override string ToCode(ToCodeFormat format)
 		{

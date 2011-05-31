@@ -21,50 +21,22 @@ namespace Microsoft.Ajax.Utilities
 {
     public sealed class RegExpLiteral : AstNode
     {
-        private string m_pattern;
-        private string m_patternSwitches;
+        public string Pattern { get; private set; }
+        public string PatternSwitches { get; private set; }
 
         public RegExpLiteral(string pattern, string patternSwitches, Context context, JSParser parser)
             : base(context, parser)
         {
-            m_pattern = pattern;
-            m_patternSwitches = patternSwitches;
+            Pattern = pattern;
+            PatternSwitches = patternSwitches;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new RegExpLiteral(
-              m_pattern,
-              m_patternSwitches,
-              (Context == null ? null : Context.Clone()),
-              Parser
-              );
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // verify the syntax
-            try
+            if (visitor != null)
             {
-                // just try instantiating a Regex object with this string.
-                // if it's invalid, it will throw an exception.
-                // we don't need to pass the flags -- we're just interested in the pattern
-                Regex re = new Regex(m_pattern, RegexOptions.ECMAScript);
-
-                // basically we have this test here so the re variable is referenced
-                // and FxCop won't throw an error. There really aren't any cases where
-                // the constructor will return null (other than out-of-memory)
-                if (re == null)
-                {
-                    Context.HandleError(JSError.RegExpSyntax, true);
-                }
+                visitor.Visit(this);
             }
-            catch (System.ArgumentException e)
-            {
-                System.Diagnostics.Debug.WriteLine(e.ToString());
-                Context.HandleError(JSError.RegExpSyntax, true);
-            }
-            // don't bother calling the base -- there are no children
         }
 
         public override string ToCode(ToCodeFormat format)
@@ -72,8 +44,8 @@ namespace Microsoft.Ajax.Utilities
             return string.Format(
               CultureInfo.InvariantCulture,
               "/{0}/{1}",
-              m_pattern,
-              (m_patternSwitches == null ? string.Empty : m_patternSwitches)
+              Pattern,
+              (PatternSwitches == null ? string.Empty : PatternSwitches)
               );
         }
     }

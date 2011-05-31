@@ -40,136 +40,19 @@ namespace Microsoft.Ajax.Utilities
             if (FalseBlock != null) FalseBlock.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new IfNode(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (Condition == null ? null : Condition.Clone()),
-                (TrueBlock == null ? null : TrueBlock.Clone()),
-                (FalseBlock == null ? null : FalseBlock.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
-        internal override void AnalyzeNode()
+        public void SwapBranches()
         {
-            if (Parser.Settings.StripDebugStatements
-                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements))
-            {
-                if (TrueBlock != null && TrueBlock.IsDebuggerStatement)
-                {
-                    TrueBlock = null;
-                }
-
-                if (FalseBlock != null && FalseBlock.IsDebuggerStatement)
-                {
-                    FalseBlock = null;
-                }
-            }
-
-            // recurse....
-            base.AnalyzeNode();
-
-            // now check to see if the two branches are now empty.
-            // if they are, null them out.
-            if (TrueBlock != null && TrueBlock.Count == 0)
-            {
-                TrueBlock = null;
-            }
-            if (FalseBlock != null && FalseBlock.Count == 0)
-            {
-                FalseBlock = null;
-            }
-
-            // if there is no true branch but a false branch, then
-            // put a not on the condition and move the false branch to the true branch.
-            if (TrueBlock == null && FalseBlock != null
-                && Parser.Settings.IsModificationAllowed(TreeModifications.IfConditionFalseToIfNotConditionTrue))
-            {
-                // check to see if not-ing the condition produces a quick and easy
-                // version first
-                AstNode nottedCondition = Condition.LogicalNot();
-                if (nottedCondition != null)
-                {
-                    // it does -- use it
-                    Condition = nottedCondition;
-                }
-                else
-                {
-                    // it doesn't. Just wrap it.
-                    Condition = new NumericUnary(
-                      null,
-                      Parser,
-                      Condition,
-                      JSToken.LogicalNot
-                      );
-                }
-                // don't forget to set the parent
-                Condition.Parent = this;
-
-                // and swap the branches
-                TrueBlock = FalseBlock;
-                FalseBlock = null;
-            }
-            else if (TrueBlock == null && FalseBlock == null
-                && Parser.Settings.IsModificationAllowed(TreeModifications.IfEmptyToExpression))
-            {
-                // NEITHER branches have anything now!
-
-                // something we can do in the future: as long as the condition doesn't
-                // contain calls or assignments, we should be able to completely delete
-                // the statement altogether rather than changing it to an expression
-                // statement on the condition.
-                
-                // I'm just not doing it yet because I don't
-                // know what the effect will be on the iteration of block statements.
-                // if we're on item, 5, for instance, and we delete it, will the next
-                // item be item 6, or will it return the NEW item 5 (since the old item
-                // 5 was deleted and everything shifted up)?
-
-                // We don't know what it is and what the side-effects may be, so
-                // just change this statement into an expression statement by replacing us with 
-                // the expression
-                Parent.ReplaceChild(this, Condition);
-                // no need to analyze -- we already recursed
-            }
-
-            // if this statement is now of the pattern "if (condtion) callNode" then
-            // we can further reduce it by changing it to "condition && callNode".
-            if (TrueBlock != null && FalseBlock == null
-                && TrueBlock.Count == 1
-                && Parser.Settings.IsModificationAllowed(TreeModifications.IfConditionCallToConditionAndCall))
-            {
-                // BUT we don't want to replace the statement if the true branch is a
-                // call to an onXXXX method of an object. This is because of an IE bug
-                // that throws an error if you pass any parameter to onclick or onfocus or
-                // any of those event handlers directly from within an and-expression -- 
-                // although expression-statements seem to work just fine.
-                CallNode callNode = TrueBlock[0] as CallNode;
-                if (callNode != null)
-                {
-                    Member callMember = callNode.Function as Member;
-                    if (callMember == null
-                        || !callMember.Name.StartsWith("on", StringComparison.Ordinal)
-                        || callNode.Arguments.Count == 0)
-                    {
-                        // we're good -- go ahead and replace it
-                        BinaryOperator binaryOp = new BinaryOperator(
-                            Context,
-                            Parser,
-                            Condition,
-                            TrueBlock,
-                            JSToken.LogicalAnd
-                            );
-
-                        // we don't need to analyse this new node because we've already analyzed
-                        // the pieces parts as part of the if. And the AnalyzeNode for the BinaryOperator
-                        // doesn't really do anything else. Just replace our current node with this
-                        // new node
-                        Parent.ReplaceChild(this, binaryOp);
-                    }
-                }
-            }
+            Block temp = TrueBlock;
+            TrueBlock = FalseBlock;
+            FalseBlock = temp;
         }
 
         public override IEnumerable<AstNode> Children
@@ -430,33 +313,6 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(elseBlock);
             }
             return sb.ToString();
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                // if the if-condition is a constant, we can eliminate one of the two branches
-                ConstantWrapper constantCondition = Condition as ConstantWrapper;
-                if (constantCondition != null)
-                {
-                    // instead, replace the condition with a 1 if it's always true or a 0 if it's always false
-                    if (constantCondition.IsNotOneOrPositiveZero)
-                    {
-                        try
-                        {
-                            Condition = new ConstantWrapper(constantCondition.ToBoolean() ? 1 : 0, PrimitiveType.Number, null, Parser);
-                        }
-                        catch (InvalidCastException)
-                        {
-                            // ignore any invalid cast exceptions
-                        }
-                    }
-                }
-            }
         }
     }
 }

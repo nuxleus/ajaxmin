@@ -150,11 +150,7 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        private bool m_isParameterToRegExp;
-        public bool IsParameterToRegExp
-        {
-            get { return m_isParameterToRegExp; }
-        }
+        public bool IsParameterToRegExp { get; set; }
 
         public bool IsSpecialNumeric
         {
@@ -179,66 +175,12 @@ namespace Microsoft.Ajax.Utilities
             Value = (primitiveType == PrimitiveType.Number ? System.Convert.ToDouble(value, CultureInfo.InvariantCulture) : value);
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ConstantWrapper(
-                Value,
-                PrimitiveType,
-                (Context == null ? null : Context.Clone()),
-                Parser
-                );
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // check to see if this node is an argument to a RegExp constructor.
-            // if it is, we'll want to not use certain string escapes
-            AstNode previousNode = null;
-            AstNode parentNode = Parent;
-            while (parentNode != null)
+            if (visitor != null)
             {
-                // is this a call node and he previous node was one of the parameters?
-                CallNode callNode = parentNode as CallNode;
-                if (callNode != null && previousNode == callNode.Arguments)
-                {
-                    // are we calling a simple lookup for "RegExp"?
-                    Lookup lookup = callNode.Function as Lookup;
-                    if (lookup != null && lookup.Name == "RegExp")
-                    {
-                        // we are -- so all string literals passed within this constructor should not use
-                        // standard string escape sequences
-                        m_isParameterToRegExp = true;
-                        // we can stop looking
-                        break;
-                    }
-                }
-
-                // next up the chain, keeping track of this current node as next iteration's "previous" node
-                previousNode = parentNode;
-                parentNode = parentNode.Parent;
+                visitor.Visit(this);
             }
-
-            // we only need to process the literals IF we are actually going to do
-            // anything with them (combine duplicates). So if we aren't, don't call
-            // AddLiteral because it hugely inflates the processing time of the application.
-            if (Parser.Settings.CombineDuplicateLiterals)
-            {
-                // add this literal to the scope's literal collection. 
-                // HOWEVER, we do NOT want to add it for consideration of literal combination
-                // if any scope above us is a with-scope -- otherwise the 
-                // variable we use to combine the literals might be confused with a
-                // property on the with-object. 
-                // AND we don't want to do it if the scope is unknown, for the same reason.
-                // we won't really know if the variable we create will interfere with the 
-                // scope resolution of any variables that me in the eval string.
-                ActivationObject thisScope = Parser.ScopeStack.Peek();
-                if (thisScope.IsKnownAtCompileTime && !thisScope.IsInWithScope)
-                {
-                    thisScope.AddLiteral(this, thisScope);
-                }
-            }
-
-            // this node has no children, so don't bother calling the base
         }
 
         public override string ToCode(ToCodeFormat format)
@@ -275,7 +217,7 @@ namespace Microsoft.Ajax.Utilities
                         // escape the string
                         str = EscapeString(
                             Value.ToString(),
-                            m_isParameterToRegExp, 
+                            IsParameterToRegExp, 
                             false);
                     }
                     else

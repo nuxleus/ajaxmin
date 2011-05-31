@@ -34,33 +34,11 @@ namespace Microsoft.Ajax.Utilities
             if (Body != null) Body.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new WhileNode(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              (Condition == null ? null : Condition.Clone()),
-              (Body == null ? null : Body.Clone())
-              );
-        }
-
-        internal override void AnalyzeNode()
-        {
-            if (Parser.Settings.StripDebugStatements
-                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
-                 && Body != null 
-                 && Body.IsDebuggerStatement)
+            if (visitor != null)
             {
-                Body = null;
-            }
-
-            // recurse
-            base.AnalyzeNode();
-
-            // if the body is now empty, make it null
-            if (Body != null && Body.Count == 0)
-            {
-                Body = null;
+                visitor.Visit(this);
             }
         }
 
@@ -126,69 +104,6 @@ namespace Microsoft.Ajax.Utilities
               );
             sb.Append(bodyString);
             return sb.ToString();
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            // see if the condition is a constant
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                ConstantWrapper constantCondition = Condition as ConstantWrapper;
-                if (constantCondition != null)
-                {
-                    // TODO: we'd RATHER eliminate the statement altogether if the condition is always false,
-                    // but we'd need to make sure var'd variables and declared functions are properly handled.
-                    try
-                    {
-                        bool isTrue = constantCondition.ToBoolean();
-                        if (isTrue)
-                        {
-                            // the condition is always true; we should change it to a for(;;) statement.
-                            // less bytes than while(1)
-
-                            // check to see if we want to combine a preceding var with a for-statement
-                            AstNode initializer = null;
-                            if (Parser.Settings.IsModificationAllowed(TreeModifications.MoveVarIntoFor))
-                            {
-                                // if the previous statement is a var, we can move it to the initializer
-                                // and save even more bytes. The parent should always be a block. If not, 
-                                // then assume there is no previous.
-                                Block parentBlock = Parent as Block;
-                                if (parentBlock != null)
-                                {
-                                    int whileIndex = parentBlock.StatementIndex(this);
-                                    if (whileIndex > 0)
-                                    {
-                                        Var previousVar = parentBlock[whileIndex - 1] as Var;
-                                        if (previousVar != null)
-                                        {
-                                            initializer = previousVar;
-                                            parentBlock.ReplaceChild(previousVar, null);
-                                        }
-                                    }
-                                }
-                            }
-
-                            // create the for using our body and replace ourselves with it
-                            ForNode forNode = new ForNode(Context, Parser, initializer, null, null, Body);
-                            Parent.ReplaceChild(this, forNode);
-                        }
-                        else if (constantCondition.IsNotOneOrPositiveZero)
-                        {
-                            // the condition is always false, so we can replace the condition
-                            // with a zero -- only one byte
-                            Condition = new ConstantWrapper(0, PrimitiveType.Number, null, Parser);
-                        }
-                    }
-                    catch (InvalidCastException)
-                    {
-                        // ignore any invalid cast exceptions
-                    }
-                }
-            }
         }
     }
 }

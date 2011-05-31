@@ -799,7 +799,7 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        // called during ConstantWrapper.AnalyzeNode
+        // called during AnalyzeNodeVisitor(ConstantWrapper)
         internal virtual List<ConstantWrapper> AddLiteral(ConstantWrapper constantWrapper, ActivationObject refScope)
         {
             List<ConstantWrapper> nodeList = null;

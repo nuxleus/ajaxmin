@@ -23,20 +23,17 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ConditionalCompilationOn(Context, Parser);
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)
         {
             return "@cc_on";
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // well, we've encountered a cc_on statement now
-            Parser.EncounteredCCOn = true;
         }
     }
 }

@@ -23,6 +23,11 @@ namespace Microsoft.Ajax.Utilities
         EndOfFile,
 
         // main statement switch
+        Semicolon,                      // ;
+        RightCurly,                     // }
+        LeftCurly,                      // {
+        Debugger,
+        Var,
         If,
         For,
         Do,
@@ -30,28 +35,22 @@ namespace Microsoft.Ajax.Utilities
         Continue,
         Break,
         Return,
-        Import,
         With,
         Switch,
         Throw,
         Try,
-        Package,
-        Internal,
-        Abstract,
-        Public,
-        Static,
-        Private,
-        Protected,
-        Final,
-        Event,
-        Var,
-        Const,
-        Class,
+        Function,
+        Else,
+        ConditionalCommentStart,        // /*@ or //@
+        ConditionalCompilationOn,       // @cc_on
+        ConditionalCompilationSet,      // @set
+        ConditionalCompilationIf,       // @if
+        ConditionalCompilationElseIf,   // @elif
+        ConditionalCompilationElse,     // @else
+        ConditionalCompilationEnd,      // @end
+		AspNetBlock,
 
         // used by both statement and expression switches
-        Function,
-        LeftCurly,                      // {
-        Semicolon,                      // ;
 
         // main expression switch
         Null,
@@ -70,53 +69,57 @@ namespace Microsoft.Ajax.Utilities
         // operators
         FirstOperator,
         // unary ops
-        LogicalNot = FirstOperator,     // !
-        BitwiseNot,                     // ~
-        Delete,
-        Void,
+        Void = FirstOperator,
         TypeOf,
+        Delete,
         Increment,                      // ++
         Decrement,                      // --
+        LogicalNot,     // !
+        BitwiseNot,                     // ~
+
         FirstBinaryOperator,
         // binary ops
         Plus = FirstBinaryOperator,     // +
         Minus,                          // -
-        LogicalOr,                      // ||
-        LogicalAnd,                     // &&
-        BitwiseOr,                      // |
-        BitwiseXor,                     // ^
-        BitwiseAnd,                     // &
+        LessThan,                       // <
+        Divide,                         // /
+        Modulo,                         // %
+        LeftShift,                      // <<
+        RightShift,                     // >>
+        UnsignedRightShift,             // >>>
+
         Equal,                          // ==
         NotEqual,                       // !=
         StrictEqual,                    // ===
         StrictNotEqual,                 // !==
-        GreaterThan,                    // >
-        LessThan,                       // <
         LessThanEqual,                  // <=
+        GreaterThan,                    // >
         GreaterThanEqual,               // >=
-        LeftShift,                      // <<
-        RightShift,                     // >>
-        UnsignedRightShift,             // >>>
+
         Multiply,                       // *
-        Divide,                         // /
-        Modulo,                         // %
-        LastPPOperator = Modulo,
-        InstanceOf,
-        In,
+        BitwiseAnd,                     // &
+        BitwiseOr,                      // |
+        BitwiseXor,                     // ^
+        LogicalAnd,                     // &&
+        LogicalOr,                      // ||
+
         Assign,                         // =
         PlusAssign,                     // +=
         MinusAssign,                    // -=
         MultiplyAssign,                 // *=
         DivideAssign,                   // /=
+        ModuloAssign,                   // %=
         BitwiseAndAssign,               // &=
         BitwiseOrAssign,                // |=
         BitwiseXorAssign,               // ^=
-        ModuloAssign,                   // %=
         LeftShiftAssign,                // >>=
         RightShiftAssign,               // <<=
         UnsignedRightShiftAssign,       // <<<=
         LastAssign = UnsignedRightShiftAssign,
-        LastBinaryOperator = UnsignedRightShiftAssign,
+
+        InstanceOf,
+        In,
+
         ConditionalIf,                  // ? // MUST FOLLOW LastBinaryOp
         Colon,                          // :
         Comma,                          // ,
@@ -125,9 +128,7 @@ namespace Microsoft.Ajax.Utilities
         // context specific keywords
         Case,
         Catch,
-        Debugger,
         Default,
-        Else,
         Export,
         Extends,
         Finally,
@@ -138,7 +139,6 @@ namespace Microsoft.Ajax.Utilities
         Set,
         Super,
         RightParenthesis,               // )
-        RightCurly,                     // }
         RightBracket,                   // ]
         PreprocessorConstant,           // entity defined defined during preprocessing
         Comment,                        // for authoring
@@ -173,21 +173,26 @@ namespace Microsoft.Ajax.Utilities
         UnsignedLong,
         Use,
 
+        Package,
+        Internal,
+        Abstract,
+        Public,
+        Static,
+        Private,
+        Protected,
+        Final,
+        Event,
+        Const,
+        Class,
+        Import,
+
         EndOfLine, // only returned if the RawTokens flag is set on the scanner, but also used in error-recovery
         WhiteSpace, // only returned if the RawTokens flag is set on the scanner
         Error, // only returned if the RawTokens flag is set on the scanner
         RegularExpression, // only returned if the RawTokens flag is set on the scanner
 
         PreprocessDirective,
-        ConditionalCommentStart,        // /*@ or //@
         ConditionalCommentEnd,          // @*/ or EOL
-        ConditionalCompilationOn,       // @cc_on
-        ConditionalCompilationSet,      // @set
-        ConditionalCompilationIf,       // @if
-        ConditionalCompilationElseIf,   // @elif
-        ConditionalCompilationElse,     // @else
-        ConditionalCompilationEnd,      // @end
 
-		AspNetBlock,
     }
 }

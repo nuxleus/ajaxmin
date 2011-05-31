@@ -64,30 +64,6 @@ namespace Microsoft.Ajax.Utilities
         public abstract string ToCode(ToCodeFormat format);
         public virtual string ToCode() { return ToCode(ToCodeFormat.Normal); }
 
-        /// <summary>
-        /// Only call Clone when you know you are in the proper scope chain
-        /// </summary>
-        /// <returns></returns>
-        public abstract AstNode Clone();
-
-        internal virtual void AnalyzeNode()
-        {
-            // most objects just recurse to their children
-            foreach (AstNode child in Children)
-            {
-                child.AnalyzeNode();
-            }
-        }
-
-        public virtual void CleanupNodes()
-        {
-            // most objects just recurse to their children
-            foreach (AstNode child in Children)
-            {
-                child.CleanupNodes();
-            }
-        }
-
         protected Block ForceToBlock(AstNode astNode)
         {
             // if the node is null or already a block, then we're 
@@ -194,5 +170,11 @@ namespace Microsoft.Ajax.Utilities
                 return Parent != null ? Parent.EnclosingScope : Parser.GlobalScope;
             }
         }
+
+        /// <summary>
+        /// Abstract method to be implemented by every concrete node class
+        /// </summary>
+        /// <param name="visitor">visitor to accept</param>
+        public abstract void Accept(IVisitor visitor);
     }
 }

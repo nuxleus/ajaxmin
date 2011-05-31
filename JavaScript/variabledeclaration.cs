@@ -22,31 +22,20 @@ namespace Microsoft.Ajax.Utilities
 {
     public sealed class VariableDeclaration : AstNode
     {
-        private string m_identifier;
-        public string Identifier { get { return m_identifier; } }
-
-        private AstNode m_initializer;
-        public AstNode Initializer { get { return m_initializer; } }
-
-        private JSVariableField m_field;
-        public JSVariableField Field { get { return m_field; } }
-
-        private bool m_ccSpecialCase;
-        internal bool IsCCSpecialCase
-        {
-            set { m_ccSpecialCase = value; }
-        }
-
+        public string Identifier { get; private set; }
+        public AstNode Initializer { get; private set; }
+        public JSVariableField Field { get; private set; }
+        public bool IsCCSpecialCase { get; set; }
         public bool UseCCOn { get; set; }
 
         private bool m_isGenerated;
-        internal bool IsGenerated
+        public bool IsGenerated
         {
             get { return m_isGenerated; }
             set
             {
                 m_isGenerated = value;
-                JSLocalField localField = m_field as JSLocalField;
+                JSLocalField localField = Field as JSLocalField;
                 if (localField != null)
                 {
                     localField.IsGenerated = m_isGenerated;
@@ -63,16 +52,16 @@ namespace Microsoft.Ajax.Utilities
             : base(context, parser)
         {
             // identifier cannot be null
-            m_identifier = identifier;
+            Identifier = identifier;
 
             // initializer may be null
-            m_initializer = initializer;
-            if (m_initializer != null) { m_initializer.Parent = this; }
+            Initializer = initializer;
+            if (Initializer != null) { Initializer.Parent = this; }
 
             // we'll need to do special stuff if the initializer if a function expression,
             // so try the conversion now
-            FunctionObject functionValue = m_initializer as FunctionObject;
-            string name = m_identifier.ToString();
+            FunctionObject functionValue = Initializer as FunctionObject;
+            string name = Identifier.ToString();
 
             ActivationObject currentScope = ScopeStack.Peek();
             ActivationObject definingScope = currentScope;
@@ -148,24 +137,24 @@ namespace Microsoft.Ajax.Utilities
             // but if there is no initializer, we'll use Missing so we can tell the difference.
             // and if this is a literal, we'll set it to the actual literal astnode
             object val = null;
-            if (m_initializer == null)
+            if (Initializer == null)
             {
                 val = Missing.Value;
             }
             else if (isLiteral || (functionValue != null))
             {
-                val = m_initializer;
+                val = Initializer;
             }
 
-            m_field = currentScope.DeclareField(
-              m_identifier,
+            Field = currentScope.DeclareField(
+              Identifier,
               val,
               fieldAttributes
               );
-            m_field.OriginalContext = idContext;
+            Field.OriginalContext = idContext;
 
             // we are now declared by a var statement
-            m_field.IsDeclared = true;
+            Field.IsDeclared = true;
 
             // if we are declaring a variable inside a with statement, then we will be declaring
             // a local variable in the enclosing scope if the with object doesn't have a property
@@ -174,56 +163,50 @@ namespace Microsoft.Ajax.Utilities
             // actually be referencing the value.
             // SO, if this is a with-scope and this variable declaration has an initializer, we're going
             // to go ahead and bump up the reference.
-            if (currentScope is WithScope && m_initializer != null)
+            if (currentScope is WithScope && Initializer != null)
             {
-                m_field.AddReference(currentScope);
+                Field.AddReference(currentScope);
             }
 
             // special case the ambiguous function expression test. If we are var-ing a variable
             // with the same name as the function expression, then it's okay. We won't have an ambiguous
             // reference and it will be okay to use the name to reference the function expression
-            if (functionValue != null && string.CompareOrdinal(m_identifier, functionValue.Name) == 0)
+            if (functionValue != null && string.CompareOrdinal(Identifier, functionValue.Name) == 0)
             {
                 // null out the link to the named function expression
                 // and make the function object point to the PROPER variable: the local within its own scope
                 // and the inner is not pointing to the outer.
                 functionValue.DetachFromOuterField(false);
-                m_field.IsFunction = false;
+                Field.IsFunction = false;
             }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            VariableDeclaration varDecl = new VariableDeclaration(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                m_identifier,
-                m_field.OriginalContext,
-                (m_initializer == null ? null : m_initializer.Clone()),
-                m_field.Attributes
-                );
-            varDecl.m_isGenerated = m_isGenerated;
-            return varDecl;
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal override string GetFunctionGuess(AstNode target)
         {
-            return m_identifier;
+            return Identifier;
         }
 
         public override IEnumerable<AstNode> Children
         {
             get
             {
-                return EnumerateNonNullNodes(m_initializer);
+                return EnumerateNonNullNodes(Initializer);
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_initializer == oldNode)
+            if (Initializer == oldNode)
             {
-                m_initializer = newNode;
+                Initializer = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
@@ -233,10 +216,10 @@ namespace Microsoft.Ajax.Utilities
         public override string ToCode(ToCodeFormat format)
         {
             StringBuilder sb = new StringBuilder();
-            sb.Append(m_field.ToString());
-            if (m_initializer != null)
+            sb.Append(Field.ToString());
+            if (Initializer != null)
             {
-                if (m_ccSpecialCase)
+                if (IsCCSpecialCase)
                 {
                     sb.Append(UseCCOn ? "/*@cc_on=" : "/*@=");
                 }
@@ -255,7 +238,7 @@ namespace Microsoft.Ajax.Utilities
 
                 bool useParen = false;
                 // a comma operator is the only thing with a lesser precedence than an assignment
-                BinaryOperator binOp = m_initializer as BinaryOperator;
+                BinaryOperator binOp = Initializer as BinaryOperator;
                 if (binOp != null && binOp.OperatorToken == JSToken.Comma)
                 {
                     useParen = true;
@@ -264,29 +247,18 @@ namespace Microsoft.Ajax.Utilities
                 {
                     sb.Append('(');
                 }
-                sb.Append(m_initializer.ToCode(m_ccSpecialCase ? ToCodeFormat.Preprocessor : ToCodeFormat.Normal));
+                sb.Append(Initializer.ToCode(IsCCSpecialCase ? ToCodeFormat.Preprocessor : ToCodeFormat.Normal));
                 if (useParen)
                 {
                     sb.Append(')');
                 }
 
-                if (m_ccSpecialCase)
+                if (IsCCSpecialCase)
                 {
                     sb.Append("@*/");
                 }
             }
             return sb.ToString();
-        }
-
-        internal override void AnalyzeNode()
-        {
-            base.AnalyzeNode();
-
-            if (m_ccSpecialCase && Parser.Settings.IsModificationAllowed(TreeModifications.RemoveUnnecessaryCCOnStatements))
-            {
-                UseCCOn = !Parser.EncounteredCCOn;
-                Parser.EncounteredCCOn = true;
-            }
         }
     }
 }

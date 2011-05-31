@@ -34,14 +34,12 @@ namespace Microsoft.Ajax.Utilities
             if (Root != null) Root.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new Member(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (Root == null ? null : Root.Clone()),
-                Name
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal override string GetFunctionGuess(AstNode target)
@@ -70,73 +68,6 @@ namespace Microsoft.Ajax.Utilities
                 // depends on whether the root is
                 return Root.IsDebuggerStatement;
             }
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // if we don't even have any resource strings, then there's nothing
-            // we need to do and we can just perform the base operation
-            ResourceStrings resourceStrings = Parser.ResourceStrings;
-            if (resourceStrings != null && resourceStrings.Count > 0)
-            {
-                // see if the root object is a lookup that corresponds to the 
-                // global value (not a local field) for our resource object
-                // (same name)
-                Lookup rootLookup = Root as Lookup;
-                if (rootLookup != null
-                    && rootLookup.LocalField == null
-                    && string.CompareOrdinal(rootLookup.Name, resourceStrings.Name) == 0)
-                {
-                    // it is -- we're going to replace this with a string value.
-                    // if this member name is a string on the object, we'll replacve it with
-                    // the literal. Otherwise we'll replace it with an empty string.
-                    // see if the string resource contains this value
-                    ConstantWrapper stringLiteral = new ConstantWrapper(
-                        resourceStrings[Name],
-                        PrimitiveType.String,
-                        Context,
-                        Parser
-                        );
-
-                    Parent.ReplaceChild(this, stringLiteral);
-                    // analyze the literal
-                    stringLiteral.AnalyzeNode();
-                    return;
-                }
-            }
-
-            // if we are replacing property names and we have something to replace
-            if (Parser.Settings.HasRenamePairs && Parser.Settings.ManualRenamesProperties
-                && Parser.Settings.IsModificationAllowed(TreeModifications.PropertyRenaming))
-            {
-                // see if this name is a target for replacement
-                string newName = Parser.Settings.GetNewName(Name);
-                if (!string.IsNullOrEmpty(newName))
-                {
-                    // it is -- set the name to the new name
-                    Name = newName;
-                }
-            }
-
-            // recurse
-            base.AnalyzeNode();
-
-            /* REVIEW: might be too late in the parsing -- references to the variable may have
-             * already been analyzed and found undefined
-            // see if we are assigning to a member on the global window object
-            BinaryOperator binaryOp = Parent as BinaryOperator;
-            if (binaryOp != null && binaryOp.IsAssign && m_rootObject.IsWindowLookup)
-            {
-                // make sure the name of this property is a valid global variable, since we
-                // are now assigning to it.
-                if (Parser.GlobalScope[Name] == null)
-                {
-                    // it's not -- we need to add it to our list of known globals
-                    // by defining a global field for it
-                    Parser.GlobalScope.DeclareField(Name, null, 0);
-                }
-            }
-            */
         }
 
         public override IEnumerable<AstNode> Children

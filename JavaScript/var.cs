@@ -42,96 +42,12 @@ namespace Microsoft.Ajax.Utilities
             m_list = new List<VariableDeclaration>();
         }
 
-        internal override void AnalyzeNode()
+        public override void Accept(IVisitor visitor)
         {
-            // first we want to weed out duplicates that don't have initializers
-            // var a=1, a=2 is okay, but var a, a=2 and var a=2, a should both be just var a=2, 
-            // and var a, a should just be var a
-            if (Parser.Settings.IsModificationAllowed(TreeModifications.RemoveDuplicateVar))
+            if (visitor != null)
             {
-                int ndx = 0;
-                while (ndx < m_list.Count)
-                {
-                    string thisName = m_list[ndx].Identifier;
-
-                    // handle differently if we have an initializer or not
-                    if (m_list[ndx].Initializer != null)
-                    {
-                        // the current vardecl has an initializer, so we want to delete any other
-                        // vardecls of the same name in the rest of the list with no initializer
-                        // and move on to the next item afterwards
-                        DeleteNoInits(++ndx, thisName);
-                    }
-                    else
-                    {
-                        // this vardecl has no initializer, so we can delete it if there is ANY
-                        // other vardecl with the same name (whether or not it has an initializer)
-                        if (VarDeclExists(ndx + 1, thisName))
-                        {
-                            m_list.RemoveAt(ndx);
-
-                            // don't increment the index; we just deleted the current item,
-                            // so the next item just slid into this position
-                        }
-                        else
-                        {
-                            // nope -- it's the only one. Move on to the next
-                            ++ndx;
-                        }
-                    }
-                }
+                visitor.Visit(this);
             }
-
-            // recurse the analyze
-            base.AnalyzeNode();
-        }
-
-        private bool VarDeclExists(int ndx, string name)
-        {
-            // only need to look forward from the index passed
-            for (; ndx < m_list.Count; ++ndx)
-            {
-                // string must be exact match
-                if (string.CompareOrdinal(m_list[ndx].Identifier, name) == 0)
-                {
-                    // there is at least one -- we can bail
-                    return true;
-                }
-            }
-            // if we got here, we didn't find any matches
-            return false;
-        }
-
-        private void DeleteNoInits(int min, string name)
-        {
-            // walk backwards from the end of the list down to (and including) the minimum index
-            for (int ndx = m_list.Count - 1; ndx >= min; --ndx)
-            {
-                // if the name matches and there is no initializer...
-                if (string.CompareOrdinal(m_list[ndx].Identifier, name) == 0
-                    && m_list[ndx].Initializer == null)
-                {
-                    // ...remove it from the list
-                    m_list.RemoveAt(ndx);
-                }
-            }
-        }
-
-        public override AstNode Clone()
-        {
-            // creates a new EMPTY statement
-            Var newVar = new Var((Context == null ? null : Context.Clone()), Parser);
-            // now go through and clone all the actual declarations
-            for (int ndx = 0; ndx < m_list.Count; ++ndx)
-            {
-                if (m_list[ndx] != null)
-                {
-                    // cloning the declaration will add a field to the current scope
-                    // (better already be in the proper scope chain)
-                    newVar.Append(m_list[ndx].Clone());
-                }
-            }
-            return newVar;
         }
 
         public override IEnumerable<AstNode> Children
@@ -214,13 +130,21 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public void RemoveAt(int index)
+        {
+            if (0 <= index & index < m_list.Count)
+            {
+                m_list.RemoveAt(index);
+            }
+        }
+
         public bool Contains(string name)
         {
             // look at each vardecl in our list
-            for (int ndx = 0; ndx < m_list.Count; ++ndx)
+            foreach(var varDecl in m_list)
             {
                 // if it matches the target name exactly...
-                if (string.CompareOrdinal(m_list[ndx].Identifier, name) == 0)
+                if (string.CompareOrdinal(varDecl.Identifier, name) == 0)
                 {
                     // ...we found a match
                     return true;
@@ -255,6 +179,7 @@ namespace Microsoft.Ajax.Utilities
             return sb.ToString();
         }
 
+        /*
         public void RemoveUnreferencedGenerated(FunctionScope scope)
         {
             // walk backwards -- we're going to delete any generated variables that
@@ -286,5 +211,6 @@ namespace Microsoft.Ajax.Utilities
                 Parent.ReplaceChild(this, null);
             }
         }
+        */
     }
 }

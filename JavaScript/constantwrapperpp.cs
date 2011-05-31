@@ -32,14 +32,12 @@ namespace Microsoft.Ajax.Utilities
             m_forceComments = forceComments;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ConstantWrapperPP(
-                m_varName,
-                m_forceComments,
-                (Context == null ? null : Context.Clone()),
-                Parser
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)

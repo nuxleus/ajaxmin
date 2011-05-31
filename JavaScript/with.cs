@@ -23,27 +23,24 @@ namespace Microsoft.Ajax.Utilities
     public sealed class WithNode : AstNode
     {
         private AstNode m_withObject;
-        private Block m_block;
+        public Block Body { get; private set; }
 
         public WithNode(Context context, JSParser parser, AstNode obj, AstNode body)
             : base(context, parser)
         {
             m_withObject = obj;
-            m_block = ForceToBlock(body);
+            Body = ForceToBlock(body);
 
             if (m_withObject != null) { m_withObject.Parent = this; }
-            if (m_block != null) { m_block.Parent = this; }
+            if (Body != null) { Body.Parent = this; }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            /*return new WithNode(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              (m_withObject == null ? null : m_withObject.Clone()),
-              (m_block == null ? null : m_block.Clone())
-              );*/
-            throw new NotImplementedException();
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal override string GetFunctionGuess(AstNode target)
@@ -51,46 +48,11 @@ namespace Microsoft.Ajax.Utilities
             return "with";
         }
 
-        internal override void AnalyzeNode()
-        {
-            // throw a warning discouraging the use of this statement
-            Context.HandleError(JSError.WithNotRecommended, false);
-
-            // hold onto the with-scope in case we need to do something with it
-            BlockScope withScope = (m_block == null ? null : m_block.BlockScope);
-
-            if (Parser.Settings.StripDebugStatements
-                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
-                 && m_block != null 
-                 && m_block.IsDebuggerStatement)
-            {
-                m_block = null;
-            }
-
-            // recurse
-            base.AnalyzeNode();
-
-            // we'd have to know what the object (obj) evaluates to before we
-            // can figure out what to add to the scope -- not possible without actually
-            // running the code. This could throw a whole bunch of 'undefined' errors.
-            if (m_block != null && m_block.Count == 0)
-            {
-                m_block = null;
-            }
-
-            // we got rid of the block -- tidy up the no-longer-needed scope
-            if (m_block == null && withScope != null)
-            {
-                // because the scope is empty, we now know it (it does nothing)
-                withScope.IsKnownAtCompileTime = true;
-            }
-        }
-
         public override IEnumerable<AstNode> Children
         {
             get
             {
-                return EnumerateNonNullNodes(m_withObject, m_block);
+                return EnumerateNonNullNodes(m_withObject, Body);
             }
         }
 
@@ -102,10 +64,10 @@ namespace Microsoft.Ajax.Utilities
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_block == oldNode)
+            if (Body == oldNode)
             {
-                m_block = ForceToBlock(newNode);
-                if (m_block != null) { m_block.Parent = this; }
+                Body = ForceToBlock(newNode);
+                if (Body != null) { Body.Parent = this; }
                 return true;
             }
             return false;
@@ -116,7 +78,7 @@ namespace Microsoft.Ajax.Utilities
             get
             {
                 // requires a separator if the body does
-                return m_block == null ? true : m_block.RequiresSeparator;
+                return Body == null ? true : Body.RequiresSeparator;
             }
         }
 
@@ -124,14 +86,14 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return m_block == null ? true : m_block.EndsWithEmptyBlock;
+                return Body == null ? true : Body.EndsWithEmptyBlock;
             }
         }
 
         internal override bool EncloseBlock(EncloseBlockType type)
         {
             // pass the query on to the body
-            return m_block == null ? false : m_block.EncloseBlock(type);
+            return Body == null ? false : Body.EncloseBlock(type);
         }
 
         public override string ToCode(ToCodeFormat format)
@@ -142,9 +104,9 @@ namespace Microsoft.Ajax.Utilities
             sb.Append(")");
 
             string bodyString = (
-              m_block == null
+              Body == null
               ? ";"
-              : m_block.ToCode()
+              : Body.ToCode()
               );
             sb.Append(bodyString);
             return sb.ToString();

@@ -47,12 +47,7 @@ namespace Microsoft.Ajax.Utilities
 
         private Block m_program;
 
-        private ResourceStrings m_resourceStrings; // = null;
-        public ResourceStrings ResourceStrings
-        {
-            get { return m_resourceStrings; }
-            set { m_resourceStrings = value; }
-        }
+        public ResourceStrings ResourceStrings { get; set; }
 
         // label related info
         private List<BlockType> m_blockType;
@@ -90,8 +85,6 @@ namespace Microsoft.Ajax.Utilities
         private int m_breakRecursion;// = 0;
         private static int s_cDummyName;
         private int m_severity;
-
-        public bool EncounteredCCOn { get; internal set; }
 
         public event EventHandler<JScriptExceptionEventArgs> CompilerError;
         public event EventHandler<UndefinedReferenceEventArgs> UndefinedReference;
@@ -205,7 +198,7 @@ namespace Microsoft.Ajax.Utilities
         //---------------------------------------------------------------------------------------
         public JSParser(string source)
         {
-            Context context = new Context(new DocumentContext(this), source);
+            Context context = new Context(new DocumentContext(this, source));
 
             m_sourceContext = context;
             m_currentToken = context.Clone();
@@ -231,12 +224,12 @@ namespace Microsoft.Ajax.Utilities
 
         public string FileContext
         {
-            get { return m_sourceContext.FileContext; }
+            get { return m_sourceContext.Document.FileContext; }
             set 
             { 
                 // make sure we set the file content on both the source context
                 // AND the current token context
-                m_currentToken.FileContext = m_sourceContext.FileContext = value; 
+                m_currentToken.Document.FileContext = m_sourceContext.Document.FileContext = value; 
             }
         }
 
@@ -313,16 +306,14 @@ namespace Microsoft.Ajax.Utilities
             // make sure the global scope knows about our known global names
             GlobalScope.SetAssumedGlobals(m_settings.KnownGlobalNames);
 
-            // reset the cc_on flag
-            EncounteredCCOn = false;
-
             // parse a block of statements
             Block scriptBlock = ParseStatements();
             if (scriptBlock != null && Settings.MinifyCode)
             {
                 // analyze the entire node tree (needed for hypercrunch)
                 // root to leaf (top down)
-                scriptBlock.AnalyzeNode();
+                var analyzeVisitor = new AnalyzeNodeVisitor(this);
+                analyzeVisitor.Visit(scriptBlock);
 
                 // analyze the scope chain (also needed for hypercrunch)
                 // root to leaf (top down)
@@ -353,9 +344,20 @@ namespace Microsoft.Ajax.Utilities
                     m_globalScope.HyperCrunch();
                 }
 
-                // make one final pass of the node tree to perform any last modifications
-                // post-analyze, post-combine, post-crunch
-                scriptBlock.CleanupNodes();
+                // if we want to evaluate literal expressions, do so now
+                if (m_settings.EvalLiteralExpressions)
+                {
+                    var visitor = new EvaluateLiteralVisitor(this);
+                    visitor.Visit(scriptBlock);
+                }
+
+                // if any of the conditions we check for in the final pass are available, then
+                // make the final pass
+                if (m_settings.IsModificationAllowed(TreeModifications.BooleanLiteralsToNotOperators))
+                {
+                    var visitor = new FinalPassVisitor(this);
+                    visitor.Visit(scriptBlock);
+                }
 
                 // we want to walk all the scopes to make sure that any generated
                 // variables that haven't been crunched have been assigned valid
@@ -4416,7 +4418,7 @@ namespace Microsoft.Ajax.Utilities
         private Context CurrentPositionContext()
         {
             Context context = m_currentToken.Clone();
-            context.EndPosition = (context.StartPosition < context.SourceString.Length) ? context.StartPosition + 1 : context.StartPosition;
+            context.EndPosition = (context.StartPosition < context.Document.Source.Length) ? context.StartPosition + 1 : context.StartPosition;
             return context;
         }
 

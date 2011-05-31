@@ -25,9 +25,13 @@ namespace Microsoft.Ajax.Utilities
 
         private JSParser m_parser;
 
-        public DocumentContext(JSParser parser)
+        public string Source { get; private set; }
+        public string FileContext { get; set; }
+
+        public DocumentContext(JSParser parser, string source)
         {
             m_parser = parser;
+            Source = source;
         }
 
         //---------------------------------------------------------------------------------------

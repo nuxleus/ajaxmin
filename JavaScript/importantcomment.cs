@@ -27,9 +27,12 @@ namespace Microsoft.Ajax.Utilities
             m_comment = Context.Code.Replace("\r\n", "\n");
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ImportantComment(Context.Clone(), Parser);
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)

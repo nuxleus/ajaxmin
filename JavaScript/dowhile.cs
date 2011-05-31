@@ -35,35 +35,11 @@ namespace Microsoft.Ajax.Utilities
             if (Condition != null) Condition.Parent = this;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new DoWhile(
-              (Context == null ? null : Context.Clone()),
-              Parser,
-              (Body == null ? null : Body.Clone()),
-              (Condition == null ? null : Condition.Clone())
-              );
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // if we are stripping debugger statements and the body is
-            // just a debugger statement, replace it with a null
-            if (Parser.Settings.StripDebugStatements
-                 && Parser.Settings.IsModificationAllowed(TreeModifications.StripDebugStatements) 
-                 && Body != null 
-                 && Body.IsDebuggerStatement)
+            if (visitor != null)
             {
-                Body = null;
-            }
-
-            // recurse
-            base.AnalyzeNode();
-
-            // if the body is now empty, make it null
-            if (Body != null && Body.Count == 0)
-            {
-                Body = null;
+                visitor.Visit(this);
             }
         }
 
@@ -157,31 +133,6 @@ namespace Microsoft.Ajax.Utilities
             sb.Append(Condition.ToCode());
             sb.Append(")");
             return sb.ToString();
-        }
-
-        public override void CleanupNodes()
-        {
-            base.CleanupNodes();
-
-            if (Parser.Settings.EvalLiteralExpressions
-                && Parser.Settings.IsModificationAllowed(TreeModifications.EvaluateNumericExpressions))
-            {
-                // if the condition is a constant, we can simplify things
-                ConstantWrapper constantCondition = Condition as ConstantWrapper;
-                if (constantCondition != null && constantCondition.IsNotOneOrPositiveZero)
-                {
-                    try
-                    {
-                        // the condition is a constant, so it is always either true or false
-                        // we can replace the condition with a one or a zero -- only one byte
-                        Condition = new ConstantWrapper(constantCondition.ToBoolean() ? 1 : 0, PrimitiveType.Number, null, Parser);
-                    }
-                    catch (InvalidCastException)
-                    {
-                        // ignore any invalid cast errors
-                    }
-                }
-            }
         }
     }
 }

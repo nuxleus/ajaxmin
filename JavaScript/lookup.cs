@@ -35,17 +35,8 @@ namespace Microsoft.Ajax.Utilities
             get { return VariableField as JSLocalField; }
         }
 
-        private bool m_isGenerated;
-        internal bool IsGenerated
-        {
-            set { m_isGenerated = value; }
-        }
-
-        private ReferenceType m_refType = ReferenceType.Variable; // default to variable
-        public ReferenceType RefType
-        {
-            get { return m_refType; }
-        }
+        public bool IsGenerated { get; set; }
+        public ReferenceType RefType { get; set; }
 
         private string m_name;
         public string Name
@@ -72,13 +63,15 @@ namespace Microsoft.Ajax.Utilities
             : base(context, parser)
         {
             m_name = name;
+            RefType = ReferenceType.Variable;
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            Lookup clone = new Lookup(m_name, (Context == null ? null : Context.Clone()), Parser);
-            clone.IsGenerated = m_isGenerated;
-            return clone;
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)
@@ -94,103 +87,6 @@ namespace Microsoft.Ajax.Utilities
         {
             // return the source name
             return m_name;
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // figure out if our reference type is a function or a constructor
-            if (Parent is CallNode)
-            {
-                m_refType = (
-                  ((CallNode)Parent).IsConstructor
-                  ? ReferenceType.Constructor
-                  : ReferenceType.Function
-                  );
-            }
-
-            ActivationObject scope = ScopeStack.Peek();
-            VariableField = scope.FindReference(m_name);
-            if (VariableField == null)
-            {
-                // this must be a global. if it isn't in the global space, throw an error
-                // this name is not in the global space.
-                // if it isn't generated, then we want to throw an error
-                // we also don't want to report an undefined variable if it is the object
-                // of a typeof operator
-                if (!m_isGenerated && !(Parent is TypeOfNode))
-                {
-                    // report this undefined reference
-                    Context.ReportUndefined(this);
-
-                    // possibly undefined global (but definitely not local)
-                    Context.HandleError(
-                      (Parent is CallNode && ((CallNode)Parent).Function == this ? JSError.UndeclaredFunction : JSError.UndeclaredVariable),
-                      null,
-                      false
-                      );
-                }
-
-                if (!(scope is GlobalScope))
-                {
-                    // add it to the scope so we know this scope references the global
-                    scope.AddField(new JSGlobalField(
-                      m_name,
-                      Missing.Value,
-                      0
-                      ));
-                }
-            }
-            else
-            {
-                // BUT if this field is a place-holder in the containing scope of a named
-                // function expression, then we need to throw an ambiguous named function expression
-                // error because this could cause problems.
-                // OR if the field is already marked as ambiguous, throw the error
-                if (VariableField.NamedFunctionExpression != null
-                    || VariableField.IsAmbiguous)
-                {
-                    // mark it as a field that's referenced ambiguously
-                    VariableField.IsAmbiguous = true;
-                    // throw as an error
-                    Context.HandleError(JSError.AmbiguousNamedFunctionExpression, true);
-
-                    // if we are preserving function names, then we need to mark this field
-                    // as not crunchable
-                    if (Parser.Settings.PreserveFunctionNames)
-                    {
-                        VariableField.CanCrunch = false;
-                    }
-                }
-
-                // see if this scope already points to this name
-                if (scope[m_name] == null)
-                {
-                    // create an inner reference so we don't keep walking up the scope chain for this name
-                    VariableField = scope.CreateInnerField(VariableField);
-                }
-
-                // add the reference
-                VariableField.AddReference(scope);
-
-                if (VariableField is JSPredefinedField)
-                {
-                    // this is a predefined field. If it's Nan or Infinity, we should
-                    // replace it with the numeric value in case we need to later combine
-                    // some literal expressions.
-                    if (string.CompareOrdinal(m_name, "NaN") == 0)
-                    {
-                        // don't analyze the new ConstantWrapper -- we don't want it to take part in the
-                        // duplicate constant combination logic should it be turned on.
-                        Parent.ReplaceChild(this, new ConstantWrapper(double.NaN, PrimitiveType.Number, Context, Parser));
-                    }
-                    else if (string.CompareOrdinal(m_name, "Infinity") == 0)
-                    {
-                        // don't analyze the new ConstantWrapper -- we don't want it to take part in the
-                        // duplicate constant combination logic should it be turned on.
-                        Parent.ReplaceChild(this, new ConstantWrapper(double.PositiveInfinity, PrimitiveType.Number, Context, Parser));
-                    }
-                }
-            }
         }
 
         internal void SetOuterLocalField(ActivationObject parentScope)

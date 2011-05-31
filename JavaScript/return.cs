@@ -31,36 +31,17 @@ namespace Microsoft.Ajax.Utilities
             if (m_operand != null) { m_operand.Parent = this; }
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ReturnNode(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (m_operand == null ? null : m_operand.Clone())
-                );
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         internal override string GetFunctionGuess(AstNode target)
         {
             return "return";
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // first we want to make sure that we are indeed within a function scope.
-            // it makes no sense to have a return outside of a function
-            ActivationObject scope = ScopeStack.Peek();
-            while (scope != null && !(scope is FunctionScope))
-            {
-                scope = scope.Parent;
-            }
-            if (scope == null)
-            {
-                Context.HandleError(JSError.BadReturn);
-            }
-
-            // now just do the default analyze
-            base.AnalyzeNode();
         }
 
         public override IEnumerable<AstNode> Children

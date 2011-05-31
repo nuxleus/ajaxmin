@@ -24,41 +24,17 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
-        public override AstNode Clone()
+        public override void Accept(IVisitor visitor)
         {
-            return new ThisLiteral((Context == null ? null : Context.Clone()), Parser);
+            if (visitor != null)
+            {
+                visitor.Visit(this);
+            }
         }
 
         public override string ToCode(ToCodeFormat format)
         {
             return "this";
-        }
-
-        internal override void AnalyzeNode()
-        {
-            // we're going to look for the first FunctionScope on the stack
-            FunctionScope functionScope = null;
-
-            // get the current scope
-            ActivationObject activationObject = ScopeStack.Peek();
-            do
-            {
-                functionScope = activationObject as FunctionScope;
-                if (functionScope != null)
-                {
-                    // found it -- break out of the loop
-                    break;
-                }
-                // otherwise go up the chain
-                activationObject = activationObject.Parent;
-            } while (activationObject != null);
-
-            // if we found one....
-            if (functionScope != null)
-            {
-                // add this object to the list of thisliterals
-                functionScope.AddThisLiteral(this);
-            }
         }
     }
 }

@@ -24,13 +24,14 @@ namespace Microsoft.Ajax.Utilities
 		public Block TryBlock { get; private set; }
 		public Block CatchBlock { get; private set; }
 		public Block FinallyBlock { get; private set; }
-        private string m_catchVarName;
+
+        public string CatchVarName { get; private set; }
         private JSVariableField m_catchVariable;
 
         public TryNode(Context context, JSParser parser, AstNode tryBlock, string catchVarName, AstNode catchBlock, AstNode finallyBlock)
             : base(context, parser)
         {
-            m_catchVarName = catchVarName;
+            CatchVarName = catchVarName;
             TryBlock = ForceToBlock(tryBlock);
             CatchBlock = ForceToBlock(catchBlock);
             FinallyBlock = ForceToBlock(finallyBlock);
@@ -39,40 +40,16 @@ namespace Microsoft.Ajax.Utilities
             if (FinallyBlock != null) { FinallyBlock.Parent = this; }
         }
 
-        public override AstNode Clone()
+        public void SetCatchVariable(JSVariableField field)
         {
-            return new TryNode(
-                (Context == null ? null : Context.Clone()),
-                Parser,
-                (TryBlock == null ? null : TryBlock.Clone()),
-                m_catchVarName,
-                (CatchBlock == null ? null : CatchBlock.Clone()),
-                (FinallyBlock == null ? null : FinallyBlock.Clone())
-                );
+            m_catchVariable = field;
         }
 
-        internal override void AnalyzeNode()
+        public override void Accept(IVisitor visitor)
         {
-            // get the field -- it should have been generated when the scope was analyzed
-            if (CatchBlock != null && !string.IsNullOrEmpty(m_catchVarName))
+            if (visitor != null)
             {
-                m_catchVariable = CatchBlock.BlockScope[m_catchVarName];
-            }
-
-            // anaylze the blocks
-            base.AnalyzeNode();
-
-            // if the try block is empty, then set it to null
-            if (TryBlock != null && TryBlock.Count == 0)
-            {
-                TryBlock = null;
-            }
-
-            // eliminate an empty finally block UNLESS there is no catch block.
-            if (FinallyBlock != null && FinallyBlock.Count == 0 && CatchBlock != null
-                && Parser.Settings.IsModificationAllowed(TreeModifications.RemoveEmptyFinally))
-            {
-                FinallyBlock = null;
+                visitor.Visit(this);
             }
         }
 
@@ -157,9 +134,9 @@ namespace Microsoft.Ajax.Utilities
                 {
                     sb.Append(m_catchVariable.ToString());
                 }
-                else if (m_catchVarName != null)
+                else if (CatchVarName != null)
                 {
-                    sb.Append(m_catchVarName);
+                    sb.Append(CatchVarName);
                 }
                 sb.Append(')');
                 sb.Append(catchString);
