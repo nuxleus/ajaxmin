@@ -421,13 +421,14 @@ namespace Microsoft.Ajax.Utilities
                             m_program.Append(ast);
                     }
 
-                    if (m_scanner.ImportantComment != null && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
+                    if (m_scanner.HasImportantComments && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
                     {
-                        // we have an important comment before the EOF. Add the comment to the program.
-                        m_program.Append(new ImportantComment(m_scanner.ImportantComment, this));
-
-                        // don't forget to clear it 
-                        m_scanner.ImportantComment = null;
+                        // we have important comments before the EOF. Add the comment(s) to the program.
+                        Context commentContext;
+                        while((commentContext = m_scanner.PopImportantComment()) != null)
+                        {
+                            m_program.Append(new ImportantComment(commentContext, this));
+                        }
                     }
                 }
                 finally
@@ -486,13 +487,12 @@ namespace Microsoft.Ajax.Utilities
         private AstNode ParseStatement(bool fSourceElement)
         {
             AstNode statement = null;
-            if (m_scanner.ImportantComment != null && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
+            if (m_scanner.HasImportantComments && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
             {
-                // we have an important comment before the upcoming statement.
-                // return that node instead.
-                statement = new ImportantComment(m_scanner.ImportantComment, this);
-                // don't forget to clear it our we'll get into an infinite loop
-                m_scanner.ImportantComment = null;
+                // we have at least one important comment before the upcoming statement.
+                // pop the first important comment off the queue, return that node instead.
+                // don't advance the token -- we'll probably be coming back again for the next one (if any)
+                statement = new ImportantComment(m_scanner.PopImportantComment(), this);
             }
             else
             {

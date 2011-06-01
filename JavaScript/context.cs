@@ -41,7 +41,7 @@ namespace Microsoft.Ajax.Utilities
         {
             if (document == null)
             {
-                throw new ArgumentNullException("DocumentContext cannot be null");
+                throw new ArgumentNullException("document");
             }
 
             Document = document;
@@ -171,6 +171,11 @@ namespace Microsoft.Ajax.Utilities
             return other == null
                 || StartLineNumber < other.StartLineNumber
                 || (StartLineNumber == other.StartLineNumber && StartColumn < other.StartColumn);
+        }
+
+        public override string ToString()
+        {
+            return Code;
         }
     }
 }

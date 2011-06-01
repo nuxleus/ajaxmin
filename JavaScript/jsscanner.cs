@@ -82,9 +82,33 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public Context ImportantComment 
+        /// <summary>
+        /// List of important comment contexts we encountered before we found the 
+        /// current token
+        /// </summary>
+        private List<Context> m_importantComments;
+
+        /// <summary>
+        /// returns true if we found one or more important comments before the current token
+        /// </summary>
+        public bool HasImportantComments
         {
-            get; set;
+            get { return m_importantComments != null && m_importantComments.Count > 0; }
+        }
+
+        /// <summary>
+        /// Pop the first important comment context off the queue and return it (if any)
+        /// </summary>
+        /// <returns>next important comment context, null if no more</returns>
+        public Context PopImportantComment()
+        {
+            Context commentContext = null;
+            if (HasImportantComments)
+            {
+                commentContext = m_importantComments[0];
+                m_importantComments.RemoveAt(0);
+            }
+            return commentContext;
         }
 
         public bool IgnoreConditionalCompilation { get; set; }
@@ -222,7 +246,7 @@ namespace Microsoft.Ajax.Utilities
         {
             JSToken token = JSToken.None;
             GotEndOfLine = false;
-            ImportantComment = null;
+            m_importantComments = null;
             try
             {
                 int thisCurrentLine = CurrentLine;
@@ -2015,15 +2039,18 @@ namespace Microsoft.Ajax.Utilities
             // to the end of the existing one(s) so we don't lose them. So if we don't
             // have one already, clone the current context. Otherwise continue with what
             // we have already found.
-            if (ImportantComment == null)
+            if (m_importantComments == null)
             {
-                ImportantComment = m_currentToken.Clone();
+                m_importantComments = new List<Context>();
             }
 
             // save the context of the important comment
-            ImportantComment.EndPosition = m_currentPos;
-            ImportantComment.EndLineNumber = CurrentLine;
-            ImportantComment.EndLinePosition = StartLinePosition;
+            Context commentContext = m_currentToken.Clone();
+            commentContext.EndPosition = m_currentPos;
+            commentContext.EndLineNumber = CurrentLine;
+            commentContext.EndLinePosition = StartLinePosition;
+
+            m_importantComments.Add(commentContext);
         }
 
         private void SkipBlanks()
