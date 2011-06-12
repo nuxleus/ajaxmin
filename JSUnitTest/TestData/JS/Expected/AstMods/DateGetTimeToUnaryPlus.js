@@ -1,1 +1,1 @@
-﻿var ticks=+new Date;function foo(){function Date(){}ticks=(new Date).getTime()}function bar(dt){var ack=+new Date(dt),gag=(new Date).getTime("foo"),loo=gag+ +new Date}var nextYear=new Date(+new Date+31536e6)
+﻿function foo(){function Date(){}ticks=(new Date).getTime()}function bar(dt){var ack=+new Date(dt),gag=(new Date).getTime("foo"),loo=gag+ +new Date}var ticks=+new Date,nextYear=new Date(+new Date+31536e6)

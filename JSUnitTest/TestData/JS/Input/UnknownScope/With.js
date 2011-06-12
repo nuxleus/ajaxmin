@@ -54,3 +54,12 @@
     // call the functions for a reference
     doIt("alert('" + another() + "')");
 })();
+
+function test(a)
+{
+    with(a)
+    {
+        $Debug.Alert(foo);
+    }
+}
+

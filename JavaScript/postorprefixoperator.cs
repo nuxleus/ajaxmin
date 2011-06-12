@@ -20,12 +20,26 @@ namespace Microsoft.Ajax.Utilities
 
     public sealed class PostOrPrefixOperator : UnaryOperator
     {
-        private PostOrPrefix m_postOrPrefixOperator;
+        public PostOrPrefix Operator { get; set; }
 
         public PostOrPrefixOperator(Context context, JSParser parser, AstNode operand, JSToken operatorToken, PostOrPrefix postOrPrefixOperator)
             : base(context, parser, operand, operatorToken)
         {
-            m_postOrPrefixOperator = postOrPrefixOperator;
+            Operator = postOrPrefixOperator;
+        }
+
+        public override PrimitiveType FindPrimitiveType()
+        {
+            // always returns a number
+            return PrimitiveType.Number;
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherOperator = otherNode as PostOrPrefixOperator;
+            return otherOperator != null
+                && Operator == otherOperator.Operator
+                && Operand.IsEquivalentTo(otherOperator.Operand);
         }
 
         public override void Accept(IVisitor visitor)
@@ -43,7 +57,8 @@ namespace Microsoft.Ajax.Utilities
             {
                 operandString = "(" + operandString + ")";
             }
-            switch (m_postOrPrefixOperator)
+
+            switch (Operator)
             {
                 case PostOrPrefix.PostfixDecrement:
                     return operandString + "--";
@@ -66,8 +81,8 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                if (m_postOrPrefixOperator == PostOrPrefix.PostfixDecrement
-                  || m_postOrPrefixOperator == PostOrPrefix.PostfixIncrement)
+                if (Operator == PostOrPrefix.PostfixDecrement
+                  || Operator == PostOrPrefix.PostfixIncrement)
                 {
                     // postfix -- the operand is on the left
                     return Operand.LeftHandSide;

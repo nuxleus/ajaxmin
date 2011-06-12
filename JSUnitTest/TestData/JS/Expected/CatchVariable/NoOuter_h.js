@@ -1,1 +1,1 @@
-﻿(function(){var a=12;a*=(a+13)%a;try{alert(foo)}catch(b){alert(b)}})()
+﻿(function(){var n=12;n*=(n+13)%n;try{alert(foo)}catch(t){alert(t)}})()

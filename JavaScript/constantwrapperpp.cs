@@ -18,7 +18,7 @@ using System.Text;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public class ConstantWrapperPP : AstNode
+    public class ConstantWrapperPP : Expression
     {
         private string m_varName;
         public string VarName { get { return m_varName; } }

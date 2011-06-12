@@ -125,6 +125,19 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public override bool IsExpression
+        {
+            get
+            {
+                // if this block contains a single statement, then recurse.
+                // otherwise it isn't.
+                //
+                // TODO: if there are no statements -- empty block -- then is is an expression?
+                // I mean, we can make an empty block be an expression by just making it a zero. 
+                return m_list.Count == 1 && m_list[0].IsExpression;
+            }
+        }
+
         public int Count
         {
             get { return m_list.Count; }
@@ -225,7 +238,7 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
 
-            bool requireSeparator = true;
+            bool requireSeparator = false;
             bool endsWithEmptyBlock = false;
             bool mightNeedSpace = false;
             for (int ndx = 0; ndx < m_list.Count; ++ndx)
@@ -233,23 +246,24 @@ namespace Microsoft.Ajax.Utilities
                 AstNode item = m_list[ndx];
                 if (item != null)
                 {
-                    // see if we need to add a semi-colon
-                    if (ndx > 0 && requireSeparator)
-                    {
-                        sb.Append(';');
-                        if (Parser.Settings.OutputMode == OutputMode.SingleLine && item is ImportantComment)
-                        {
-                            // if this item is an important comment and we're in single-line mode, 
-                            // we'll start on a new line
-                            sb.Append('\n');
-                        }
-                        // we no longer require a separator next time around
-                        requireSeparator = false;
-                    }
-
                     string itemText = item.ToCode();
                     if (itemText.Length > 0)
                     {
+                        // see if we need to add a semi-colon
+                        if (ndx > 0 && requireSeparator)
+                        {
+                            sb.Append(';');
+                            if (Parser.Settings.OutputMode == OutputMode.SingleLine && item is ImportantComment)
+                            {
+                                // if this item is an important comment and we're in single-line mode, 
+                                // we'll start on a new line. Since this is single-line mode, don't call AppendLine
+                                // because it will send CRLF -- we just want the LF
+                                sb.Append('\n');
+                            }
+                            // we no longer require a separator next time around
+                            requireSeparator = false;
+                        }
+
                         // if this is an else-if construct, we don't want to break to a new line.
                         // but all other formats put the next statement on a newline
                         if (format != ToCodeFormat.ElseIf)
@@ -293,11 +307,24 @@ namespace Microsoft.Ajax.Utilities
 
         public void Append(AstNode element)
         {
-            if (element != null)
+            Block block = element as Block;
+            if (block != null)
             {
+                // adding a block to the block -- just append the elements
+                // from the block to ourselves
+                InsertRange(m_list.Count, block.Children);
+            }
+            else if (element != null)
+            {
+                // not a block....
                 element.Parent = this;
                 m_list.Add(element);
             }
+        }
+
+        public int IndexOf(AstNode child)
+        {
+            return m_list.IndexOf(child);
         }
 
         public void InsertAfter(AstNode after, AstNode item)
@@ -307,8 +334,18 @@ namespace Microsoft.Ajax.Utilities
                 int index = m_list.IndexOf(after);
                 if (index >= 0)
                 {
-                    item.Parent = this;
-                    m_list.Insert(index + 1, item);
+                    var block = item as Block;
+                    if (block != null)
+                    {
+                        // don't insert a block into a block -- insert the new block's
+                        // children instead (don't want nested blocks)
+                        InsertRange(index + 1, block.Children);
+                    }
+                    else
+                    {
+                        item.Parent = this;
+                        m_list.Insert(index + 1, item);
+                    }
                 }
             }
         }
@@ -317,8 +354,16 @@ namespace Microsoft.Ajax.Utilities
         {
             if (item != null)
             {
-                item.Parent = this;
-                m_list.Insert(position, item);
+                var block = item as Block;
+                if (block != null)
+                {
+                    InsertRange(position, block.Children);
+                }
+                else
+                {
+                    item.Parent = this;
+                    m_list.Insert(position, item);
+                }
             }
         }
 

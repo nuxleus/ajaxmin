@@ -23,12 +23,25 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
+        public override PrimitiveType FindPrimitiveType()
+        {
+            // this operator ALWAYS returns type string
+            return PrimitiveType.String;
+        }
+
         public override void Accept(IVisitor visitor)
         {
             if (visitor != null)
             {
                 visitor.Visit(this);
             }
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherTypeOf = otherNode as TypeOfNode;
+            return otherTypeOf != null
+                && Operand.IsEquivalentTo(otherTypeOf.Operand);
         }
 
         public override string ToCode(ToCodeFormat format)

@@ -19,7 +19,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public sealed class RegExpLiteral : AstNode
+    public sealed class RegExpLiteral : Expression
     {
         public string Pattern { get; private set; }
         public string PatternSwitches { get; private set; }
@@ -37,6 +37,14 @@ namespace Microsoft.Ajax.Utilities
             {
                 visitor.Visit(this);
             }
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherRegExp = otherNode as RegExpLiteral;
+            return otherRegExp != null
+                && string.CompareOrdinal(Pattern, otherRegExp.Pattern) == 0
+                && string.CompareOrdinal(PatternSwitches, otherRegExp.PatternSwitches) == 0;
         }
 
         public override string ToCode(ToCodeFormat format)

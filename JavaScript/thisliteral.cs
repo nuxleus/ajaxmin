@@ -16,7 +16,7 @@
 
 namespace Microsoft.Ajax.Utilities
 {
-    public sealed class ThisLiteral : AstNode
+    public sealed class ThisLiteral : Expression
     {
 
         public ThisLiteral(Context context, JSParser parser)
@@ -30,6 +30,16 @@ namespace Microsoft.Ajax.Utilities
             {
                 visitor.Visit(this);
             }
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherThis = otherNode as ThisLiteral;
+            
+            // this really assume we are comparing this operators from the same object scope.
+            // if you compare a this-literal from one function to a this-literal from another,
+            // it will pop positive -- but it won't actually be equivalent!
+            return otherThis != null;
         }
 
         public override string ToCode(ToCodeFormat format)

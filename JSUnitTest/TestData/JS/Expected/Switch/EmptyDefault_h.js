@@ -1,1 +1,1 @@
-function f(b,c,d,e,f){var a="0";switch(b){case 1:a="1";break;case 2:a="2"}switch(c){case 1:a="1";break;case 2:a="2"}switch(d){}switch(e){case 4:b=0}switch(f){case 1:b=1}}
+function f(n,t,i,r,u){var f="0";switch(n){case 1:f="1";break;case 2:f="2"}switch(t){case 1:f="1";break;case 2:f="2"}switch(i){}switch(r){case 4:n=0}switch(u){case 1:n=1}}

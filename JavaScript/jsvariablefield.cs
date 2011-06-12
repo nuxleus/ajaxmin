@@ -225,5 +225,43 @@ namespace Microsoft.Ajax.Utilities
         {
             return m_name.GetHashCode();
         }
+
+        /// <summary>
+        /// returns true if the fields point to the same ultimate reference object.
+        /// Needs to walk up the outer-reference chain for each field in order to
+        /// find the ultimate reference
+        /// </summary>
+        /// <param name="otherField"></param>
+        /// <returns></returns>
+        public bool IsSameField(JSVariableField otherField)
+        {
+            // shortcuts -- if they are already the same object, we're done;
+            // and if the other field is null, then we are NOT the same object.
+            if (this == otherField)
+            {
+                return true;
+            }
+            else if (otherField == null)
+            {
+                return false;
+            }
+
+            // get the ultimate field for this field
+            var thisOuter = OuterField != null ? OuterField : this;
+            while (thisOuter.OuterField != null)
+            {
+                thisOuter = thisOuter.OuterField;
+            }
+
+            // get the ultimate field for the other field
+            var otherOuter = otherField.OuterField != null ? otherField.OuterField : otherField;
+            while (otherOuter.OuterField != null)
+            {
+                otherOuter = otherOuter.OuterField;
+            }
+
+            // now that we have the same outer fields, check to see if they are the same
+            return thisOuter == otherOuter;
+        }
     }
 }

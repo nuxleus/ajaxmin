@@ -98,5 +98,11 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest();
         }
+
+        [TestMethod()]
+        public void Strict()
+        {
+            TestHelper.Instance.RunTest("-kill:0x0000001000000000");
+        }
     }
 }

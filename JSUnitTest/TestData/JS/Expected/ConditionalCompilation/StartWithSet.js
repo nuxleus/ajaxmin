@@ -1,1 +1,1 @@
-@set@foo=(22/7)var pi=/*@foo@*/;@set@false=(!1)var flag=/*@false@*/;alert(flag)
+var pi,flag;@set@foo=(22/7)pi=/*@foo@*/;@set@false=(!1)flag=/*@false@*/,alert(flag)

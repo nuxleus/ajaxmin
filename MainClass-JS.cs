@@ -53,6 +53,9 @@ namespace Microsoft.Ajax.Utilities
         // whether or not to evaluate literal expressions
         private bool m_evalLiteralExpressions = true;
 
+        // whether or not to reorder function and var declarations within scopes
+        private bool m_reorderScopeDeclarations = true;
+
         /// <summary>
         /// List of expected global variables we don't want to assume are undefined
         /// </summary>
@@ -96,6 +99,9 @@ namespace Microsoft.Ajax.Utilities
 
         // whether to only preprocess (true), or to completely parse and analyze code (false)
         private bool m_preprocessOnly; // = false;
+
+        // whether to preserve important comments or remove them
+        private bool m_preserveImportantComments = true;
 
         // list of identifier names to consider "debug" lookups
         private List<string> m_debugLookups; // = null;
@@ -182,6 +188,7 @@ namespace Microsoft.Ajax.Utilities
             settings.MacSafariQuirks = m_macSafariQuirks;
             settings.OutputMode = (m_prettyPrint ? OutputMode.MultipleLines : OutputMode.SingleLine);
             settings.PreserveFunctionNames = m_preserveFunctionNames;
+            settings.ReorderScopeDeclarations = m_reorderScopeDeclarations;
             settings.RemoveFunctionExpressionNames = m_removeFunctionExpressionNames;
             settings.RemoveUnneededCode = m_removeUnneededCode;
             settings.StripDebugStatements = m_stripDebugStatements;
@@ -189,6 +196,7 @@ namespace Microsoft.Ajax.Utilities
             settings.SetKnownGlobalNames(m_globals == null ? null : m_globals.ToArray());
             settings.SetNoAutoRename(m_noAutoRename == null ? null : m_noAutoRename.ToArray());
             settings.IgnoreConditionalCompilation = m_ignoreConditionalCompilation;
+            settings.PreserveImportantComments = m_preserveImportantComments;
 
             // if there are defined preprocessor names
             if (m_defines != null && m_defines.Count > 0)

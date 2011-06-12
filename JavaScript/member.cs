@@ -20,7 +20,7 @@ using System.Text;
 namespace Microsoft.Ajax.Utilities
 {
 
-    public sealed class Member : AstNode
+    public sealed class Member : Expression
     {
         public AstNode Root { get; private set; }
         public string Name { get; set; }
@@ -40,6 +40,14 @@ namespace Microsoft.Ajax.Utilities
             {
                 visitor.Visit(this);
             }
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherMember = otherNode as Member;
+            return otherMember != null
+                && string.CompareOrdinal(this.Name, otherMember.Name) == 0
+                && this.Root.IsEquivalentTo(otherMember.Root);
         }
 
         internal override string GetFunctionGuess(AstNode target)

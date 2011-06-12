@@ -40,7 +40,9 @@ namespace Microsoft.Ajax.Utilities
 
     public abstract class AstNode
     {
+        // this is used in the child enumeration for nodes that don't have any children
         private static readonly IEnumerable<AstNode> s_emptyChildrenCollection = new AstNode[0];
+
         public AstNode Parent { get; set; }
         public Context Context { get; set; }
         public JSParser Parser { get; private set; }
@@ -60,6 +62,9 @@ namespace Microsoft.Ajax.Utilities
         }
 
         internal Stack<ActivationObject> ScopeStack { get { return Parser.ScopeStack; } }
+
+        public virtual bool IsExpression { get { return false; } }
+        public bool IsDirectivePrologue { get; set; }
 
         public abstract string ToCode(ToCodeFormat format);
         public virtual string ToCode() { return ToCode(ToCodeFormat.Normal); }
@@ -116,6 +121,12 @@ namespace Microsoft.Ajax.Utilities
             get { return false; }
         }
 
+        public virtual PrimitiveType FindPrimitiveType()
+        {
+            // by default, we don't know what the primitive type of this node is
+            return PrimitiveType.Other;
+        }
+
         public virtual IEnumerable<AstNode> Children
         {
             get { return s_emptyChildrenCollection; }
@@ -169,6 +180,18 @@ namespace Microsoft.Ajax.Utilities
                 // otherwise, just ask our parent. Nodes with scope will override this property.
                 return Parent != null ? Parent.EnclosingScope : Parser.GlobalScope;
             }
+        }
+
+        /// <summary>
+        /// Abstract method to be implemented by every concrete class.
+        /// Returns true of the other object is equivalent to this object
+        /// </summary>
+        /// <param name="otherNode"></param>
+        /// <returns></returns>
+        public virtual bool IsEquivalentTo(AstNode otherNode)
+        {
+            // by default nodes aren't equivalent to each other unless we know FOR SURE that they are
+            return false;
         }
 
         /// <summary>

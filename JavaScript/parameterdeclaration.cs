@@ -41,7 +41,7 @@ namespace Microsoft.Ajax.Utilities
         public Context Context { get { return m_context; } }
         private Context m_context;
 
-        public ParameterDeclaration(Context context, JSParser parser, string identifier)
+        public ParameterDeclaration(Context context, JSParser parser, string identifier, int position)
         {
             m_name = identifier;
             m_context = (context != null ? context : new Context(parser));
@@ -58,6 +58,7 @@ namespace Microsoft.Ajax.Utilities
                 {
                     m_field = functionScope.AddNewArgumentField(m_name);
                     m_field.OriginalContext = m_context;
+                    m_field.Position = position;
                 }
             }
             else

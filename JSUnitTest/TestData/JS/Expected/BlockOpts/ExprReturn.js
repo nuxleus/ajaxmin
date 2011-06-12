@@ -1,0 +1,1 @@
+﻿function test1(a,b,c){return c=a(b)}function test2(a,b,c){return a.foo.bar=b+c}function test3(a,b,c){return a[b+c]=a+b+c}

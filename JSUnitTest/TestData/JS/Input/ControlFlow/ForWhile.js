@@ -28,6 +28,9 @@ function Func(p1)
         break;
     }
 
+    // opportunity for more crunching:
+    // after changing the while to a for, move the preceeding expressions
+    // into the initializer.
     var a = 10;
     var b;
     var c = 42;

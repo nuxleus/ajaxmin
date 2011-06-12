@@ -23,8 +23,18 @@ namespace Microsoft.Ajax.Utilities
         public ImportantComment(Context context, JSParser parser)
             : base(context, parser)
         {
-            // replace all internal CR-LF pairs with just a single LF
-            m_comment = Context.Code.Replace("\r\n", "\n");
+            if (parser != null && parser.Settings.OutputMode == OutputMode.SingleLine)
+            {
+                // if we are in single-line mode, we want to replace all CRLF pairs
+                // with just the LF to save output bytes. And then add another LF at
+                // the end so we start whatever follows the important comment on a new line
+                m_comment = Context.Code.Replace("\r\n", "\n") + '\n';
+            }
+            else
+            {
+                // multi-line mode, just leave it as-is
+                m_comment = Context.Code;
+            }
         }
 
         public override void Accept(IVisitor visitor)
@@ -37,8 +47,7 @@ namespace Microsoft.Ajax.Utilities
 
         public override string ToCode(ToCodeFormat format)
         {
-            // make sure important comments start a new line afterwards
-            return m_comment + '\n';
+            return m_comment;
         }
 
         internal override bool RequiresSeparator

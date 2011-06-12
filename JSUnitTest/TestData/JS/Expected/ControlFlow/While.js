@@ -1,0 +1,1 @@
+﻿for(var b=10;;)if(!--b)break

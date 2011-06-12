@@ -27,6 +27,12 @@ namespace Microsoft.Ajax.Utilities
         {
         }
 
+        public override PrimitiveType FindPrimitiveType()
+        {
+            // if this is a logical not, it always returns boolean. otherwise it always returns a number
+            return OperatorToken == JSToken.LogicalNot ? PrimitiveType.Boolean : PrimitiveType.Number;
+        }
+
         public override void Accept(IVisitor visitor)
         {
             if (visitor != null)
@@ -40,6 +46,14 @@ namespace Microsoft.Ajax.Utilities
             return (OperatorToken == JSToken.LogicalNot
               ? Operand // the logical-not of a logical-not is just the operand
               : null);
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherUnary = otherNode as NumericUnary;
+            return otherUnary != null
+                && this.OperatorToken == otherUnary.OperatorToken
+                && this.Operand.IsEquivalentTo(otherUnary.Operand);
         }
 
         public override string ToCode(ToCodeFormat format)

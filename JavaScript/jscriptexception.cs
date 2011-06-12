@@ -339,25 +339,33 @@ namespace Microsoft.Ajax.Utilities
                 {
                     switch ((JSError)(ec & 0xFFFF))
                     {
-                        case JSError.AmbiguousCatchVar: return 1;
-                        case JSError.AmbiguousNamedFunctionExpression: return 1;
-                        case JSError.ArgumentNotReferenced: return 3;
-                        case JSError.DuplicateName: return 3;
-                        case JSError.FunctionNotReferenced: return 3;
-                        case JSError.KeywordUsedAsIdentifier: return 2;
-                        case JSError.StatementBlockExpected: return 4;
-                        case JSError.SuspectAssignment: return 4;
-                        case JSError.SuspectSemicolon: return 4;
-                        case JSError.UndeclaredFunction: return 3;
-                        case JSError.UndeclaredVariable: return 3;
-                        case JSError.VariableDefinedNotReferenced: return 3;
-                        case JSError.WithNotRecommended: return 4;
-                        case JSError.ObjectConstructorTakesNoArguments: return 4;
-                        case JSError.NumericOverflow: return 1;
-                        case JSError.NumericMaximum: return 4;
-                        case JSError.NumericMinimum: return 4;
-                        case JSError.MisplacedFunctionDeclaration: return 2;
-                        case JSError.OctalLiteralsDeprecated: return 4;
+                        case JSError.AmbiguousCatchVar: 
+                        case JSError.AmbiguousNamedFunctionExpression:
+                        case JSError.NumericOverflow:
+                        case JSError.StrictComparisonIsAlwaysTrueOrFalse:
+                            return 1;
+
+                        case JSError.KeywordUsedAsIdentifier: 
+                        case JSError.MisplacedFunctionDeclaration: 
+                            return 2;
+
+                        case JSError.ArgumentNotReferenced:
+                        case JSError.DuplicateName: 
+                        case JSError.FunctionNotReferenced: 
+                        case JSError.UndeclaredFunction: 
+                        case JSError.UndeclaredVariable: 
+                        case JSError.VariableDefinedNotReferenced: 
+                            return 3;
+
+                        case JSError.StatementBlockExpected:
+                        case JSError.SuspectAssignment: 
+                        case JSError.SuspectSemicolon:
+                        case JSError.WithNotRecommended:
+                        case JSError.ObjectConstructorTakesNoArguments:
+                        case JSError.NumericMaximum:
+                        case JSError.NumericMinimum: 
+                        case JSError.OctalLiteralsDeprecated:
+                            return 4;
                     }
                 }
                 return 0;

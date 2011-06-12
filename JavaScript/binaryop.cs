@@ -22,7 +22,7 @@ using System.Text;
 namespace Microsoft.Ajax.Utilities
 {
 
-    public sealed class BinaryOperator : AstNode
+    public sealed class BinaryOperator : Expression
     {
         public AstNode Operand1 { get; private set; }
         public AstNode Operand2 { get; private set; }
@@ -36,6 +36,91 @@ namespace Microsoft.Ajax.Utilities
             Operand1 = operand1;
             Operand2 = operand2;
             OperatorToken = operatorToken;
+        }
+
+        public override PrimitiveType FindPrimitiveType()
+        {
+            PrimitiveType leftType;
+            PrimitiveType rightType;
+
+            switch (OperatorToken)
+            {
+                case JSToken.Assign:
+                case JSToken.Comma:
+                    // returns whatever type the right operand is
+                    return Operand2.FindPrimitiveType();
+
+                case JSToken.BitwiseAnd:
+                case JSToken.BitwiseAndAssign:
+                case JSToken.BitwiseOr:
+                case JSToken.BitwiseOrAssign:
+                case JSToken.BitwiseXor:
+                case JSToken.BitwiseXorAssign:
+                case JSToken.Divide:
+                case JSToken.DivideAssign:
+                case JSToken.LeftShift:
+                case JSToken.LeftShiftAssign:
+                case JSToken.Minus:
+                case JSToken.MinusAssign:
+                case JSToken.Modulo:
+                case JSToken.ModuloAssign:
+                case JSToken.Multiply:
+                case JSToken.MultiplyAssign:
+                case JSToken.RightShift:
+                case JSToken.RightShiftAssign:
+                case JSToken.UnsignedRightShift:
+                case JSToken.UnsignedRightShiftAssign:
+                    // always returns a number
+                    return PrimitiveType.Number;
+
+                case JSToken.Equal:
+                case JSToken.GreaterThan:
+                case JSToken.GreaterThanEqual:
+                case JSToken.In:
+                case JSToken.InstanceOf:
+                case JSToken.LessThan:
+                case JSToken.LessThanEqual:
+                case JSToken.NotEqual:
+                case JSToken.StrictEqual:
+                case JSToken.StrictNotEqual:
+                    // always returns a boolean
+                    return PrimitiveType.Boolean;
+
+                case JSToken.PlusAssign:
+                case JSToken.Plus:
+                    // if either operand is known to be a string, then the result type is a string.
+                    // otherwise the result is numeric if both types are known.
+                    leftType = Operand1.FindPrimitiveType();
+                    rightType = Operand2.FindPrimitiveType();
+
+                    return (leftType == PrimitiveType.String || rightType == PrimitiveType.String)
+                        ? PrimitiveType.String
+                        : (leftType != PrimitiveType.Other && rightType != PrimitiveType.Other
+                            ? PrimitiveType.Number
+                            : PrimitiveType.Other);
+
+                case JSToken.LogicalAnd:
+                case JSToken.LogicalOr:
+                    // these two are special. They return either the left or the right operand
+                    // (depending on their values), so unless they are both known types AND the same,
+                    // then we can't know for sure.
+                    leftType = Operand1.FindPrimitiveType();
+                    if (leftType != PrimitiveType.Other)
+                    {
+                        if (leftType == Operand2.FindPrimitiveType())
+                        {
+                            // they are both the same and neither is unknown
+                            return leftType;
+                        }
+                    }
+
+                    // if we get here, then we don't know the type
+                    return PrimitiveType.Other;
+
+                default:
+                    // shouldn't get here....
+                    return PrimitiveType.Other;
+            }
         }
 
         public override IEnumerable<AstNode> Children
@@ -88,6 +173,17 @@ namespace Microsoft.Ajax.Utilities
             AstNode temp = Operand1;
             Operand1 = Operand2;
             Operand2 = temp;
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            // a binary operator is equivalent to another binary operator if the operator is the same and
+            // both operands are also equivalent
+            var otherBinary = otherNode as BinaryOperator;
+            return otherBinary != null
+                && OperatorToken == otherBinary.OperatorToken
+                && Operand1.IsEquivalentTo(otherBinary.Operand1)
+                && Operand2.IsEquivalentTo(otherBinary.Operand2);
         }
 
         public bool IsAssign
@@ -160,6 +256,7 @@ namespace Microsoft.Ajax.Utilities
                     return this;
 
             }
+
             // don't change anything else
             return null;
         }

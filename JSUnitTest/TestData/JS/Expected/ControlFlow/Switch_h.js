@@ -1,1 +1,1 @@
-function Func(c){var a=0;switch(c){case 1:a=1;break;case 2:a=-1;break;case 5:for(var b=0;b<10;++b)a*=c}}
+function Func(n){var i=0,t;switch(n){case 1:i=1;break;case 2:i=-1;break;case 5:for(t=0;t<10;++t)i*=n}}

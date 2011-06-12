@@ -20,7 +20,7 @@ using System.Text;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public sealed class ArrayLiteral : AstNode
+    public sealed class ArrayLiteral : Expression
     {
         private AstNodeList m_elements;
 

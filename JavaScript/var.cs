@@ -92,8 +92,18 @@ namespace Microsoft.Ajax.Utilities
             VariableDeclaration decl = elem as VariableDeclaration;
             if (decl != null)
             {
-                decl.Parent = this;
-                m_list.Add(decl);
+                // first check the list for existing instances of this name.
+                // if there are no duplicates (indicated by returning true), add it to the list.
+                // if there is a dup (indicated by returning false) then that dup
+                // has an initializer, and we DON'T want to add this new one if it doesn't
+                // have it's own initializer.
+                if (HandleDuplicates(decl.Identifier)
+                    || decl.Initializer != null)
+                {
+                    // set the parent and add it to the list
+                    decl.Parent = this;
+                    m_list.Add(decl);
+                }
             }
             else
             {
@@ -102,7 +112,7 @@ namespace Microsoft.Ajax.Utilities
                 {
                     for (int ndx = 0; ndx < otherVar.m_list.Count; ++ndx)
                     {
-                        Append((AstNode)otherVar.m_list[ndx]);
+                        Append(otherVar.m_list[ndx]);
                     }
                 }
             }
@@ -113,8 +123,18 @@ namespace Microsoft.Ajax.Utilities
             VariableDeclaration decl = elem as VariableDeclaration;
             if (decl != null)
             {
-                decl.Parent = this;
-                m_list.Insert(index, decl);
+                // first check the list for existing instances of this name.
+                // if there are no duplicates (indicated by returning true), add it to the list.
+                // if there is a dup (indicated by returning false) then that dup
+                // has an initializer, and we DON'T want to add this new one if it doesn't
+                // have it's own initializer.
+                if (HandleDuplicates(decl.Identifier)
+                    || decl.Initializer != null)
+                {
+                    // set the parent and add it to the list
+                    decl.Parent = this;
+                    m_list.Insert(index, decl);
+                }
             }
             else
             {
@@ -128,6 +148,36 @@ namespace Microsoft.Ajax.Utilities
                     }
                 }
             }
+        }
+
+        private bool HandleDuplicates(string name)
+        {
+            var hasInitializer = true;
+            // walk backwards because we'll be removing items from the list
+            for (var ndx = m_list.Count - 1; ndx >= 0 ; --ndx)
+            {
+                VariableDeclaration varDecl = m_list[ndx];
+
+                // if the name is a match...
+                if (string.CompareOrdinal(varDecl.Identifier, name) == 0)
+                {
+                    // check the initializer. If there is no initializer, then
+                    // we want to remove it because we'll be adding a new one.
+                    // but if there is an initializer, keep it but return false
+                    // to indicate that there is still a duplicate in the list, 
+                    // and that dup has an initializer.
+                    if (varDecl.Initializer != null)
+                    {
+                        hasInitializer = false;
+                    }
+                    else
+                    {
+                        m_list.RemoveAt(ndx);
+                    }
+                }
+            }
+
+            return hasInitializer;
         }
 
         public void RemoveAt(int index)

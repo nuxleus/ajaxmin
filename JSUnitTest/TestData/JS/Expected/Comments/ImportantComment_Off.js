@@ -1,0 +1,1 @@
+﻿function foo(){}var a=12,b=13

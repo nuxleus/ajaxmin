@@ -229,11 +229,11 @@
     <Compile Include="..\JavaScript\dowhile.cs">
       <Link>JavaScript\dowhile.cs</Link>
     </Compile>
-    <Compile Include="..\JavaScript\eval.cs">
-      <Link>JavaScript\eval.cs</Link>
-    </Compile>
     <Compile Include="..\JavaScript\EvaluateLiteralVisitor.cs">
       <Link>JavaScript\EvaluateLiteralVisitor.cs</Link>
+    </Compile>
+    <Compile Include="..\JavaScript\expr.cs">
+      <Link>JavaScript\expr.cs</Link>
     </Compile>
     <Compile Include="..\JavaScript\FinalPassVisitor.cs">
       <Link>JavaScript\FinalPassVisitor.cs</Link>
@@ -342,6 +342,9 @@
     </Compile>
     <Compile Include="..\JavaScript\regexpliteral.cs">
       <Link>JavaScript\regexpliteral.cs</Link>
+    </Compile>
+    <Compile Include="..\JavaScript\ReorderScopeVisitor.cs">
+      <Link>JavaScript\ReorderScopeVisitor.cs</Link>
     </Compile>
     <Compile Include="..\JavaScript\return.cs">
       <Link>JavaScript\return.cs</Link>

@@ -1,1 +1,1 @@
-﻿var a="foobar",b="not foobar",c="ackbar";function meow(){alert("MEOW!")}
+﻿function meow(){alert("MEOW!")}var a="foobar",b="not foobar",c="ackbar"

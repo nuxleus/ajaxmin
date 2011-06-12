@@ -35,7 +35,7 @@ namespace Microsoft.Ajax.Utilities
               GlobalObjectInstance.GlobalObject,
                 //new string[] { "Infinity", "NaN", "undefined", "window" },
               new string[] { "Infinity", "NaN", "undefined", "window", "Image", "Math", "XMLHttpRequest" },
-              new string[] { "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "isNaN", "isFinite", "parseFloat", "parseInt", "unescape", "ActiveXObject", "Array", "Boolean", "Date", "Error", "Function", "Number", "Object", "RegExp", "String", "HTMLElement" }
+              new string[] { "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isNaN", "isFinite", "parseFloat", "parseInt", "unescape", "ActiveXObject", "Array", "Boolean", "Date", "Error", "Function", "Number", "Object", "RegExp", "String", "HTMLElement" }
               );
 
             // define the Window object's properties, and methods

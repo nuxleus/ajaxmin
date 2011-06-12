@@ -1,1 +1,1 @@
-﻿var one=1,one=2;foobar;alert("hi");var two=2,two=3,foo="not 3",bar=3
+﻿var one=1,one=2;foobar,alert("hi");var two=2,two=3,foo="not 3",bar=3

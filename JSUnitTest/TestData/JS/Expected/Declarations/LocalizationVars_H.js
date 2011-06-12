@@ -1,1 +1,1 @@
-function foo(c){for(var b="now is the time",a=0;a<c.length;++a)!c[a]&&b&&bar(function(){alert(b)})}
+function foo(n){for(var i="now is the time",t=0;t<n.length;++t)!n[t]&&i&&bar(function(){alert(i)})}

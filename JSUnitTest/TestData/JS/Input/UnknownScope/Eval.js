@@ -25,3 +25,9 @@
     // call the eval for a reference
     doIt("alert('" + another() + "')");
 })();
+
+function test1(first, second)
+{
+    var local = first + second;
+    return window["eval"]("window." + local);
+}

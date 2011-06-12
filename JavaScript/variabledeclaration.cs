@@ -189,6 +189,17 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public override bool IsExpression
+        {
+            get
+            {
+                // sure. treat a vardecl like an expression. normally this wouldn't be anywhere but
+                // in a var statement, but sometimes the special-cc case might be moved into an expression
+                // statement
+                return true;
+            }
+        }
+
         internal override string GetFunctionGuess(AstNode target)
         {
             return Identifier;
@@ -211,6 +222,24 @@ namespace Microsoft.Ajax.Utilities
                 return true;
             }
             return false;
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            JSVariableField otherField = null;
+            Lookup otherLookup;
+            var otherVarDecl = otherNode as VariableDeclaration;
+            if (otherVarDecl != null)
+            {
+                otherField = otherVarDecl.Field;
+            }
+            else if ((otherLookup = otherNode as Lookup) != null)
+            {
+                otherField = otherLookup.VariableField;
+            }
+
+            // if we get here, we're not equivalent
+            return this.Field != null && this.Field.IsSameField(otherField);
         }
 
         public override string ToCode(ToCodeFormat format)

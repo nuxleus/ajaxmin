@@ -308,8 +308,18 @@ namespace Microsoft.Ajax.Utilities
 
             // parse a block of statements
             Block scriptBlock = ParseStatements();
+
+            //foreach (var token in m_scanner.TokenCounts.Keys)
+            //{
+            //    Debug.WriteLine(string.Format("Token {0}: {1} instances", token.ToString(), m_scanner.TokenCounts[token]));
+            //}
+
             if (scriptBlock != null && Settings.MinifyCode)
             {
+                // this visitor doesn't just reorder scopes. It also combines the adjacent var variables
+                // and unnests blocks. 
+                ReorderScopeVisitor.Apply(scriptBlock, this);
+
                 // analyze the entire node tree (needed for hypercrunch)
                 // root to leaf (top down)
                 var analyzeVisitor = new AnalyzeNodeVisitor(this);
@@ -421,7 +431,9 @@ namespace Microsoft.Ajax.Utilities
                             m_program.Append(ast);
                     }
 
-                    if (m_scanner.HasImportantComments && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
+                    if (m_scanner.HasImportantComments 
+                        && m_settings.PreserveImportantComments
+                        && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
                     {
                         // we have important comments before the EOF. Add the comment(s) to the program.
                         Context commentContext;
@@ -487,7 +499,9 @@ namespace Microsoft.Ajax.Utilities
         private AstNode ParseStatement(bool fSourceElement)
         {
             AstNode statement = null;
-            if (m_scanner.HasImportantComments && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
+            if (m_scanner.HasImportantComments 
+                && m_settings.PreserveImportantComments
+                && m_settings.IsModificationAllowed(TreeModifications.PreserveImportantComments))
             {
                 // we have at least one important comment before the upcoming statement.
                 // pop the first important comment off the queue, return that node instead.
@@ -2807,7 +2821,7 @@ namespace Microsoft.Ajax.Utilities
                                 Context paramCtx = m_currentToken.Clone();
                                 GetNextToken();
 
-                                formalParameters.Add(new ParameterDeclaration(paramCtx, this, id));
+                                formalParameters.Add(new ParameterDeclaration(paramCtx, this, id, formalParameters.Count));
                             }
 
                             // got an arg, it should be either a ',' or ')'
@@ -4067,25 +4081,7 @@ namespace Microsoft.Ajax.Utilities
                                 m_noSkipTokenSet.Remove(NoSkipTokenSet.s_ParenToken);
                             }
 
-                            //treat eval and print specially
-                            if (expression is Lookup)
-                            {
-                                String name = expression.ToString();
-                                if (name.Equals("eval"))
-                                {
-                                    expression.Context.UpdateWith(args.Context);
-                                    if (args.Count > 0)
-                                        expression = new EvaluateNode(expression.Context, this, args[0]);
-                                    else
-                                        expression = new EvaluateNode(expression.Context, this, new ConstantWrapper("", PrimitiveType.String, CurrentPositionContext(), this));
-                                }
-                                else
-                                {
-                                    expression = new CallNode(expression.Context.CombineWith(args.Context), this, expression, args, false);
-                                }
-                            }
-                            else
-                                expression = new CallNode(expression.Context.CombineWith(args.Context), this, expression, args, false);
+                            expression = new CallNode(expression.Context.CombineWith(args.Context), this, expression, args, false);
 
                             if (null != newContexts && newContexts.Count > 0)
                             {

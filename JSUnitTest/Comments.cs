@@ -34,7 +34,13 @@ namespace JSUnitTest
         [TestMethod()]
         public void ImportantComment()
         {
-            TestHelper.Instance.RunTest();
+            TestHelper.Instance.RunTest("-reorder:N");
+        }
+
+        [TestMethod()]
+        public void ImportantComment_Off()
+        {
+            TestHelper.Instance.RunTest("-comments:none");
         }
 
         [TestMethod()]

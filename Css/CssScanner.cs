@@ -1324,7 +1324,7 @@ namespace Microsoft.Ajax.Utilities
                           StringEnum.UnterminatedString, sb.ToString()
                           );
                         // add the newline to the string so it will line-break in the output
-                        sb.Append('\n');
+                        sb.AppendLine();
 
                         // skip the block of whitespace we just encountered so that the current
                         // character will be the first non-whitespace character after the bogus

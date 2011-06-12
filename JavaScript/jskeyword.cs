@@ -25,18 +25,16 @@ namespace Microsoft.Ajax.Utilities
         private int m_length;
 
         private JSKeyword(JSToken token, string name)
+            : this(token, name, null)
         {
-            m_name = name;
-            m_token = token;
-            m_length = m_name.Length;
         }
 
         private JSKeyword(JSToken token, string name, JSKeyword next)
         {
             m_name = name;
-            m_next = next;
             m_token = token;
             m_length = m_name.Length;
+            m_next = next;
         }
 
         internal bool Exists(string target)

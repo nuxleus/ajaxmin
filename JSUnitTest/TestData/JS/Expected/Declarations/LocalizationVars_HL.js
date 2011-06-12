@@ -1,1 +1,1 @@
-function foo(b){for(var L_Error_Text="now is the time",a=0;a<b.length;++a)!b[a]&&L_Error_Text&&bar(function(){alert(L_Error_Text)})}
+function foo(n){for(var L_Error_Text="now is the time",t=0;t<n.length;++t)!n[t]&&L_Error_Text&&bar(function(){alert(L_Error_Text)})}

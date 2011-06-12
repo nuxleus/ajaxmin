@@ -71,6 +71,15 @@ namespace Microsoft.Ajax.Utilities
         }
         public Context IdContext { get { return (Identifier == null ? null : Identifier.Context); } }
 
+        public override bool IsExpression
+        {
+            get
+            {
+                // if this is a declaration, then it's not an expression. Otherwise treat it 
+                // as if it were an expression.
+                return !(FunctionType == FunctionType.Declaration);
+            }
+        }
 
         private JSVariableField m_variableField;
         public JSLocalField LocalField { get { return m_variableField as JSLocalField; } }

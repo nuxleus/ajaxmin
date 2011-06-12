@@ -22,7 +22,7 @@ using System.Text.RegularExpressions;
 namespace Microsoft.Ajax.Utilities
 {
 
-    public class ConstantWrapper : AstNode
+    public class ConstantWrapper : Expression
     {
         // this is a regular expression that we'll use to strip a leading "0x" from
         // a string if we are trying to parse it into a number. also removes the leading
@@ -54,6 +54,45 @@ namespace Microsoft.Ajax.Utilities
         {
             get;
             set;
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherConstant = otherNode as ConstantWrapper;
+            if (otherConstant != null && PrimitiveType == otherConstant.PrimitiveType)
+            {
+                switch (PrimitiveType)
+                {
+                    case PrimitiveType.Boolean:
+                        // bools must be the same
+                        return ToBoolean() == otherConstant.ToBoolean();
+
+                    case PrimitiveType.Null:
+                        // nulls are always equivalent
+                        return true;
+
+                    case PrimitiveType.Number:
+                        // numbers must be equal
+                        return ToNumber() == otherConstant.ToNumber();
+
+                    case PrimitiveType.String:
+                        // strings must be identical
+                        return string.CompareOrdinal(Value.ToString(), otherConstant.ToString()) == 0;
+
+                    case PrimitiveType.Other:
+                        // others are never the same
+                        return false;
+                }
+            }
+
+            // if we get here, we're not equivalent
+            return false;
+        }
+
+        public override PrimitiveType FindPrimitiveType()
+        {
+            // we know the primitive type of this node
+            return PrimitiveType;
         }
 
         public bool IsNumericLiteral

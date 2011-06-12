@@ -1,1 +1,1 @@
-function f(b,c,d){var a="0";switch(b){case 2:a="2"}switch(c){case 1:a="1"}switch(d){}}
+function f(n,t,i){var r="0";switch(n){case 2:r="2"}switch(t){case 1:r="1"}switch(i){}}

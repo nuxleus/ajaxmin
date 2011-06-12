@@ -1,1 +1,1 @@
-﻿function foo(c){var a="Calling all FOO:";if(c)alert(a+c);else alert(a+"[null]!!"+b)}foo("bar!")
+﻿function foo(n){var t="Calling all FOO:";n?alert(t+n):alert(t+"[null]!!"+b)}foo("bar!")

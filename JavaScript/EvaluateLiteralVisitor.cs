@@ -1614,6 +1614,33 @@ namespace Microsoft.Ajax.Utilities
                     // try to evaluate it
                     if (!node.IsAssign && node.OperatorToken != JSToken.In && node.OperatorToken != JSToken.InstanceOf)
                     {
+                        if (node.OperatorToken == JSToken.StrictEqual || node.OperatorToken == JSToken.StrictNotEqual)
+                        {
+                            // the operator is a strict equality (or not-equal).
+                            // check the primitive types of the two operands -- if they are known but not the same, we can
+                            // shortcut the whole process by just replacing this node with a boolean literal.
+                            var leftType = node.Operand1.FindPrimitiveType();
+                            if (leftType != PrimitiveType.Other)
+                            {
+                                var rightType = node.Operand2.FindPrimitiveType();
+                                if (rightType != PrimitiveType.Other)
+                                {
+                                    // both sides are known
+                                    if (leftType != rightType)
+                                    {
+                                        // they are not the same type -- replace with a boolean and bail
+                                        node.Parent.ReplaceChild(
+                                            node,
+                                            new ConstantWrapper(node.OperatorToken == JSToken.StrictEqual ? false : true, PrimitiveType.Boolean, node.Context, m_parser));
+                                        return;
+                                    }
+
+                                    // they are the same type -- we can change the operator to simple equality/not equality
+                                    node.OperatorToken = node.OperatorToken == JSToken.StrictEqual ? JSToken.Equal : JSToken.NotEqual;
+                                }
+                            }
+                        }
+
                         // see if the left operand is a literal number, boolean, string, or null
                         ConstantWrapper left = node.Operand1 as ConstantWrapper;
                         if (left != null)
@@ -1626,6 +1653,11 @@ namespace Microsoft.Ajax.Utilities
                                 ConstantWrapper rightConstant = node.Operand2 as ConstantWrapper;
                                 if (rightConstant != null)
                                 {
+                                    // we'll replace the operator with the right-hand operand, BUT it's a constant, too.
+                                    // first check to see if replacing this node with a constant will result in creating
+                                    // a member-bracket operator that can be turned into a member-dot. If it is, then that
+                                    // method will handle the replacement. But if it doesn't, then we should just replace
+                                    // the comma with the right-hand operand.
                                     if (!ReplaceMemberBracketWithDot(node, rightConstant))
                                     {
                                         node.Parent.ReplaceChild(node, rightConstant);
@@ -1633,6 +1665,7 @@ namespace Microsoft.Ajax.Utilities
                                 }
                                 else
                                 {
+                                    // replace the comma operator with the right-hand operand
                                     node.Parent.ReplaceChild(node, node.Operand2);
                                 }
                             }
@@ -2018,6 +2051,10 @@ namespace Microsoft.Ajax.Utilities
                         {
                             node.Parent.ReplaceChild(node, new ConstantWrapper(typeName, PrimitiveType.String, node.Context, m_parser));
                         }
+                    }
+                    else if (node.Operand is ObjectLiteral)
+                    {
+                        node.Parent.ReplaceChild(node, new ConstantWrapper("object", PrimitiveType.String, node.Context, m_parser));
                     }
                 }
             }

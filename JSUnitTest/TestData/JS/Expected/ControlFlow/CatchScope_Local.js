@@ -1,1 +1,1 @@
-function foo(){var b="local",a=10;try{var a=100/0}catch(b){alert(b);var a=5}alert(b);alert(a)}
+function foo(){var t="local",n=10;try{n=100/0}catch(t){alert(t),n=5}alert(t),alert(n)}

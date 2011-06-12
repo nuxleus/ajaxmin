@@ -26,7 +26,7 @@ namespace Microsoft.Ajax.Utilities
     }
 
 
-    public sealed class Lookup : AstNode
+    public sealed class Lookup : Expression
     {
         public JSVariableField VariableField { get; internal set; }
 
@@ -72,6 +72,29 @@ namespace Microsoft.Ajax.Utilities
             {
                 visitor.Visit(this);
             }
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            // this one is tricky. If we have a field assigned, then we are equivalent if the
+            // field is the same as the other one. If there is no field, then just check the name
+            var otherLookup = otherNode as Lookup;
+            if (otherLookup != null)
+            {
+                if (VariableField != null)
+                {
+                    // the variable fields should be the same
+                    return VariableField.IsSameField(otherLookup.VariableField);
+                }
+                else
+                {
+                    // otherwise the names should be identical
+                    return string.CompareOrdinal(Name, otherLookup.Name) == 0;
+                }
+            }
+
+            // if we get here, we're not equivalent
+            return false;
         }
 
         public override string ToCode(ToCodeFormat format)

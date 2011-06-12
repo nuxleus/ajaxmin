@@ -1,1 +1,1 @@
-﻿(function(){var d="bar",c="gag";function b(txt){var suffix=";";eval(txt+suffix)}function a(){var a=" boy-howdy! ";return d+a+c}b("alert('"+a()+"')")})()
+﻿function test1(first,second){var local=first+second;return window.eval("window."+local)}(function(){function n(txt){var suffix=";";eval(txt+suffix)}function t(){var n=" boy-howdy! ";return i+n+r}var i="bar",r="gag";n("alert('"+t()+"')")})()

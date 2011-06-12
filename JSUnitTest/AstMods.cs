@@ -140,5 +140,18 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest();
         }
+
+        [TestMethod]
+        public void StrictToRegular()
+        {
+            // turn off the "EvaluateNumericExpressions" feature
+            TestHelper.Instance.RunTest("-kill:0x0000000020000000");
+        }
+
+        [TestMethod]
+        public void MoveFunctions()
+        {
+            TestHelper.Instance.RunTest();
+        }
     }
 }

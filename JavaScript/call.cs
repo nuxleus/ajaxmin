@@ -14,12 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public sealed class CallNode : AstNode
+    public sealed class CallNode : Expression
     {
         private AstNode m_func;
         public AstNode Function
@@ -60,6 +61,33 @@ namespace Microsoft.Ajax.Utilities
             if (m_args != null)
             {
                 m_args.Parent = this;
+            }
+        }
+
+        public override bool IsExpression
+        {
+            get
+            {
+                // normall this would be an expression. BUT we want to check for a
+                // call to a member function that is in the "onXXXX" pattern and passing
+                // parameters. This is because of a bug in IE that will throw a script error 
+                // if you call a native event handler like onclick and pass in a parameter
+                // IN A LOGICAL EXPRESSION. For some reason, the simple statement:
+                // elem.onclick(e) will work, but elem&&elem.onclick(e) will not. So treat
+                // calls to any member operator where the property name starts with "on" and
+                // we are passing in arguments as if it were NOT an expression, and it won't
+                // get combined.
+                Member callMember = Function as Member;
+                if (callMember != null
+                    && callMember.Name.StartsWith("on", StringComparison.Ordinal)
+                    && Arguments.Count > 0)
+                {
+                    // popped positive -- don't treat it like an expression.
+                    return false;
+                }
+
+                // otherwise it's okay -- it's an expression and can be combined.
+                return true;
             }
         }
 
@@ -117,6 +145,18 @@ namespace Microsoft.Ajax.Utilities
                 // the function is on the left
                 return m_func.LeftHandSide;
             }
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            // a call node is equivalent to another call node if the function and the arguments
+            // are all equivalent (and be sure to check for brackets and constructor)
+            var otherCall = otherNode as CallNode;
+            return otherCall != null
+                && this.InBrackets == otherCall.InBrackets
+                && this.IsConstructor == otherCall.IsConstructor
+                && this.Function.IsEquivalentTo(otherCall.Function)
+                && this.Arguments.IsEquivalentTo(otherCall.Arguments);
         }
 
         internal override bool IsDebuggerStatement

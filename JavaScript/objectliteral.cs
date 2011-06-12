@@ -19,7 +19,7 @@ using System.Text;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public sealed class ObjectLiteral : AstNode
+    public sealed class ObjectLiteral : Expression
     {
         private ObjectLiteralField[] m_keys;
         public IList<ObjectLiteralField> Keys { get { return m_keys; } }

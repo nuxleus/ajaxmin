@@ -123,6 +123,8 @@ namespace Microsoft.Ajax.Utilities
 
         private JSToken m_previousToken;
 
+        //public Dictionary<JSToken, int> TokenCounts;
+
         public JSScanner(Context sourceContext)
         {
             m_keywords = s_Keywords;
@@ -181,6 +183,8 @@ namespace Microsoft.Ajax.Utilities
             m_currentPos = m_startPos;
             CurrentLine = (sourceContext.StartLineNumber > 0) ? sourceContext.StartLineNumber : 1;
             GotEndOfLine = false;
+
+            //TokenCounts = new Dictionary<JSToken, int>();
         }
 
         public void SetPreprocessorDefines(ReadOnlyCollection<string> definedNames)
@@ -1233,6 +1237,15 @@ namespace Microsoft.Ajax.Utilities
                     m_previousToken = token;
                     break;
             }
+
+            //if (TokenCounts.ContainsKey(token))
+            //{
+            //    ++TokenCounts[token];
+            //}
+            //else
+            //{
+            //    TokenCounts.Add(token, 1);
+            //}
         }
 
         private bool CheckSubstring(int startIndex, string target)

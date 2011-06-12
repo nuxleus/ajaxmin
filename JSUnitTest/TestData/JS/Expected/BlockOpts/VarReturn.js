@@ -1,1 +1,1 @@
-﻿function foo(){return window.location}function bar(x,y){return(3+x)*y}function arf(){var foo="bar";return}function gag(a,b){var foo=a*b;return foo+a}
+﻿function multi(a,b){var x=a+b,y=a-b;return x*y}function foo(){return window.location}function bar(x,y){return(3+x)*y}function arf(){var foo="bar";return}function gag(a,b){var foo=a*b;return foo+a}function test1(a,b){var c=a+(c=b)+b;return c}function test2(a,b){c=10;var c=a+b;return c}

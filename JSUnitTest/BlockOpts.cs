@@ -87,10 +87,53 @@ namespace JSUnitTest
             TestHelper.Instance.RunTest();
         }
 
+        [TestMethod]
+        public void DirectivePrologue()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
 		[TestMethod]
 		public void AspNetBlock()
 		{
 			TestHelper.Instance.RunTest("-aspnet:true");
 		}
+
+        [TestMethod]
+        public void AfterReturn()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void AfterReturn_noreloc()
+        {
+            // don't relocate function declarations
+            TestHelper.Instance.RunTest("-kill:0x0000018000000000");
+        }
+
+        [TestMethod]
+        public void VarIntoFor()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void IfReturnReturn()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void ReturnVoid()
+        {
+            TestHelper.Instance.RunTest();
+        }
+
+        [TestMethod]
+        public void ExprReturn()
+        {
+            TestHelper.Instance.RunTest();
+        }
     }
 }

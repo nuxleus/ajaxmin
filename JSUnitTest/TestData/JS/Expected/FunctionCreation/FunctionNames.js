@@ -1,1 +1,1 @@
-﻿function foo(){return 0}var f1=function ralph(){return ralph},f2=function(){return 2};function window.onload(){alert("ONLOLAD!")}function(param1){return param1+param1}function bar{return 3}function{return 4}alert(f1)
+﻿function foo(){return 0}function window.onload(){alert("ONLOLAD!")}function(param1){return param1+param1}function bar{return 3}function{return 4}var f1=function ralph(){return ralph},f2=function(){return 2};alert(f1)

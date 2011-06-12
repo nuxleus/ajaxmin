@@ -18,7 +18,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Ajax.Utilities
 {
-    public abstract class UnaryOperator : AstNode
+    public abstract class UnaryOperator : Expression
     {
         public AstNode Operand { get; private set; }
 

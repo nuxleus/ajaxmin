@@ -1,1 +1,1 @@
-﻿Web("web");var i=new Image;while(0);for(var p in i);for(var n=0;n<i.length;++n);do;while(0);try{i.src="foo"}catch(e){}finally{n=i}!i;if(!i)i=null;!i;Msn.Debug.Assert("message");WAssert("blah");var foo={};/*@cc_on@if(@DEBUG)@*/foo(bar);/*@end@*/
+﻿var i,p,n,foo;Web("web"),i=new Image;while(0);for(p in i);for(n=0;n<i.length;++n);do;while(0);try{i.src="foo"}catch(e){}finally{n=i}!i,i||(i=null),!i,Msn.Debug.Assert("message"),WAssert("blah"),foo={};/*@cc_on@if(@DEBUG)@*/foo(bar);/*@end@*/

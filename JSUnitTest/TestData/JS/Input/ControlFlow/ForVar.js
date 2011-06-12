@@ -84,17 +84,19 @@ for (i = 0; i < 10; ++i)
 // var-statement with no initializer before, assignment initializer within, 
 // but also some other stuff with a comma-operator
 // DO NOT combine; would break
+// (and convert the condition to 0)
 var i;
-for (i = 10, a = 5; i > 0; --i)
+for (i = 10, a = 5; false; --i)
 {
 }
 
 // same as above, but both variables in the comma operator assignments are
 // declared in the preceding var-statement.
-// IDEALLY, we could move the var statement into the for statement in this
-// situation, but we didn't implement it [yet]. Possible future enhancement.
+// we should move the var statement into the for statement in this
+// situation, too.
+// (and replace the true condition with nothing)
 var i, a;
-for (i = 10, a = 5; i > 0; --i)
+for (i = 10, a = 5; true; --i)
 {
 }
 

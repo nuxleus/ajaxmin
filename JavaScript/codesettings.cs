@@ -56,6 +56,8 @@ namespace Microsoft.Ajax.Utilities
             this.MinifyCode = true;
             this.OutputMode = OutputMode.SingleLine;
             this.PreserveFunctionNames = false;
+            this.PreserveImportantComments = true;
+            this.ReorderScopeDeclarations = true;
             this.RemoveFunctionExpressionNames = true;
             this.RemoveUnneededCode = true;
             this.StripDebugStatements = true;
@@ -674,6 +676,27 @@ namespace Microsoft.Ajax.Utilities
             get; set;
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to preserve important comments in the output.
+        /// Default is true.
+        /// </summary>
+        public bool PreserveImportantComments
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to reorder function and variable
+        /// declarations within scopes
+        /// </summary>
+        public bool ReorderScopeDeclarations
+        {
+            get; set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether or not to remove unreferenced function expression names
+        /// </summary>
         public bool RemoveFunctionExpressionNames
         {
             get; set;
@@ -977,5 +1000,44 @@ namespace Microsoft.Ajax.Utilities
         /// false -> !1
         /// </summary>
         BooleanLiteralsToNotOperators               = 0x0000000400000000,
+
+        /// <summary>
+        /// Change if-statements with expression statements as their branches to expressions
+        /// </summary>
+        IfExpressionsToExpression                   = 0x0000000800000000,
+
+        /// <summary>
+        /// Combine adjacent expression statements into a single expression statement
+        /// using the comma operator
+        /// </summary>
+        CombineAdjacentExpressionStatements         = 0x0000001000000000,
+
+        /// <summary>
+        /// If the types of both sides of a strict operator (=== or !==) are known
+        /// to be the same, we can reduce the operators to == or !=
+        /// </summary>
+        ReduceStrictOperatorIfTypesAreSame          = 0x0000002000000000,
+
+        /// <summary>
+        /// If the types of both sides of a strict operator (=== or !==) are known
+        /// to be different, than we can reduct the binary operator to false or true (respectively)
+        /// </summary>
+        ReduceStrictOperatorIfTypesAreDifferent     = 0x0000004000000000,
+
+        /// <summary>
+        /// Move function declarations to the top of the containing scope
+        /// </summary>
+        MoveFunctionToTopOfScope                    = 0x0000008000000000,
+
+        /// <summary>
+        /// Combine var statements at the top of the containing scope
+        /// </summary>
+        CombineVarStatementsToTopOfScope            = 0x0000010000000000,
+
+        /// <summary>
+        /// If the condition of an if-statement or conditional starts with a not-operator,
+        /// get rid of the not-operator and swap the true/false branches.
+        /// </summary>
+        IfNotTrueFalseToIfFalseTrue                 = 0x0000020000000000,
     }
 }

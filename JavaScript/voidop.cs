@@ -31,6 +31,13 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherVoid = otherNode as VoidNode;
+            return otherVoid != null
+                && Operand.IsEquivalentTo(otherVoid.Operand);
+        }
+
         public override string ToCode(ToCodeFormat format)
         {
             string operandString = Operand.ToCode(format);

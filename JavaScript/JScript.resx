@@ -261,9 +261,6 @@
   <data name="1266" xml:space="preserve">
     <value>Type cannot be marked CLS compliant because the assembly is not marked as CLS compliant</value>
   </data>
-  <data name="1286" xml:space="preserve">
-    <value>Function name must be a simple identifier</value>
-  </data>
   <data name="5008" xml:space="preserve">
     <value>Illegal assignment</value>
   </data>
@@ -341,6 +338,12 @@
   </data>
   <data name="1285" xml:space="preserve">
     <value>Octal literals are deprecated. Possible cross-browser behavior difference</value>
+  </data>
+  <data name="1286" xml:space="preserve">
+    <value>Function name must be a simple identifier</value>
+  </data>
+  <data name="1287" xml:space="preserve">
+    <value>Strict operator always evaluates to true or false</value>
   </data>
   <data name="Severity0" xml:space="preserve">
     <value>run-time</value>

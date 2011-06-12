@@ -1,1 +1,1 @@
-function Func(p1){var i=0,j=0;while(i<100){if(i==p1)break;i++}for(i=0;i<100;i++)if(i==p1)break;for(i=0;i<10;i++,j++)p1=i+j;for(;;)break;for(var a=10,b,c=42;;)if(++a>c)break;while(--i>0);for(var t=10,y=5;t>0;t--,y+=y);return i}
+function Func(p1){var i=0,j=0,a,b,c,t,y;while(i<100){if(i==p1)break;i++}for(i=0;i<100;i++)if(i==p1)break;for(i=0;i<10;i++,j++)p1=i+j;for(;;)break;a=10,c=42;for(;;)if(++a>c)break;while(--i>0);for(t=10,y=5;t>0;t--,y+=y);return i}

@@ -466,14 +466,14 @@ namespace Microsoft.Ajax.Utilities
             if (m_isKnownAtCompileTime)
             {
                 // get an array of all the uncrunched local variables defined in this scope
-                JSLocalField[] localFields = GetUncrunchedLocals();
+                JSVariableField[] localFields = GetUncrunchedLocals();
                 if (localFields.Length > 0)
                 {
                     // create a crunch-name enumerator, taking into account our verboten set
-                    CrunchEnumerator crunchEnum = new CrunchEnumerator(Verboten);
+                    var crunchEnum = new CrunchEnumerator(Verboten);
                     for (int ndx = 0; ndx < localFields.Length; ++ndx)
                     {
-                        JSLocalField localField = localFields[ndx];
+                        JSVariableField localField = localFields[ndx];
 
                         // if we are an unambiguous reference to a named function expression and we are not
                         // referenced by anyone else, then we can just skip this variable because the
@@ -496,19 +496,16 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        internal JSLocalField[] GetUncrunchedLocals()
+        internal JSVariableField[] GetUncrunchedLocals()
         {
             // there can't be more uncrunched fields than total fields
-            List<JSLocalField> list = new List<JSLocalField>(m_nameTable.Count);
+            var list = new List<JSVariableField>(m_nameTable.Count);
             foreach (JSVariableField variableField in m_nameTable.Values)
             {
-                // we're only interested in local fields
-                JSLocalField localField = variableField as JSLocalField;
-
-                // if the local field is defined in this scope and hasn't been crunched
+                // if the field is defined in this scope and hasn't been crunched
                 // AND can still be crunched
-                if (localField != null && localField.OuterField == null && localField.CrunchedName == null
-                    && localField.CanCrunch)
+                if (variableField != null && variableField.OuterField == null && variableField.CrunchedName == null
+                    && variableField.CanCrunch)
                 {
                     // if local renaming is not crunch all, then it must be crunch all but localization
                     // (we don't get called if we aren't crunching anything). 
@@ -518,17 +515,18 @@ namespace Microsoft.Ajax.Utilities
                     // The second clause is only computed IF we already think we're good to go.
                     // IF we aren't preserving function names, then we're good. BUT if we are, we're
                     // only good to go if this field doesn't represent a function object.
-                    if ((m_parser.Settings.LocalRenaming == LocalRenaming.CrunchAll 
-                        || !localField.Name.StartsWith("L_", StringComparison.Ordinal))
-                        && !(m_parser.Settings.PreserveFunctionNames && localField.IsFunction))
+                    if ((m_parser.Settings.LocalRenaming == LocalRenaming.CrunchAll
+                        || !variableField.Name.StartsWith("L_", StringComparison.Ordinal))
+                        && !(m_parser.Settings.PreserveFunctionNames && variableField.IsFunction))
                     {
                         // add to our list
-                        list.Add(localField);
+                        list.Add(variableField);
                     }
                 }
             }
             // sort the array by reference count, descending
             list.Sort(ReferenceComparer.Instance);
+            
             // return as an array
             return list.ToArray();
         }
@@ -612,44 +610,6 @@ namespace Microsoft.Ajax.Utilities
         }
 
         #endregion
-
-        /// <summary>
-        /// this class is used to sort the crunchable local fields in a scope so that the fields
-        /// most in need of crunching get crunched first, therefore having the smallest-length
-        /// crunched variable name.
-        /// Highest priority are the fields most-often referenced.
-        /// Among fields with the same reference count, the longest fields get priority.
-        /// Lastly, alphabetize.
-        /// </summary>
-        private class ReferenceComparer : IComparer<JSLocalField>
-        {
-            // singleton instance
-            public static readonly IComparer<JSLocalField> Instance = new ReferenceComparer();
-            // never instantiate outside this class
-            private ReferenceComparer() { }
-
-            #region IComparer<JSLocalField> Members
-
-            public int Compare(JSLocalField left, JSLocalField right)
-            {
-                int comparison = 0;
-                if (left != null && right != null)
-                {
-                    comparison = right.RefCount - left.RefCount;
-                    if (comparison == 0)
-                    {
-                        comparison = right.Name.Length - left.Name.Length;
-                        if (comparison == 0)
-                        {
-                            comparison = string.Compare(left.Name, right.Name, StringComparison.OrdinalIgnoreCase);
-                        }
-                    }
-                }
-                return comparison;
-            }
-
-            #endregion
-        }
 
         #region Literal-combining code
 

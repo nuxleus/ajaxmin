@@ -315,23 +315,28 @@ namespace Microsoft.Ajax.Utilities
                             break;
 
                         case "COMMENTS":
-                            // four options: none, all, important, or hacks
+                            // four options for css: none, all, important, or hacks
+                            // two options for js: none, important
                             // (default is important)
                             if (paramPart == "NONE")
                             {
                                 m_cssComments = CssComment.None;
+                                m_preserveImportantComments = false;
                             }
                             else if (paramPart == "ALL")
                             {
                                 m_cssComments = CssComment.All;
+                                CssOnly();
                             }
                             else if (paramPart == "IMPORTANT")
                             {
                                 m_cssComments = CssComment.Important;
+                                m_preserveImportantComments = true;
                             }
                             else if (paramPart == "HACKS")
                             {
                                 m_cssComments = CssComment.Hacks;
+                                CssOnly();
                             }
                             else if (paramPart == null)
                             {
@@ -341,7 +346,7 @@ namespace Microsoft.Ajax.Utilities
                             {
                                 throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
                             }
-                            CssOnly();
+
                             break;
 
                         case "CSS":
@@ -657,7 +662,15 @@ namespace Microsoft.Ajax.Utilities
                             }
 
                             // get the numeric portion
-                            if (!long.TryParse(paramPart, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out m_killSwitch))
+                            if (paramPart.StartsWith("0X", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // it's hex -- convert the number after the "0x"
+                                if (!long.TryParse(paramPart.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out m_killSwitch))
+                                {
+                                    throw new UsageException(m_outputMode, "InvalidKillSwitchArg", paramPart);
+                                }
+                            }
+                            else if (!long.TryParse(paramPart, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out m_killSwitch))
                             {
                                 throw new UsageException(m_outputMode, "InvalidKillSwitchArg", paramPart);
                             }
@@ -955,6 +968,14 @@ namespace Microsoft.Ajax.Utilities
                                     throw new UsageException(m_outputMode, "InvalidSwitchArg", paramPart, switchPart);
                                 }
                             }
+
+                            // this is a JS-only switch
+                            JavaScriptOnly();
+                            break;
+
+                        case "REORDER":
+                            // default is true
+                            BooleanSwitch(paramPart, switchPart, true, out m_reorderScopeDeclarations);
 
                             // this is a JS-only switch
                             JavaScriptOnly();
@@ -1280,7 +1301,6 @@ namespace Microsoft.Ajax.Utilities
 
             // if analyze was specified but no warning level, jack up the warning level
             // so everything is shown
-            // TODO: we want to do this for CSS also, but need to fix the error scheme first.
             if (m_analyze && !levelSpecified)
             {
                 // we want to analyze, and we didn't specify a particular warning level.
@@ -2342,11 +2362,10 @@ namespace Microsoft.Ajax.Utilities
         {
             using (var memoryStream = new MemoryStream())
             {
-                using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, true))
-                {
-                    gzipStream.Write(bytes, 0, bytes.Length);
-                    return memoryStream.Position;
-                }
+                var gzipStream = new GZipStream(memoryStream, CompressionMode.Compress, true);
+                gzipStream.Write(bytes, 0, bytes.Length);
+                gzipStream.Close();
+                return memoryStream.Position;
             }
         }
 

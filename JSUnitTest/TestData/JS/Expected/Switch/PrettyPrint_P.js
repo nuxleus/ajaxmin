@@ -4,7 +4,8 @@ function foo()
     var a = 1,
         b = 2,
         c = "three",
-        d;
+        d,
+        f;
     try
     {
         d = a * b;
@@ -21,25 +22,16 @@ function foo()
                 default:
                     c = c * 2
             }
-            if(!c)
-                c = 1;
-            else
-            {
-                d = d * c;
-                a *= d
-            }
+            c ? (d = d * c, a *= d) : c = 1
         }
     }
     catch(e)
     {
-        for(var f = 0; f < b; ++f)
+        for(f = 0; f < b; ++f)
             a = a * d
     }
     finally
     {
-        if(!a)
-            b = -1;
-        else
-            b = a
+        b = a ? a : -1
     }
 }

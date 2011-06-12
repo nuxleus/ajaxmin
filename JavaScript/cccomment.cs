@@ -22,14 +22,13 @@ namespace Microsoft.Ajax.Utilities
 {
     public class ConditionalCompilationComment : AstNode
     {
-        private Block m_statements;
-        public Block Statements { get { return m_statements; } }
+        public Block Statements { get; private set; }
 
         public ConditionalCompilationComment(Context context, JSParser parser)
             : base(context, parser)
         {
-            m_statements = new Block(null, parser);
-            m_statements.Parent = this;
+            Statements = new Block(null, parser);
+            Statements.Parent = this;
         }
 
 
@@ -37,7 +36,7 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return m_statements.Count > 0 ? m_statements[m_statements.Count - 1].RequiresSeparator : true;
+                return Statements.Count > 0 ? Statements[Statements.Count - 1].RequiresSeparator : true;
             }
         }
 
@@ -54,7 +53,7 @@ namespace Microsoft.Ajax.Utilities
             if (statement != null)
             {
                 Context.UpdateWith(statement.Context);
-                m_statements.Append(statement);
+                Statements.Append(statement);
             }
         }
 
@@ -62,16 +61,16 @@ namespace Microsoft.Ajax.Utilities
         {
             get
             {
-                return EnumerateNonNullNodes(m_statements);
+                return EnumerateNonNullNodes(Statements);
             }
         }
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_statements == oldNode)
+            if (Statements == oldNode)
             {
-                m_statements = ForceToBlock(newNode);
-                if (m_statements != null) { m_statements.Parent = this; }
+                Statements = ForceToBlock(newNode);
+                if (Statements != null) { Statements.Parent = this; }
                 return true;
             }
             return false;
@@ -82,19 +81,19 @@ namespace Microsoft.Ajax.Utilities
             StringBuilder sb = new StringBuilder();
 
             // if there aren't any statements, we don't need this comment
-            if (m_statements.Count > 0)
+            if (Statements.Count > 0)
             {
                 sb.Append("/*");
 
                 // a first conditional compilation statement will take care of the opening @-sign,
                 // so if the first statement is NOT a conditional compilation statement, then we
                 // need to take care of it outselves
-                if (!(m_statements[0] is ConditionalCompilationStatement))
+                if (!(Statements[0] is ConditionalCompilationStatement))
                 {
                     sb.Append("@ ");
                 }
 
-                sb.Append(m_statements.ToCode(ToCodeFormat.NoBraces));
+                sb.Append(Statements.ToCode(ToCodeFormat.NoBraces));
                 sb.Append("@*/");
             }
             return sb.ToString();

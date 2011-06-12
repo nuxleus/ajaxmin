@@ -13,3 +13,6 @@ var b/*@cc_on=1@*/
 
 // get rid of this one, too
 //@cc_on
+
+if(a)
+    alert("win32");

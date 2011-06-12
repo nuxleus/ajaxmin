@@ -39,7 +39,6 @@ namespace Microsoft.Ajax.Utilities
         void Visit(DebuggerNode node);
         void Visit(Delete node);
         void Visit(DoWhile node);
-        void Visit(EvaluateNode node);
         void Visit(ForIn node);
         void Visit(ForNode node);
         void Visit(FunctionObject node);

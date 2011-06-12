@@ -75,6 +75,35 @@ namespace Microsoft.Ajax.Utilities
             return false;
         }
 
+        /// <summary>
+        /// an astlist is equivalent to another astlist if they both have the same number of
+        /// items, and each item is equivalent to the corresponding item in the other
+        /// </summary>
+        /// <param name="otherNode"></param>
+        /// <returns></returns>
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            bool isEquivalent = false;
+
+            AstNodeList otherList = otherNode as AstNodeList;
+            if (otherList != null && m_list.Count == otherList.Count)
+            {
+                // now assume it's true unless we come across an item that ISN'T
+                // equivalent, at which case we'll bail the test.
+                isEquivalent = true;
+                for (var ndx = 0; ndx < m_list.Count; ++ndx)
+                {
+                    if (!m_list[ndx].IsEquivalentTo(otherList[ndx]))
+                    {
+                        isEquivalent = false;
+                        break;
+                    }
+                }
+            }
+
+            return isEquivalent;
+        }
+
         public override string ToCode(ToCodeFormat format)
         {
             bool requiresSeparator = false;

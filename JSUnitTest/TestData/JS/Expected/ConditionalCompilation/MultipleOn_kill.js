@@ -1,1 +1,1 @@
-﻿/*@cc_on@*/var a=0;/*@cc_on@if(@_win32)@*/a=1;/*@end@*/var b/*@cc_on=1@*/;/*@cc_on@*/
+﻿var a,b;/*@cc_on@*/a=0;/*@cc_on@if(@_win32)@*/a=1;/*@end@*/b/*@cc_on=1@*/;/*@cc_on@*/a&&alert("win32")

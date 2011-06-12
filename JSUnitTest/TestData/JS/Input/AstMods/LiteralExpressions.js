@@ -320,3 +320,26 @@ d = "Q" && 100;             // 100
 var o1 = 0377 - 55; // NOT changed to 200
 var o2 = 0xff - 012; // NOT changed to 245
 var o3 = 020 * 04; // NOT changed to 64
+
+// these comma operators have a constant left-hand side; we'll replace the comma with the right-hand side.
+// BUT... the right-hand side is also a constant. Check to see if the new constant can change the member-bracket
+// operator into a member-dot
+var m1 = o1[123, "foo"];    // yes
+var m2 = o2[true, 456];     // no
+var m3 = o3["ack", "1bar"]; // no
+
+// conditional operators
+var ct1 = "foo" ? a : b;
+var ct2 = 12345 ? a : b;
+var ct3 = true ? a : b;
+var ct4 = 12 + "ack" ? a : b;
+var cf1 = "" ? a : b;
+var cf2 = 0 ? a : b;
+var cf3 = false ? a : b;
+
+// typeof's for constants can be known
+var t1 = typeof "my string";    // string
+var t2 = typeof 1234;           // number
+var t3 = typeof true;           // boolean
+var t4 = typeof null;           // object
+var t5 = typeof {};             // object

@@ -112,10 +112,19 @@
     <Content Include="TestData\JS\Expected\AstMods\LiteralsFarToRight.js" />
     <Content Include="TestData\JS\Expected\AstMods\LiteralsToLeft.js" />
     <Content Include="TestData\JS\Expected\AstMods\LiteralsToRight.js" />
+    <Content Include="TestData\JS\Expected\AstMods\MoveFunctions.js" />
     <Content Include="TestData\JS\Expected\AstMods\SimplifyStrToNum.js" />
     <Content Include="TestData\JS\Expected\AstMods\SimplifyStrToNum_noeval.js" />
+    <Content Include="TestData\JS\Expected\AstMods\StrictToRegular.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\AfterReturn.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\AfterReturn_noreloc.js" />
     <Content Include="TestData\JS\Expected\BlockOpts\AspNetBlock.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\DirectivePrologue.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\ExprReturn.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\IfReturnReturn.js" />
     <Content Include="TestData\JS\Expected\BlockOpts\ReturnIfs.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\ReturnVoid.js" />
+    <Content Include="TestData\JS\Expected\BlockOpts\VarIntoFor.js" />
     <Content Include="TestData\JS\Expected\BlockOpts\VarReturn.js" />
     <Content Include="TestData\JS\Expected\Booleans\Boolean.js" />
     <Content Include="TestData\JS\Expected\CatchVariable\Ambiguous.js" />
@@ -131,6 +140,7 @@
     <Content Include="TestData\JS\Expected\Comments\Comment.js" />
     <Content Include="TestData\JS\Expected\Comments\EndWithImportantComment.js" />
     <Content Include="TestData\JS\Expected\Comments\ImportantComment.js" />
+    <Content Include="TestData\JS\Expected\Comments\ImportantComment_Off.js" />
     <Content Include="TestData\JS\Expected\Comments\OnlyImportantComment.js" />
     <Content Include="TestData\JS\Expected\Comments\TwoImportantComments.js" />
     <Content Include="TestData\JS\Expected\ConditionalCompilation\TypeComments.js" />
@@ -161,6 +171,7 @@
     <Content Include="TestData\JS\Expected\ControlFlow\EncloseBlock.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\ForIn.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\ForVar.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\ForVar_reorder.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\ForWhile.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\If.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\Labels.js" />
@@ -172,6 +183,7 @@
     <Content Include="TestData\JS\Expected\ControlFlow\Throw_M.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\TryCatch.js" />
     <Content Include="TestData\JS\Expected\ControlFlow\TryCatch_m.js" />
+    <Content Include="TestData\JS\Expected\ControlFlow\While.js" />
     <Content Include="TestData\JS\Expected\Declarations\Function.js" />
     <Content Include="TestData\JS\Expected\Declarations\Identifiers.js" />
     <Content Include="TestData\JS\Expected\Declarations\LocalizationVars.js" />
@@ -192,6 +204,7 @@
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_hlock.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_hnfe.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_nfe.js" />
+    <Content Include="TestData\JS\Expected\FunctionCreation\NamedFuncExpr_reorder.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\NewFunction.js" />
     <Content Include="TestData\JS\Expected\FunctionCreation\VarArgList.js" />
     <Content Include="TestData\JS\Expected\GlobalMethods\Eval.js" />
@@ -235,6 +248,7 @@
     <Content Include="TestData\JS\Expected\Operators\Member.js" />
     <Content Include="TestData\JS\Expected\Operators\New.js" />
     <Content Include="TestData\JS\Expected\Operators\NewPrecedence.js" />
+    <Content Include="TestData\JS\Expected\Operators\Strict.js" />
     <Content Include="TestData\JS\Expected\Operators\Unary.js" />
     <Content Include="TestData\JS\Expected\Operators\Void.js" />
     <Content Include="TestData\JS\Expected\Preprocessor\BadDefines.js" />
@@ -295,9 +309,17 @@
     <Content Include="TestData\JS\Input\AstMods\LiteralsFarToRight.js" />
     <Content Include="TestData\JS\Input\AstMods\LiteralsToLeft.js" />
     <Content Include="TestData\JS\Input\AstMods\LiteralsToRight.js" />
+    <Content Include="TestData\JS\Input\AstMods\MoveFunctions.js" />
     <Content Include="TestData\JS\Input\AstMods\SimplifyStrToNum.js" />
+    <Content Include="TestData\JS\Input\AstMods\StrictToRegular.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\AfterReturn.js" />
     <Content Include="TestData\JS\Input\BlockOpts\AspNetBlock.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\DirectivePrologue.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\ExprReturn.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\IfReturnReturn.js" />
     <Content Include="TestData\JS\Input\BlockOpts\ReturnIfs.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\ReturnVoid.js" />
+    <Content Include="TestData\JS\Input\BlockOpts\VarIntoFor.js" />
     <Content Include="TestData\JS\Input\BlockOpts\VarReturn.js" />
     <Content Include="TestData\JS\Input\Booleans\Boolean.js" />
     <Content Include="TestData\JS\Input\CatchVariable\Ambiguous.js" />
@@ -340,6 +362,7 @@
     <Content Include="TestData\JS\Input\ControlFlow\Switch.js" />
     <Content Include="TestData\JS\Input\ControlFlow\Throw.js" />
     <Content Include="TestData\JS\Input\ControlFlow\TryCatch.js" />
+    <Content Include="TestData\JS\Input\ControlFlow\While.js" />
     <Content Include="TestData\JS\Input\Declarations\Function.js" />
     <Content Include="TestData\JS\Input\Declarations\Identifiers.js" />
     <Content Include="TestData\JS\Input\Declarations\LocalizationVars.js" />
@@ -384,6 +407,7 @@
     <Content Include="TestData\JS\Input\Operators\Member.js" />
     <Content Include="TestData\JS\Input\Operators\New.js" />
     <Content Include="TestData\JS\Input\Operators\NewPrecedence.js" />
+    <Content Include="TestData\JS\Input\Operators\Strict.js" />
     <Content Include="TestData\JS\Input\Operators\Unary.js" />
     <Content Include="TestData\JS\Input\Operators\Void.js" />
     <Content Include="TestData\JS\Input\Preprocessor\BadDefines.js" />

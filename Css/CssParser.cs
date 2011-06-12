@@ -2382,8 +2382,21 @@ namespace Microsoft.Ajax.Utilities
                         {
                             sb = new StringBuilder();
                         }
+
+                        //if (importantComment)
+                        //{
+                        //    // if this is an important comment, we want it to start after a newline
+                        //    sb.Append('\n');
+                        //}
+
                         // add the comment to the builder
                         sb.Append(commentText);
+                        //if (importantComment && this.Settings.ExpandOutput)
+                        //{
+                        //    // if this is an important comment AND we are expanding the output, we
+                        //    // want it to END with a newline, too
+                        //    sb.AppendLine();
+                        //}
                     }
                 }
                 // next token

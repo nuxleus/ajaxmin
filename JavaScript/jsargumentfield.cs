@@ -20,6 +20,8 @@ namespace Microsoft.Ajax.Utilities
 {
     public sealed class JSArgumentField : JSLocalField
     {
+        public int Position { get; set; }
+
         internal JSArgumentField(String name, Object value)
             : base(name, value, 0)
         {

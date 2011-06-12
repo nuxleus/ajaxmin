@@ -177,14 +177,6 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        public virtual void Visit(EvaluateNode node)
-        {
-            if (node != null)
-            {
-                 AcceptChildren(node);
-            }
-        }
-
         public virtual void Visit(ForIn node)
         {
             if (node != null)

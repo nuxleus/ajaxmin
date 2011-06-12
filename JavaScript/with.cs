@@ -103,12 +103,11 @@ namespace Microsoft.Ajax.Utilities
             sb.Append(m_withObject.ToCode());
             sb.Append(")");
 
-            string bodyString = (
-              Body == null
-              ? ";"
-              : Body.ToCode()
-              );
-            sb.Append(bodyString);
+            if (Body != null)
+            {
+                sb.Append(Body.ToCode());
+            }
+
             return sb.ToString();
         }
     }

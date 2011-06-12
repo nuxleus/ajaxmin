@@ -21,33 +21,61 @@ using System.Text;
 namespace Microsoft.Ajax.Utilities
 {
 
-    public sealed class Conditional : AstNode
+    public sealed class Conditional : Expression
     {
-        private AstNode m_condition;
-        public AstNode Condition { get { return m_condition; } }
-
-        private AstNode m_trueExpression;
-        public AstNode TrueExpression { get { return m_trueExpression; } }
-
-        private AstNode m_falseExpression;
-        public AstNode FalseExpression { get { return m_falseExpression; } }
+        public AstNode Condition { get; private set; }
+        public AstNode TrueExpression { get; private set; }
+        public AstNode FalseExpression { get; private set; }
 
         public Conditional(Context context, JSParser parser, AstNode condition, AstNode trueExpression, AstNode falseExpression)
             : base(context, parser)
         {
-            m_condition = condition;
-            m_trueExpression = trueExpression;
-            m_falseExpression = falseExpression;
+            Condition = condition;
+            TrueExpression = trueExpression;
+            FalseExpression = falseExpression;
             if (condition != null) condition.Parent = this;
             if (trueExpression != null) trueExpression.Parent = this;
             if (falseExpression != null) falseExpression.Parent = this;
+        }
+
+        public void SwapBranches()
+        {
+            AstNode temp = TrueExpression;
+            TrueExpression = FalseExpression;
+            FalseExpression = temp;
+        }
+
+        public override PrimitiveType FindPrimitiveType()
+        {
+            if (TrueExpression != null && FalseExpression != null)
+            {
+                // if the primitive type of both true and false expressions is the same, then
+                // we know the primitive type. Otherwise we do not.
+                PrimitiveType trueType = TrueExpression.FindPrimitiveType();
+                if (trueType == FalseExpression.FindPrimitiveType())
+                {
+                    return trueType;
+                }
+            }
+
+            // nope -- they don't match, so we don't know
+            return PrimitiveType.Other;
+        }
+
+        public override bool IsEquivalentTo(AstNode otherNode)
+        {
+            var otherConditional = otherNode as Conditional;
+            return otherConditional != null
+                && Condition.IsEquivalentTo(otherConditional.Condition)
+                && TrueExpression.IsEquivalentTo(otherConditional.TrueExpression)
+                && FalseExpression.IsEquivalentTo(otherConditional.FalseExpression);
         }
 
         public override IEnumerable<AstNode> Children
         {
             get
             {
-                return EnumerateNonNullNodes(m_condition, m_trueExpression, m_falseExpression);
+                return EnumerateNonNullNodes(Condition, TrueExpression, FalseExpression);
             }
         }
 
@@ -61,21 +89,21 @@ namespace Microsoft.Ajax.Utilities
 
         public override bool ReplaceChild(AstNode oldNode, AstNode newNode)
         {
-            if (m_condition == oldNode)
+            if (Condition == oldNode)
             {
-                m_condition = newNode;
+                Condition = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_trueExpression == oldNode)
+            if (TrueExpression == oldNode)
             {
-                m_trueExpression = newNode;
+                TrueExpression = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
-            if (m_falseExpression == oldNode)
+            if (FalseExpression == oldNode)
             {
-                m_falseExpression = newNode;
+                FalseExpression = newNode;
                 if (newNode != null) { newNode.Parent = this; }
                 return true;
             }
@@ -87,7 +115,7 @@ namespace Microsoft.Ajax.Utilities
             get
             {
                 // the condition is on the left
-                return m_condition.LeftHandSide;
+                return Condition.LeftHandSide;
             }
         }
 
@@ -111,13 +139,13 @@ namespace Microsoft.Ajax.Utilities
         public override string ToCode(ToCodeFormat format)
         {
             StringBuilder sb = new StringBuilder();
-            bool parens = NeedsParens(m_condition, JSToken.ConditionalIf);
+            bool parens = NeedsParens(Condition, JSToken.ConditionalIf);
             if (parens)
             {
                 sb.Append('(');
             }
 
-            sb.Append(m_condition.ToCode());
+            sb.Append(Condition.ToCode());
             if (parens)
             {
                 sb.Append(')');
@@ -135,13 +163,13 @@ namespace Microsoft.Ajax.Utilities
 
             // the true and false operands are parsed as assignment operators, so use that token as the
             // reference token to compare against for operator precedence to determine if we need parens
-            parens = NeedsParens(m_trueExpression, JSToken.Assign);
+            parens = NeedsParens(TrueExpression, JSToken.Assign);
             if (parens)
             {
                 sb.Append('(');
             }
 
-            sb.Append(m_trueExpression.ToCode());
+            sb.Append(TrueExpression.ToCode());
             if (parens)
             {
                 sb.Append(')');
@@ -156,13 +184,13 @@ namespace Microsoft.Ajax.Utilities
                 sb.Append(':');
             }
 
-            parens = NeedsParens(m_falseExpression, JSToken.Assign);
+            parens = NeedsParens(FalseExpression, JSToken.Assign);
             if (parens)
             {
                 sb.Append('(');
             }
 
-            sb.Append(m_falseExpression.ToCode());
+            sb.Append(FalseExpression.ToCode());
             if (parens)
             {
                 sb.Append(')');

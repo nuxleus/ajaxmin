@@ -87,6 +87,7 @@ namespace Microsoft.Ajax.Utilities
         MisplacedFunctionDeclaration = 1284, // function declaration other than where SourceElements are expected
         OctalLiteralsDeprecated = 1285, // octal literal encountered; possible cross-browser issues
         FunctionNameMustBeIdentifier = 1286, // function names must be a single identifier
+        StrictComparisonIsAlwaysTrueOrFalse = 1287, // a strict comparison is always true or false
 
         //5000 - 6000 JScript errors that can occur during execution. Typically (also) used in "throw new JScriptException".
         IllegalAssignment = 5008, // "Illegal assignment"

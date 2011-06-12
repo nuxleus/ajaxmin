@@ -42,6 +42,15 @@ namespace Microsoft.Ajax.Utilities
             if (Initializer != null) Initializer.Parent = this;
         }
 
+        public void SetInitializer(AstNode newNode)
+        {
+            Initializer = newNode;
+            if (newNode != null)
+            {
+                newNode.Parent = this;
+            }
+        }
+
         public override void Accept(IVisitor visitor)
         {
             if (visitor != null)

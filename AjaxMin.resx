@@ -346,6 +346,8 @@ Valid OPTS are zero or more of:
 Valid JSOPTS are zero or more of:
   -cc[:BOOL] &gt; turn on or off support for conditional-compilation comments.
         Default is true.
+  -comments:(none|important) &gt; whether to remove all comments (none), 
+        or preserve important comments. Default is important.
   -debug[:BOOL[,IDENT[.IDENT]*]*] &gt; debug mode does not remove debug 
         statements or function expression names. Default is False (remove).
         Default debug lookups: Debug, $Debug, WAssert, Web.Debug and Msn.Debug.
