@@ -400,8 +400,8 @@
     <Compile Include="..\JSEncoderFallback.cs">
       <Link>JSEncoderFallback.cs</Link>
     </Compile>
-    <Compile Include="..\Properties\AssemblyVersion.cs">
-      <Link>Properties\AssemblyVersion.cs</Link>
+    <Compile Include="..\Properties\ProductAssemblyInfo.cs">
+      <Link>Properties\ProductAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="..\ResourceStrings.cs">
       <Link>ResourceStrings.cs</Link>

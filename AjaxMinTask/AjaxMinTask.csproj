@@ -54,8 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Properties\AssemblyVersion.cs">
-      <Link>Properties\AssemblyVersion.cs</Link>
+    <Compile Include="..\Properties\ProductAssemblyInfo.cs">
+      <Link>Properties\ProductAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AjaxMinBuildTask.cs" />
     <Compile Include="GlobalSuppressions.cs" />

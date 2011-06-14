@@ -2334,25 +2334,34 @@ namespace Microsoft.Ajax.Utilities
 
         private static string GetHeaderString()
         {
-            string description = string.Empty;
-            string copyright = string.Empty;
+            var description = string.Empty;
+            var copyright = string.Empty;
+            var product = string.Empty;
 
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            foreach (Attribute attr in assembly.GetCustomAttributes(false))
+            var assembly = Assembly.GetExecutingAssembly();
+            foreach (var attr in assembly.GetCustomAttributes(false))
             {
-                if (attr.GetType() == typeof(AssemblyDescriptionAttribute))
+                var attrType = attr.GetType();
+                if (attrType == typeof(AssemblyDescriptionAttribute))
                 {
                     description = ((AssemblyDescriptionAttribute)attr).Description;
                 }
-                else if (attr.GetType() == typeof(AssemblyCopyrightAttribute))
+                else if (attrType == typeof(AssemblyCopyrightAttribute))
                 {
                     copyright = ((AssemblyCopyrightAttribute)attr).Copyright;
                     copyright = copyright.Replace("©", "(c)");
                 }
+                else if (attrType == typeof(AssemblyProductAttribute))
+                {
+                    product = ((AssemblyProductAttribute)attr).Product;
+                }
             }
 
+            var assemblyName = assembly.GetName();
+
             // combine the information for output
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
+            sb.AppendLine(string.Format("{0} (version {1})", string.IsNullOrEmpty(product) ? assemblyName.Name : product, assemblyName.Version));
             if (!string.IsNullOrEmpty(description)) { sb.AppendLine(description); }
             if (!string.IsNullOrEmpty(copyright)) { sb.AppendLine(copyright); }
             return sb.ToString();

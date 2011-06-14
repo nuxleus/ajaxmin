@@ -130,10 +130,10 @@
     <Compile Include="JavaScript\IVisitor.cs" />
     <Compile Include="JavaScript\ReorderScopeVisitor.cs" />
     <Compile Include="JavaScript\TreeVisitor.cs" />
+    <Compile Include="Properties\ProductAssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Properties\AssemblyVersion.cs" />
     <Compile Include="CssEncoderFallback.cs" />
     <Compile Include="Css\CssColorName.cs" />
     <Compile Include="Css\CssParser.cs" />

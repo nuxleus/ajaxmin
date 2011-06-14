@@ -23,13 +23,8 @@ using System.Security.Permissions;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly: AssemblyTitle("AjaxMin")]
-[assembly: AssemblyDescription("Microsoft Ajax Minifier - JavaScript and CSS minification and verification utility")]
-[assembly: AssemblyConfiguration("AjaxMin")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("AjaxMin")]
-[assembly: AssemblyCopyright("Copyright 2010 Microsoft Corporation")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyTitle("Ajax Minifier Executable")]
+[assembly: AssemblyDescription("JavaScript and CSS minification and verification command-line utility")]
 [assembly: AssemblyCulture("")]
 
 // needs to read and write files

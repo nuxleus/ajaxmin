@@ -23,13 +23,8 @@ using System.Security;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 //
-[assembly: AssemblyTitle("AjaxMin")]
-[assembly: AssemblyDescription("AjaxMin Build Task for JavaScript and CSS minification")]
-[assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("AjaxMinTask")]
-[assembly: AssemblyCopyright("Copyright 2011 Microsoft Corporation")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyTitle("Ajax Minifier MSBuild Task")]
+[assembly: AssemblyDescription("JavaScript and CSS minification MSBuild Task")]
 [assembly: AssemblyCulture("")]
 
 // minimum permission (execute) and nothing optional
