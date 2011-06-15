@@ -103,6 +103,30 @@ namespace CssUnitTest
     }
 
     [TestMethod]
+    public void TwoImportantComments()
+    {
+        TestHelper.Instance.RunTest();
+    }
+
+    [TestMethod]
+    public void TwoImportantComments_pretty()
+    {
+        TestHelper.Instance.RunTest("-p");
+    }
+
+    [TestMethod]
+    public void EmbeddedImportantComment()
+    {
+        TestHelper.Instance.RunTest();
+    }
+
+    [TestMethod]
+    public void EmbeddedImportantComment_pretty()
+    {
+        TestHelper.Instance.RunTest("-p");
+    }
+
+    [TestMethod]
     public void ImportantCommentHacks()
     {
         TestHelper.Instance.RunTest();

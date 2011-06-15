@@ -4,6 +4,6 @@
 div
 {
   background: url(ie6.gif);
-  background /* hide from IE6 */: url(all.gif);
-  background /* hide */: /* hide ie5 */url(all.gif);
+  background /* hide from IE6 */: url(1.gif);
+  background /* hide */: /* hide ie5 */url(2.gif);
 }

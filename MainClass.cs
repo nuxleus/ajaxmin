@@ -2361,7 +2361,7 @@ namespace Microsoft.Ajax.Utilities
 
             // combine the information for output
             var sb = new StringBuilder();
-            sb.AppendLine(string.Format("{0} (version {1})", string.IsNullOrEmpty(product) ? assemblyName.Name : product, assemblyName.Version));
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "{0} (version {1})", string.IsNullOrEmpty(product) ? assemblyName.Name : product, assemblyName.Version));
             if (!string.IsNullOrEmpty(description)) { sb.AppendLine(description); }
             if (!string.IsNullOrEmpty(copyright)) { sb.AppendLine(copyright); }
             return sb.ToString();

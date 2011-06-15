@@ -103,6 +103,8 @@
     <Content Include="TestData\CSS\Expected\Collapse\StringBreaks.css" />
     <Content Include="TestData\CSS\Expected\Collapse\TermSemis_t.css" />
     <Content Include="TestData\CSS\Expected\Collapse\TermSemis.css" />
+    <Content Include="TestData\CSS\Expected\CommentHacks\EmbeddedImportantComment.css" />
+    <Content Include="TestData\CSS\Expected\CommentHacks\EmbeddedImportantComment_pretty.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\EmptyComments_nc.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\EmptyComments.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\HideFromIE5_nc.css" />
@@ -120,6 +122,8 @@
     <Content Include="TestData\CSS\Expected\CommentHacks\ImportantComment_None.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\OnlyNS4_nc.css" />
     <Content Include="TestData\CSS\Expected\CommentHacks\OnlyNS4.css" />
+    <Content Include="TestData\CSS\Expected\CommentHacks\TwoImportantComments.css" />
+    <Content Include="TestData\CSS\Expected\CommentHacks\TwoImportantComments_pretty.css" />
     <Content Include="TestData\CSS\Expected\EmbeddedAspNetBlock\TopLevel.css" />
     <Content Include="TestData\CSS\Expected\Encoding\escaped.css" />
     <Content Include="TestData\CSS\Expected\Encoding\escaped_utf8.css" />
@@ -177,6 +181,7 @@
     <Content Include="TestData\CSS\Input\Collapse\rrggbb.css" />
     <Content Include="TestData\CSS\Input\Collapse\StringBreaks.css" />
     <Content Include="TestData\CSS\Input\Collapse\TermSemis.css" />
+    <Content Include="TestData\CSS\Input\CommentHacks\EmbeddedImportantComment.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\EmptyComments.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\HideFromIE5.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\HideFromIE6.css" />
@@ -185,6 +190,7 @@
     <Content Include="TestData\CSS\Input\CommentHacks\ImportantComment.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\ImportantCommentHacks.css" />
     <Content Include="TestData\CSS\Input\CommentHacks\OnlyNS4.css" />
+    <Content Include="TestData\CSS\Input\CommentHacks\TwoImportantComments.css" />
     <Content Include="TestData\CSS\Input\EmbeddedAspNetBlock\TopLevel.css" />
     <Content Include="TestData\CSS\Input\Encoding\escaped.css" />
     <Content Include="TestData\CSS\Input\Errors\UnterminatedString.css" />

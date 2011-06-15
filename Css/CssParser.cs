@@ -41,6 +41,10 @@ namespace Microsoft.Ajax.Utilities
         private bool m_mightNeedSpace;
         private bool m_expressionContainsErrors;
 
+        // this is used to make sure we don't output two newlines in a row.
+        // start it as true so we don't start off with a blank line
+        private bool m_outputNewLine = true;
+
         private int m_indentLevel;// = 0;
 
         public CssSettings Settings
@@ -122,10 +126,6 @@ namespace Microsoft.Ajax.Utilities
             | RegexOptions.Compiled
 #endif
             );
-
-        // this is just the special hack comment we use to make sure the comment is preceded by a space
-        // as we output the code
-        private const string c_hack4SpecialComment = "/*!ADD_WS_BEFORE_COMMENT*/";
 
         /// <summary>
         /// Regular expression for matching fifth comment hack
@@ -278,7 +278,7 @@ namespace Microsoft.Ajax.Utilities
                 source = s_regexHack1.Replace(source, "/*! \\*/${inner}/*!*/");
                 source = s_regexHack2.Replace(source, "/*!/*//*/${inner}/**/");
                 source = s_regexHack3.Replace(source, "/*!/*/${inner}/*!*/");
-                source = s_regexHack4.Replace(source, c_hack4SpecialComment); // this one is a bit of a hack
+                source = s_regexHack4.Replace(source, "/*!*/");
                 source = s_regexHack5.Replace(source, "/*!*/");
                 source = s_regexHack6.Replace(source, "/*!*/");
                 source = s_regexHack7.Replace(source, "/*!*/");
@@ -600,6 +600,7 @@ namespace Microsoft.Ajax.Utilities
             Parsed parsed = Parsed.False;
             if (CurrentTokenType == TokenType.ImportSymbol)
             {
+                NewLine();
                 AppendCurrent();
                 SkipSpace();
 
@@ -651,6 +652,7 @@ namespace Microsoft.Ajax.Utilities
             Parsed parsed = Parsed.False;
             if (CurrentTokenType == TokenType.MediaSymbol)
             {
+                NewLine();
                 AppendCurrent();
                 SkipSpace();
 
@@ -1040,7 +1042,6 @@ namespace Microsoft.Ajax.Utilities
                                     Append(comments);
                                 }
                             }
-
                         }
                     }
                     catch (CssException e)
@@ -1153,6 +1154,7 @@ namespace Microsoft.Ajax.Utilities
                 case TokenType.RightMiddleSymbol:
                 case TokenType.RightBottomSymbol:
                     // these are the margin at-keywords
+                    NewLine();
                     AppendCurrent();
                     SkipSpace();
 
@@ -1703,7 +1705,11 @@ namespace Microsoft.Ajax.Utilities
                     Append(prefix);
                 }
                 AppendCurrent();
-                SkipSpace();
+
+                // we want to skip space BUT we want to preserve a space if there is a whitespace character
+                // followed by a comment. So don't call the simple SkipSpace method -- that will output the
+                // comment but ignore all whitespace.
+                SkipSpaceComment();
 
                 if (CurrentTokenType != TokenType.Character
                   || CurrentTokenText != ":")
@@ -2305,6 +2311,7 @@ namespace Microsoft.Ajax.Utilities
 
         #region Next... methods
 
+        // skip to the next token, but output any comments we may find as we go along
         private TokenType NextToken()
         {
             m_currentToken = m_scanner.NextToken();
@@ -2318,6 +2325,13 @@ namespace Microsoft.Ajax.Utilities
                 }
                 m_currentToken = m_scanner.NextToken();
             }
+            return CurrentTokenType;
+        }
+
+        // just skip to the next token; don't skip over comments
+        private TokenType NextRawToken()
+        {
+            m_currentToken = m_scanner.NextToken();
             return CurrentTokenType;
         }
 
@@ -2336,11 +2350,12 @@ namespace Microsoft.Ajax.Utilities
                 {
                     // check for important comment
                     string commentText = CurrentTokenText;
+                    bool endsWithNewLine;
                     bool importantComment = commentText.StartsWith("/*!", StringComparison.Ordinal);
                     if (importantComment)
                     {
-                        // get rid of the exclamation mark
-                        commentText = NormalizeImportantComment(commentText);
+                        // get rid of the exclamation mark in some situations
+                        commentText = NormalizeImportantComment(commentText, out endsWithNewLine);
                     }
 
                     // if the comment mode is none, don't ever output it.
@@ -2383,20 +2398,8 @@ namespace Microsoft.Ajax.Utilities
                             sb = new StringBuilder();
                         }
 
-                        //if (importantComment)
-                        //{
-                        //    // if this is an important comment, we want it to start after a newline
-                        //    sb.Append('\n');
-                        //}
-
                         // add the comment to the builder
                         sb.Append(commentText);
-                        //if (importantComment && this.Settings.ExpandOutput)
-                        //{
-                        //    // if this is an important comment AND we are expanding the output, we
-                        //    // want it to END with a newline, too
-                        //    sb.AppendLine();
-                        //}
                     }
                 }
                 // next token
@@ -2422,6 +2425,49 @@ namespace Microsoft.Ajax.Utilities
             while (CurrentTokenType == TokenType.Space)
             {
                 NextToken();
+            }
+        }
+
+        private void SkipSpaceComment()
+        {
+            // move to the next token
+            if (NextRawToken() == TokenType.Space)
+            {
+                // starts with whitespace! If the next token is a comment, we want to make sure that
+                // whitespace is preserved. Keep going until we find something that isn't a space
+                while (NextRawToken() == TokenType.Space)
+                {
+                    // iteration is in the condition
+                }
+
+                // now, if the first thing after space is a comment....
+                if (CurrentTokenType == TokenType.Comment)
+                {
+                    // preserve the space character IF we're going to keep the comment.
+                    // SO, if the comment mode is ALL, or if this is an important comment,
+                    // (if the comment mode is hacks, then this comment will probably have already
+                    // been changed into an important comment), then we output the space
+                    // and the comment (don't bother outputting the comment if we already know we
+                    // aren't going to)
+                    if (Settings.CommentMode == CssComment.All
+                        || CurrentTokenText.StartsWith("/*!", StringComparison.Ordinal))
+                    {
+                        Append(' ');
+
+                        // output the comment
+                        AppendCurrent();
+                    }
+
+                    // and do normal skip-space logic
+                    SkipSpace();
+                }
+            }
+            else if (CurrentTokenType == TokenType.Comment)
+            {
+                // doesn't start with whitespace.
+                // append the comment and then do the normal skip-space logic
+                AppendCurrent();
+                SkipSpace();
             }
         }
 
@@ -2596,6 +2642,9 @@ namespace Microsoft.Ajax.Utilities
             bool outputText = false;
             bool textEndsInEscapeSequence = false;
 
+            // assume we are outputting something OTHER than a newline
+            bool endsWithNewLine = false;
+
             // if the no-output flag is true, don't output anything
             // or process value replacement comments
             if (!m_noOutput)
@@ -2726,7 +2775,7 @@ namespace Microsoft.Ajax.Utilities
                 // if it's not a comment, we're going to output it.
                 // if it is a comment, we're not going to SAY we've output anything,
                 // even if we end up outputting the comment
-                outputText = (CurrentTokenType != TokenType.Comment);
+                outputText = (tokenType != TokenType.Comment);
                 if (!outputText)
                 {
                     // we have a comment.
@@ -2743,8 +2792,23 @@ namespace Microsoft.Ajax.Utilities
                         }
 
                         // this is an important comment that we always want to output
-                        // (after we get rid of the exclamation point)
-                        text = NormalizeImportantComment(text);
+                        // (after we get rid of the exclamation point in some situations)
+                        text = NormalizeImportantComment(text, out endsWithNewLine);
+
+                        // find the index of the initial / character
+                        var indexSlash = text.IndexOf('/');
+                        if (indexSlash > 0)
+                        {
+                            // it's not the first character!
+                            // the only time that should happen is if we put a line-feed in front.
+                            // if the string builder is empty, or if the LAST character is a \r or \n,
+                            // then trim off everything before that opening slash
+                            if (m_outputNewLine)
+                            {
+                                // trim off everything before it
+                                text = text.Substring(indexSlash);
+                            }
+                        }
                     }
                     else
                     {
@@ -2775,7 +2839,7 @@ namespace Microsoft.Ajax.Utilities
                     }
                 }
                 else if (m_parsingColorValue
-                    && CurrentTokenType == TokenType.Identifier
+                    && tokenType == TokenType.Identifier
                     && !text.StartsWith("#", StringComparison.Ordinal))
                 {
                     bool nameConvertedToHex = false;
@@ -2840,6 +2904,7 @@ namespace Microsoft.Ajax.Utilities
                 }
 
                 sb.Append(text);
+                m_outputNewLine = endsWithNewLine;
 
                 // if the text we just output ENDS in an escape, we might need a space later
                 m_mightNeedSpace = textEndsInEscapeSequence;
@@ -2870,23 +2935,25 @@ namespace Microsoft.Ajax.Utilities
 
         private void NewLine()
         {
-            NewLine(m_parsed);
+            // if we've output something other than a newline, output one now
+            if (Settings.ExpandOutput && !m_outputNewLine)
+            {
+                AddNewLine(m_parsed);
+                m_outputNewLine = true;
+            }
         }
 
-        private void NewLine(StringBuilder sb)
+        private void AddNewLine(StringBuilder sb)
         {
-            // if we're not expanding the output, do nothing
-            if (Settings.ExpandOutput)
+            // add the newline
+            sb.AppendLine();
+
+            // if the indent level is greater than zero and the number of
+            // spaces for an indent is greater than zero...
+            if (m_indentLevel > 0 && Settings.IndentSpaces > 0)
             {
-                // add the newline
-                sb.AppendLine();
-                // if the indent level is greater than zero and the number of
-                // spaces for an indent is greater than zero...
-                if (m_indentLevel > 0 && Settings.IndentSpaces > 0)
-                {
-                    // add the appropriate number of spaces
-                    sb.Append(new string(' ', m_indentLevel * Settings.IndentSpaces));
-                }
+                // add the appropriate number of spaces
+                sb.Append(new string(' ', m_indentLevel * Settings.IndentSpaces));
             }
         }
 
@@ -3088,38 +3155,81 @@ namespace Microsoft.Ajax.Utilities
 //#endif
 //            );
 
-        //static string PreserveNewlines(Match m)
-        //{
-        //    StringBuilder sbReplace = new StringBuilder();
-        //    int cNewline = s_regexNewlines.Matches(m.ToString()).Count;
-
-        //    for (int iNewline = 0; iNewline < cNewline; iNewline++)
-        //    {
-        //        sbReplace.AppendLine();
-        //    }
-
-        //    return sbReplace.ToString();
-        //}
-
         static string NormalizedValueReplacementComment(string source)
         {
             return s_valueReplacement.Replace(source, "/*[${id}]*/");
         }
 
-        static string NormalizeImportantComment(string source)
+        static bool CommentContainsText(string comment)
         {
-            // first we need to check for a special comment that we use for comment-hack 4,
-            // which hides from IE6 any declaration that has a space after the property name
-            // followed by a comment.
-            if (source == c_hack4SpecialComment)
+            for (var ndx = 0; ndx < comment.Length; ++ndx)
             {
-                // add a whitespace and empty the comment
-                // but keep the exclamation point so it's still an important comment
-                return " /*!*/";
+                if (char.IsLetterOrDigit(comment[ndx]))
+                {
+                    return true;
+                }
             }
-            // otherwise return the string.
-            // don't get rid of the exclamation point after all;
-            // we want the comment to remain an important comment
+
+            // if we get here, we didn't find any text characters
+            return false;
+        }
+
+        string NormalizeImportantComment(string source, out bool endsWithNewLine)
+        {
+            // by default, we don't end in a newline
+            endsWithNewLine = false;
+
+            // if this important comment does not contain any text, assume it's for a comment hack
+            // and return a normalized string without the exclamation mark.
+            if (CommentContainsText(source))
+            {
+                // first check to see if the comment is in the form /*!/ ...text... /**/
+                // if so, then it's probably a part of the Opera5&NS4-only comment hack and we want
+                // to make SURE that exclamation point does not get in the output because it would
+                // mess up the results.
+                if (source[3] == '/' && source.EndsWith("/**/", StringComparison.Ordinal))
+                {
+                    // it is. output the comment as-is EXCEPT without the exclamation mark
+                    // (and don't put any line-feeds around it)
+                    source = "/*" + source.Substring(3);
+                }
+                else
+                {
+                    // contains text -- assume we want it to stay that way. 
+                    if (Settings.ExpandOutput)
+                    {
+                        // Important comments should start with a newline (and the appropriate indention)
+                        var sb = new StringBuilder();
+                        AddNewLine(sb);
+                        sb.Append(source);
+
+                        // and in multiline mode they should also end with one
+                        AddNewLine(sb);
+                        endsWithNewLine = true;
+
+                        source = sb.ToString();
+                    }
+                    else
+                    {
+                        // important comments should start with a newline, but in single-line mode
+                        // we won't end with one. And only use \r to save a character.
+                        // And because we're in single-line mode, we don't care about indenting.
+                        source = '\r' + source;
+                    }
+                }
+            }
+            else
+            {
+                // important comment, but it doesn't contain text. So instead, leave it inline
+                // (don't add a newline character before it) but take out the exclamation mark.
+                source = "/*" + source.Substring(3);
+            }
+
+            // if this is single-line mode, make sure CRLF-pairs are all converted to just CR
+            if (!Settings.ExpandOutput)
+            {
+                source = source.Replace("\r\n", "\r");
+            }
             return source;
         }
         #endregion
