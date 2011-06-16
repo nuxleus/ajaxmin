@@ -36,5 +36,11 @@ namespace JSUnitTest
         {
             TestHelper.Instance.RunTest("-xml");
         }
+
+        [TestMethod]
+        public void XmlMixedType()
+        {
+            TestHelper.Instance.RunTest("-xml");
+        }
     }
 }

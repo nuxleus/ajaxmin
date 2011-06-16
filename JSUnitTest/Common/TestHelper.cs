@@ -468,7 +468,14 @@ namespace JSUnitTest
                         Trace.WriteLine(string.Empty);
                         Trace.WriteLine(string.Format("ACTUAL OUTPUT FILE {0}:", ndx+1));
                         // trace output contents
-                        TraceFileContents(outputPath);
+                        if (File.Exists(outputPath))
+                        {
+                            TraceFileContents(outputPath);
+                        }
+                        else
+                        {
+                            Trace.WriteLine("Output file doesn't exist");
+                        }
 
                         // fail the entire test if the files do not match
                         Assert.IsTrue(CompareTextFiles(outputPath, expectedPath), "The expected output ({1}) and actual output ({0}) do not match!", outputPath, expectedPath);
@@ -736,8 +743,8 @@ namespace JSUnitTest
         // start with root folder, add subfolder, then add the file name + ".js" extension.
         private string GetJsPath(string rootFolder, string subfolder, string fileName, bool mustExist)
         {
-            // force the extension to be .JS
-            return BuildFullPath(rootFolder, subfolder, fileName, ".js", mustExist);
+            var ext = Path.GetExtension(fileName);
+            return BuildFullPath(rootFolder, subfolder, fileName, string.IsNullOrEmpty(ext) ? ".js" : ext, mustExist);
         }
 
         // start with root folder, add subfolder, then add the file name + extension.

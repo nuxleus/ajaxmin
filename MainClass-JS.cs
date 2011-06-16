@@ -110,7 +110,7 @@ namespace Microsoft.Ajax.Utilities
 
         #region file processing
 
-        private int ProcessJSFile(string sourceFileName, ResourceStrings resourceStrings, StringBuilder outputBuilder, ref bool lastEndedSemicolon, ref long sourceLength)
+        private int ProcessJSFile(string sourceFileName, string encodingName, ResourceStrings resourceStrings, StringBuilder outputBuilder, ref bool lastEndedSemicolon, ref long sourceLength)
         {
             int retVal = 0;
 
@@ -118,49 +118,7 @@ namespace Microsoft.Ajax.Utilities
             WriteProgress();
 
             // read our chunk of code
-            string source;
-            if (sourceFileName.Length > 0)
-            {
-                using (StreamReader reader = new StreamReader(sourceFileName, m_encodingInput))
-                {
-                    WriteProgress(
-                      StringMgr.GetString("CrunchingFile", Path.GetFileName(sourceFileName))
-                      );
-                    source = reader.ReadToEnd();
-                }
-            }
-            else
-            {
-                WriteProgress(StringMgr.GetString("CrunchingStdIn"));
-                try
-                {
-                    // try setting the input encoding
-                    Console.InputEncoding = m_encodingInput;
-                }
-                catch (IOException e)
-                {
-                    // error setting the encoding input; just use whatever the default is
-                    Debug.WriteLine(e.ToString());
-                }
-                source = Console.In.ReadToEnd();
-
-                if (m_analyze)
-                {
-                    // calculate the actual number of bytes read using the input encoding
-                    // and the string that we just read and
-                    // add the number of bytes read into the input length.
-                    sourceLength += Console.InputEncoding.GetByteCount(source);
-                }
-                else
-                {
-                    // don't bother calculating the actual bytes -- the number of characters
-                    // is sufficient if we're not doing the analysis
-                    sourceLength += source.Length;
-                }
-            }
-
-            // add the input length to the running total
-            sourceLength += source.Length;
+            var source = ReadInputFile(sourceFileName, encodingName, ref sourceLength);
 
             // create the a parser object for our chunk of code
             JSParser parser = new JSParser(source);

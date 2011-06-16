@@ -77,10 +77,9 @@ namespace Microsoft.Ajax.Utilities
         private bool m_echoInput;// = false;
 
         // encoding to use on input
-        private Encoding m_encodingInput;// = null;
+        private string m_encodingInputName;// = null;
 
         // encoding to use for output file
-        private Encoding m_encodingOutput;// = null;
         private string m_encodingOutputName;// = null;
 
         // "pretty" indent size
@@ -184,56 +183,6 @@ namespace Microsoft.Ajax.Utilities
             {
                 // no args -- output the usage
                 throw new UsageException(ConsoleOutputMode.Console);
-            }
-
-            // if no output encoding was specified, we default to ascii
-            if (m_encodingOutput == null)
-            {
-                // pick the right encoder from our file type
-                EncoderFallback encoderFallback = null;
-                // set the appropriate encoder fallback
-                if (m_inputType == InputType.JavaScript)
-                {
-                    // set the fallback handler to our own code. we will take any character not
-                    // displayable by the output encoding and change it into \uXXXX escapes.
-                    encoderFallback = new JSEncoderFallback();
-                }
-                else if (m_inputType == InputType.Css)
-                {
-                    // set the fallback handler to our own code. we will take any character not
-                    // displayable by the output encoding and change it into \uXXXX escapes.
-                    encoderFallback = new CssEncoderFallback();
-                }
-
-                if (string.IsNullOrEmpty(m_encodingOutputName))
-                {
-                    // clone the ascii encoder so we can change the fallback handler
-                    m_encodingOutput = (Encoding)Encoding.ASCII.Clone();
-                    m_encodingOutput.EncoderFallback = encoderFallback;
-                }
-                else
-                {
-                    try
-                    {
-                        // try to create an encoding from the encoding argument
-                        m_encodingOutput = Encoding.GetEncoding(
-                            m_encodingOutputName,
-                            encoderFallback,
-                            new DecoderReplacementFallback("?")
-                            );
-                    }
-                    catch (ArgumentException e)
-                    {
-                        System.Diagnostics.Debug.WriteLine(e.ToString());
-                        throw new UsageException(m_outputMode, "InvalidOutputEncoding", m_encodingOutputName);
-                    }
-                }
-            }
-
-            // if no input encoding was specified, we use UTF-8
-            if (m_encodingInput == null)
-            {
-                m_encodingInput = Encoding.UTF8;
             }
         }
 
@@ -483,16 +432,9 @@ namespace Microsoft.Ajax.Utilities
                             // whether this is an in or an out encoding
                             if (paramPart == "IN")
                             {
-                                try
-                                {
-                                    // try to create an encoding from the encoding argument
-                                    m_encodingInput = Encoding.GetEncoding(encoding);
-                                }
-                                catch (ArgumentException e)
-                                {
-                                    System.Diagnostics.Debug.WriteLine(e.ToString());
-                                    throw new UsageException(m_outputMode, "InvalidInputEncoding", encoding);
-                                }
+                                // save the name -- we'll create the encoding later because we may
+                                // override it on a file-by-file basis in an XML file
+                                m_encodingInputName = encoding;
                             }
                             else if (paramPart == "OUT")
                             {
@@ -1145,16 +1087,8 @@ namespace Microsoft.Ajax.Utilities
                                 throw new UsageException(m_outputMode, "EncodingArgMustHaveEncoding", switchPart);
                             }
 
-                            try
-                            {
-                                // try to create an encoding from the encoding argument
-                                m_encodingInput = Encoding.GetEncoding(parts[1]);
-                            }
-                            catch (ArgumentException e)
-                            {
-                                System.Diagnostics.Debug.WriteLine(e.ToString());
-                                throw new UsageException(m_outputMode, "InvalidInputEncoding", parts[1]);
-                            }
+                            // save the name
+                            m_encodingInputName = parts[1];
                             break;
 
                         case "H":
@@ -1291,8 +1225,9 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
 
-            // if we don't know by now, then throw an exception
-            if (m_inputType == InputType.Unknown)
+            // if we have input files but we don't know the type by now, 
+            // then throw an exception
+            if (inputFiles.Count > 0 && m_inputType == InputType.Unknown)
             {
                 throw new UsageException(m_outputMode, "UnknownInputType");
             }
@@ -1363,29 +1298,19 @@ namespace Microsoft.Ajax.Utilities
 
         private void JavaScriptOnly()
         {
-            // this is a JS-only switch
-            switch (m_inputType)
+            // this is a JS-only switch, so if we don't know we're JS by now, we can assume it
+            if (m_inputType == InputType.Unknown)
             {
-                case InputType.Unknown:
-                    m_inputType = InputType.JavaScript;
-                    break;
-
-                case InputType.Css:
-                    throw new UsageException(m_outputMode, "ConflictingInputType");
+                m_inputType = InputType.JavaScript;
             }
         }
 
         private void CssOnly()
         {
-            // this is a JS-only switch
-            switch (m_inputType)
+            // this is a CSS-only switch, so if we don't know we're CSS by now, we can assume it
+            if (m_inputType == InputType.Unknown)
             {
-                case InputType.Unknown:
-                    m_inputType = InputType.Css;
-                    break;
-
-                case InputType.JavaScript:
-                    throw new UsageException(m_outputMode, "ConflictingInputType");
+                m_inputType = InputType.Css;
             }
         }
 
@@ -1442,7 +1367,7 @@ namespace Microsoft.Ajax.Utilities
             {
                 // just pass the input and output files specified in the command line
                 // to the processing method (normal operation)
-                crunchGroups = new CrunchGroup[] { new CrunchGroup(m_outputFile, m_resourceFile, m_resourceObjectName, m_inputFiles) };
+                crunchGroups = new CrunchGroup[] { new CrunchGroup(m_outputFile, m_encodingOutputName, m_resourceFile, m_resourceObjectName, m_inputFiles, m_encodingInputName, m_inputType) };
             }
 
             if (crunchGroups.Length > 0)
@@ -1480,7 +1405,7 @@ namespace Microsoft.Ajax.Utilities
                             string errorCode = string.Format(CultureInfo.InvariantCulture, "AM{0:D4}", crunchResult);
 
                             // if there is an output file name, use it.
-                            if (crunchGroup.Output.Length > 0)
+                            if (!string.IsNullOrEmpty(crunchGroup.Output))
                             {
                                 WriteError(crunchGroup.Output,
                                     StringMgr.GetString("OutputFileErrorSubCat"),
@@ -1529,6 +1454,131 @@ namespace Microsoft.Ajax.Utilities
 
         #region ProcessCrunchGroup method
 
+        private Encoding GetOutputEncoding(InputType inputType, string encodingName)
+        {
+            // pick the right encoder from our file type
+            EncoderFallback encoderFallback = null;
+
+            // set the appropriate encoder fallback
+            if (inputType == InputType.JavaScript)
+            {
+                // set the fallback handler to our own code. we will take any character not
+                // displayable by the output encoding and change it into \uXXXX escapes.
+                encoderFallback = new JSEncoderFallback();
+            }
+            else if (inputType == InputType.Css)
+            {
+                // set the fallback handler to our own code. we will take any character not
+                // displayable by the output encoding and change it into \uXXXX escapes.
+                encoderFallback = new CssEncoderFallback();
+            }
+
+            Encoding encoding = null;
+            if (string.IsNullOrEmpty(encodingName))
+            {
+                // clone the ascii encoder so we can change the fallback handler
+                encoding = (Encoding)Encoding.ASCII.Clone();
+                encoding.EncoderFallback = encoderFallback;
+            }
+            else
+            {
+                try
+                {
+                    // try to create an encoding from the encoding argument
+                    encoding = Encoding.GetEncoding(
+                        encodingName,
+                        encoderFallback,
+                        new DecoderReplacementFallback("?")
+                        );
+                }
+                catch (ArgumentException e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.ToString());
+                    throw new UsageException(m_outputMode, "InvalidOutputEncoding", encodingName);
+                }
+            }
+
+            return encoding;
+        }
+
+        private Encoding GetInputEncoding(string encodingName)
+        {
+            Encoding encoding = null;
+            if (string.IsNullOrEmpty(encodingName))
+            {
+                // default is UTF8
+                encoding = Encoding.UTF8;
+            }
+            else
+            {
+                try
+                {
+                    encoding = Encoding.GetEncoding(encodingName);
+                }
+                catch (ArgumentException e)
+                {
+                    System.Diagnostics.Debug.WriteLine(e.ToString());
+                    throw new UsageException(m_outputMode, "InvalidInputEncoding", encodingName);
+                }
+            }
+
+            return encoding;
+        }
+
+        private string ReadInputFile(string sourcePath, string encodingName, ref long sourceLength)
+        {
+            // read our chunk of code
+            var encodingInput = GetInputEncoding(encodingName);
+
+            string source;
+            if (!string.IsNullOrEmpty(sourcePath))
+            {
+                using (StreamReader reader = new StreamReader(sourcePath, encodingInput))
+                {
+                    WriteProgress(
+                      StringMgr.GetString("CrunchingFile", Path.GetFileName(sourcePath))
+                      );
+                    source = reader.ReadToEnd();
+                }
+
+                // add the actual file length in to the input source length
+                FileInfo inputFileInfo = new FileInfo(sourcePath);
+                sourceLength += inputFileInfo.Length;
+            }
+            else
+            {
+                WriteProgress(StringMgr.GetString("CrunchingStdIn"));
+                try
+                {
+                    // try setting the input encoding
+                    Console.InputEncoding = encodingInput;
+                }
+                catch (IOException e)
+                {
+                    // error setting the encoding input; just use whatever the default is
+                    Debug.WriteLine(e.ToString());
+                }
+
+                source = Console.In.ReadToEnd();
+
+                if (m_analyze)
+                {
+                    // calculate the actual number of bytes read using the input encoding
+                    // and the string that we just read and
+                    // add the number of bytes read into the input length.
+                    sourceLength += Console.InputEncoding.GetByteCount(source);
+                }
+                else
+                {
+                    // don't bother calculating the actual bytes -- the number of characters
+                    // is sufficient if we're not doing the analysis
+                    sourceLength += source.Length;
+                }
+            }
+
+            return source;
+        }
+
         private int ProcessCrunchGroup(CrunchGroup crunchGroup)
         {
             int retVal = 0;
@@ -1558,21 +1608,21 @@ namespace Microsoft.Ajax.Utilities
                     }
                 }
 
-                switch (m_inputType)
+                switch (crunchGroup.InputType)
                 {
                     case InputType.Css:
                         // see how many input files there are
                         if (crunchGroup.Count == 0)
                         {
                             // no input files -- take from stdin
-                            retVal = ProcessCssFile(string.Empty, resourceStrings, outputBuilder, ref sourceLength);
+                            retVal = ProcessCssFile(string.Empty, m_encodingInputName, resourceStrings, outputBuilder, ref sourceLength);
                         }
                         else
                         {
                             // process each input file
                             for (int ndx = 0; retVal == 0 && ndx < crunchGroup.Count; ++ndx)
                             {
-                                retVal = ProcessCssFile(crunchGroup[ndx], resourceStrings, outputBuilder, ref sourceLength);
+                                retVal = ProcessCssFile(crunchGroup[ndx], crunchGroup[ndx].EncodingName ?? m_encodingInputName, resourceStrings, outputBuilder, ref sourceLength);
                             }
                         }
                         break;
@@ -1609,14 +1659,14 @@ namespace Microsoft.Ajax.Utilities
                             if (crunchGroup.Count == 0)
                             {
                                 // take input from stdin
-                                retVal = ProcessJSFile(string.Empty, resourceStrings, outputBuilder, ref lastEndedSemiColon, ref sourceLength);
+                                retVal = ProcessJSFile(string.Empty, m_encodingInputName, resourceStrings, outputBuilder, ref lastEndedSemiColon, ref sourceLength);
                             }
                             else
                             {
                                 // process each input file in turn
                                 for (int ndx = 0; retVal == 0 && ndx < crunchGroup.Count; ++ndx)
                                 {
-                                    retVal = ProcessJSFile(crunchGroup[ndx], resourceStrings, outputBuilder, ref lastEndedSemiColon, ref sourceLength);
+                                    retVal = ProcessJSFile(crunchGroup[ndx], crunchGroup[ndx].EncodingName ?? m_encodingInputName, resourceStrings, outputBuilder, ref lastEndedSemiColon, ref sourceLength);
                                 }
                             }
                         }
@@ -1655,9 +1705,12 @@ namespace Microsoft.Ajax.Utilities
 
             string crunchedCode = outputBuilder.ToString();
 
+            Encoding encodingOutput = GetOutputEncoding(crunchGroup.InputType, crunchGroup.Output.EncodingName);
+
             // now write the final output file
-            if (crunchGroup.Output.Length == 0)
+            if (string.IsNullOrEmpty(crunchGroup.Output))
             {
+                // no output file specified - send to STDOUT
                 // if the code is empty, don't bother outputting it to the console
                 if (!string.IsNullOrEmpty(crunchedCode))
                 {
@@ -1665,7 +1718,7 @@ namespace Microsoft.Ajax.Utilities
                     try
                     {
                         // try setting the appropriate output encoding
-                        Console.OutputEncoding = m_encodingOutput;
+                        Console.OutputEncoding = encodingOutput;
                     }
                     catch (IOException e)
                     {
@@ -1679,7 +1732,7 @@ namespace Microsoft.Ajax.Utilities
                     // not supported by the encoding scheme. So instead we need to run the
                     // translation outselves. Still need to set the output encoding, though,
                     // so the translated bytes get displayed properly in the console.
-                    byte[] encodedBytes = m_encodingOutput.GetBytes(crunchedCode);
+                    byte[] encodedBytes = encodingOutput.GetBytes(crunchedCode);
 
                     // only output the size analysis if we are in analyze mode
                     // change: no, output the size analysis all the time.
@@ -1731,6 +1784,7 @@ namespace Microsoft.Ajax.Utilities
             }
             else
             {
+                // send output to file
                 try
                 {
                     // make sure the destination folder exists
@@ -1759,7 +1813,7 @@ namespace Microsoft.Ajax.Utilities
                         using (StreamWriter outputStream = new StreamWriter(
                            crunchGroup.Output,
                            false,
-                           m_encodingOutput
+                           encodingOutput
                            ))
                         {
                             outputStream.Write(crunchedCode);
@@ -1862,11 +1916,22 @@ namespace Microsoft.Ajax.Utilities
 
         #region CrunchGroup class
 
+        private class FileInformation
+        {
+            public string Path { get; set; }
+            public string EncodingName { get; set; }
+
+            // implictly convert to string by returning the path
+            public static implicit operator string(FileInformation fi){return fi.Path;}
+        }
+
         private class CrunchGroup
         {
             // the output file for the group. May be empty string.
-            private string m_outputPath;
-            public string Output { get { return m_outputPath; } }
+            public FileInformation Output { get; set; }
+
+            // input type (JavaScript or CSS)
+            public InputType InputType { get; set; }
 
             // optional resource file for this group
             private string m_resourcePath = string.Empty;
@@ -1895,10 +1960,11 @@ namespace Microsoft.Ajax.Utilities
             }
 
             // list of input files -- may not be empty.
-            private List<string> m_sourcePaths;// = null;
+            private List<FileInformation> m_sourcePaths;// = null;
+
             // if we don't even have a list yet, return 0; otherwise the count in the list
-            public int Count { get { return (m_sourcePaths == null ? 0 : m_sourcePaths.Count); } }
-            public string this[int ndx]
+            public int Count { get { return m_sourcePaths.Count; } }
+            public FileInformation this[int ndx]
             {
                 get
                 {
@@ -1907,35 +1973,34 @@ namespace Microsoft.Ajax.Utilities
                 }
             }
 
-            public CrunchGroup(string outputPath)
+            public CrunchGroup(string outputPath, string encodingOutputName)
             {
-                m_outputPath = outputPath;
+                Output = new FileInformation() { Path = outputPath, EncodingName = encodingOutputName };
+                m_sourcePaths = new List<FileInformation>();
             }
 
-            public CrunchGroup(string outputPath, string resourcePath, string resourceObjectName, string[] inputFiles)
-                : this(outputPath)
+            public CrunchGroup(string outputPath, string encodingOutputName, string resourcePath, string resourceObjectName, string[] inputFiles, string encodingInputName, InputType inputType)
+                : this(outputPath, encodingOutputName)
             {
                 // save the optional resource path and object name.
                 // use the property setters so we can make sure they aren't set to null
                 Resource = resourcePath;
                 ResourceObjectName = resourceObjectName;
 
-                // create a list with the same number of initial items as the array
-                m_sourcePaths = new List<string>(inputFiles.Length);
+                // save the input type
+                InputType = inputType;
+
                 // add the array in one fell swoop
-                m_sourcePaths.AddRange(inputFiles);
+                foreach (var inputPath in inputFiles)
+                {
+                    m_sourcePaths.Add(new FileInformation() { Path = inputPath, EncodingName = encodingInputName });
+                }
             }
 
-            public void Add(string inputPath)
+            public void Add(string inputPath, string encodingName)
             {
-                // if we haven't yet created the list...
-                if (m_sourcePaths == null)
-                {
-                    // do so now
-                    m_sourcePaths = new List<string>();
-                }
                 // add this item to the list
-                m_sourcePaths.Add(inputPath);
+                m_sourcePaths.Add(new FileInformation() { Path = inputPath, EncodingName = encodingName });
             }
         }
 
@@ -1986,7 +2051,35 @@ namespace Microsoft.Ajax.Utilities
                                 outputPath = Path.Combine(outputFolder, outputPath);
                             }
                         }
-                        CrunchGroup crunchGroup = new CrunchGroup(outputPath);
+
+                        // see if an encoding override has been specified
+                        var encodingAttribute = outputNode.Attributes["encoding"];
+                        var encodingOutputName = encodingAttribute != null
+                            ? encodingAttribute.Value
+                            : null;
+
+                        // create the crunch group
+                        CrunchGroup crunchGroup = new CrunchGroup(outputPath, encodingOutputName);
+
+                        // see if there's an explicit input type, and if so, set the crunch group type
+                        var typeAttribute = outputNode.Attributes["type"];
+                        if (typeAttribute != null)
+                        {
+                            switch (typeAttribute.Value.ToUpperInvariant())
+                            {
+                                case "JS":
+                                case "JAVASCRIPT":
+                                case "JSCRIPT":
+                                    crunchGroup.InputType = InputType.JavaScript;
+                                    break;
+
+                                case "CSS":
+                                case "STYLESHEET":
+                                case "STYLESHEETS":
+                                    crunchGroup.InputType = InputType.Css;
+                                    break;
+                            }
+                        }
 
                         // see if there is a resource node
                         XmlNode resourceNode = outputNode.SelectSingleNode("./resource");
@@ -2066,6 +2159,7 @@ namespace Microsoft.Ajax.Utilities
                                         // make it relative from the XML file
                                         inputFile = Path.Combine(rootPath, inputFile);
                                     }
+
                                     // make sure the input file actually exists! It's an error if it doesn't.
                                     if (!File.Exists(inputFile))
                                     {
@@ -2075,8 +2169,29 @@ namespace Microsoft.Ajax.Utilities
                                           ));
                                     }
 
-                                    // add it to the group
-                                    crunchGroup.Add(inputFile);
+                                    // if we don't know the type yet, let's see if the extension gives us a hint
+                                    if (crunchGroup.InputType == InputType.Unknown)
+                                    {
+                                        switch (Path.GetExtension(inputFile).ToUpperInvariant())
+                                        {
+                                            case ".JS":
+                                                crunchGroup.InputType = InputType.JavaScript;
+                                                break;
+
+                                            case ".CSS":
+                                                crunchGroup.InputType = InputType.Css;
+                                                break;
+                                        }
+                                    }
+
+                                    // see if there is an encoding attribute
+                                    encodingAttribute = inputNodes[ndxInput].Attributes["encoding"];
+                                    string encodingName = encodingAttribute != null
+                                        ? encodingAttribute.Value
+                                        : null;
+
+                                    // add the input file and its encoding (if any) to the group
+                                    crunchGroup.Add(inputFile, encodingName);
                                 }
                                 else
                                 {
