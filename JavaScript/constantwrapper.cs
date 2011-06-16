@@ -257,7 +257,8 @@ namespace Microsoft.Ajax.Utilities
                         str = EscapeString(
                             Value.ToString(),
                             IsParameterToRegExp, 
-                            false);
+                            false,
+                            EnclosingScope.UseStrict);
                     }
                     else
                     {
@@ -533,7 +534,7 @@ namespace Microsoft.Ajax.Utilities
             sb.Append(escapedText);
         }
 
-        public static string EscapeString(string text, bool isRegExp, bool useW3Strict)
+        public static string EscapeString(string text, bool isRegExp, bool useW3Strict, bool useStrict)
         {
             // see which kind of delimiter we need.
             // if it's okay to use double-quotes, use them. Otherwise use single-quotes
@@ -626,7 +627,8 @@ namespace Microsoft.Ajax.Utilities
 
                             if (c < ' ')
                             {
-                                if (isRegExp)
+                                // ECMA strict mode can't use octal, either
+                                if (isRegExp || useStrict)
                                 {
                                     // for regular expression strings, \1 through \9 are always backreferences, 
                                     // and \10 through \40 are backreferences if they correspond to existing 
@@ -640,7 +642,7 @@ namespace Microsoft.Ajax.Utilities
                                     // we're not a regular expression string. And character with a value between 
                                     // 0 and 31 can be represented in octal with two to three characters (\0 - \37),
                                     // whereas it would always take four characters to do it in hex: \x00 - \x1f.
-                                    // so let's go with octal
+                                    // so let's go with octal since we aren't in strict mode
                                     AddEscape(text.Substring(startOfStretch, ndx - startOfStretch), "\\", ref sb);
                                     int intValue = (int)c;
                                     if (intValue < 8)

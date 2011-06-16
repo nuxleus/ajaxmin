@@ -107,5 +107,11 @@ namespace JSUnitTest
     {
         TestHelper.Instance.RunTest("-literals:combine -rename:all");
     }
+
+    [TestMethod]
+    public void StrictEncoding()
+    {
+        TestHelper.Instance.RunTest();
+    }
   }
 }

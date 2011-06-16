@@ -38,10 +38,11 @@ namespace Microsoft.Ajax.Utilities
             var visitor = new ReorderScopeVisitor(parser);
             block.Accept(visitor);
 
-            // get the first insertion point. Make sure that we skip over any directive prologues.
+            // get the first insertion point. Make sure that we skip over any comments and directive prologues.
             // we do NOT want to insert anything between the start of the scope and any directive prologues.
             int insertAt = 0;
-            while (insertAt < block.Count && block[insertAt].IsDirectivePrologue)
+            while (insertAt < block.Count 
+                && (block[insertAt].IsDirectivePrologue || block[insertAt] is ImportantComment))
             {
                 ++insertAt;
             }
@@ -294,8 +295,31 @@ namespace Microsoft.Ajax.Utilities
                         break;
                     }
 
-                    // otherwise it is a directive prologue. Mark it as such and keep looking
+                    // otherwise it is a directive prologue. Mark it as such
                     constWrapper.IsDirectivePrologue = true;
+
+                    // if it's a "use strict" prologue, let's mark the appropriate scope as strict
+                    if (string.CompareOrdinal(constWrapper.ToString(), "use strict") == 0)
+                    {
+                        // the actual code cannot contain any escape sequences or line-contunations,
+                        // so check the context code to make sure it ALSO is the right text. Be sure
+                        // not to compare with the quote delimiters.
+                        if (constWrapper.Context == null
+                            || string.CompareOrdinal(constWrapper.Context.Code, 1, "use strict", 0, 10) == 0)
+                        {
+                            var funcObject = node.Parent as FunctionObject;
+                            if (funcObject != null)
+                            {
+                                // function scope
+                                funcObject.FunctionScope.UseStrict = true;
+                            }
+                            else
+                            {
+                                // global scope
+                                node.Parser.GlobalScope.UseStrict = true;
+                            }
+                        }
+                    }
                 }
             }
 

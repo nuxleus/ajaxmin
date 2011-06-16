@@ -219,6 +219,7 @@
     <Content Include="TestData\JS\Expected\Literals\NestedCombine.js" />
     <Content Include="TestData\JS\Expected\Literals\Number.js" />
     <Content Include="TestData\JS\Expected\Literals\ObjectLiteral.js" />
+    <Content Include="TestData\JS\Expected\Literals\StrictEncoding.js" />
     <Content Include="TestData\JS\Expected\Literals\Strings.js" />
     <Content Include="TestData\JS\Expected\Literals\Strings_3.js" />
     <Content Include="TestData\JS\Expected\Literals\Strings_h.js" />
@@ -389,6 +390,7 @@
     <Content Include="TestData\JS\Input\Literals\NestedCombine.js" />
     <Content Include="TestData\JS\Input\Literals\Number.js" />
     <Content Include="TestData\JS\Input\Literals\ObjectLiteral.js" />
+    <Content Include="TestData\JS\Input\Literals\StrictEncoding.js" />
     <Content Include="TestData\JS\Input\Literals\Strings.js" />
     <Content Include="TestData\JS\Input\ObjectCreation\CompareObjects.js" />
     <Content Include="TestData\JS\Input\ObjectCreation\Constructor.js" />

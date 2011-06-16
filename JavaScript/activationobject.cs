@@ -47,6 +47,8 @@ namespace Microsoft.Ajax.Utilities
             get { return m_parent; }
         }
 
+        private bool m_useStrict;//= false;
+
         // for literal-combining
         private Dictionary<string, LiteralReference> m_literalMap;
         private static uint s_literalCounter; // = 0;
@@ -90,6 +92,32 @@ namespace Microsoft.Ajax.Utilities
             {
                 // add us to the parent's list of child scopes
                 parent.m_childScopes.Add(this);
+
+                // if the parent is strict, so are we
+                UseStrict = parent.UseStrict;
+            }
+        }
+
+        public bool UseStrict
+        {
+            get
+            {
+                return m_useStrict;
+            }
+            set
+            {
+                // can set it to true, but can't set it to false
+                if (value)
+                {
+                    // set our value
+                    m_useStrict = value;
+
+                    // and all our child scopes (recursive)
+                    foreach (var child in m_childScopes)
+                    {
+                        child.UseStrict = value;
+                    }
+                }
             }
         }
 

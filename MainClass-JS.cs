@@ -301,10 +301,12 @@ namespace Microsoft.Ajax.Utilities
                 // need to do to make sure it's a proper JS string.
                 // pass false for whether this string is an argument to a RegExp constructor.
                 // pass false for whether to use W3Strict formatting for character escapes (use maximum browser compatibility)
+                // pass true for ecma strict mode
                 string stringValue = ConstantWrapper.EscapeString(
                     enumerator.Value.ToString(),
                     false,
-                    false
+                    false,
+                    true
                     );
                 sb.Append(stringValue);
             }
