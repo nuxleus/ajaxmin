@@ -1724,7 +1724,7 @@ namespace Microsoft.Ajax.Utilities
                         // the literal. Otherwise we'll replace it with an empty string.
                         // see if the string resource contains this value
                         ConstantWrapper stringLiteral = new ConstantWrapper(
-                            resourceStrings[node.Name],
+                            resourceStrings[node.Name] ?? string.Empty,
                             PrimitiveType.String,
                             node.Context,
                             m_parser
