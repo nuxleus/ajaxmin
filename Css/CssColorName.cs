@@ -63,6 +63,7 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="darkcyan",Hex="#008b8b"},
                     new ColorName {Strict=false,Name="darkgoldenrod",Hex="#b8860b"},
                     new ColorName {Strict=false,Name="darkgray",Hex="#a9a9a9"},
+                    new ColorName {Strict=false,Name="darkgrey",Hex="#a9a9a9"},
                     new ColorName {Strict=false,Name="darkgreen",Hex="#006400"},
                     new ColorName {Strict=false,Name="darkkhaki",Hex="#bdb76b"},
                     new ColorName {Strict=false,Name="darkmagenta",Hex="#8b008b"},
@@ -74,11 +75,13 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="darkseagreen",Hex="#8fbc8f"},
                     new ColorName {Strict=false,Name="darkslateblue",Hex="#483d8b"},
                     new ColorName {Strict=false,Name="darkslategray",Hex="#2f4f4f"},
+                    new ColorName {Strict=false,Name="darkslategrey",Hex="#2f4f4f"},
                     new ColorName {Strict=false,Name="darkturquoise",Hex="#00ced1"},
                     new ColorName {Strict=false,Name="darkviolet",Hex="#9400d3"},
                     new ColorName {Strict=false,Name="deeppink",Hex="#ff1493"},
                     new ColorName {Strict=false,Name="deepskyblue",Hex="#00bfff"},
                     new ColorName {Strict=false,Name="dimgray",Hex="#696969"},
+                    new ColorName {Strict=false,Name="dimgrey",Hex="#696969"},
                     new ColorName {Strict=false,Name="dodgerblue",Hex="#1e90ff"},
                     new ColorName {Strict=false,Name="firebrick",Hex="#b22222"},
                     new ColorName {Strict=false,Name="floralwhite",Hex="#fffaf0"},
@@ -89,6 +92,7 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="gold",Hex="#ffd700"},
                     new ColorName {Strict=false,Name="goldenrod",Hex="#daa520"},
                     new ColorName {Strict=true,Name="gray",Hex="#808080"},
+                    new ColorName {Strict=true,Name="grey",Hex="#808080"},
                     new ColorName {Strict=true,Name="green",Hex="#008000"},
                     new ColorName {Strict=false,Name="greenyellow",Hex="#adff2f"},
                     new ColorName {Strict=false,Name="honeydew",Hex="#f0fff0"},
@@ -105,6 +109,7 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="lightcoral",Hex="#f08080"},
                     new ColorName {Strict=false,Name="lightcyan",Hex="#e0ffff"},
                     new ColorName {Strict=false,Name="lightgoldenrodyellow",Hex="#fafad2"},
+                    new ColorName {Strict=false,Name="lightgray",Hex="#d3d3d3"},
                     new ColorName {Strict=false,Name="lightgrey",Hex="#d3d3d3"},
                     new ColorName {Strict=false,Name="lightgreen",Hex="#90ee90"},
                     new ColorName {Strict=false,Name="lightpink",Hex="#ffb6c1"},
@@ -112,6 +117,7 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="lightseagreen",Hex="#20b2aa"},
                     new ColorName {Strict=false,Name="lightskyblue",Hex="#87cefa"},
                     new ColorName {Strict=false,Name="lightslategray",Hex="#778899"},
+                    new ColorName {Strict=false,Name="lightslategrey",Hex="#778899"},
                     new ColorName {Strict=false,Name="lightsteelblue",Hex="#b0c4de"},
                     new ColorName {Strict=false,Name="lightyellow",Hex="#ffffe0"},
                     new ColorName {Strict=true,Name="lime",Hex="#0f0"},
@@ -137,7 +143,7 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="oldlace",Hex="#fdf5e6"},
                     new ColorName {Strict=true,Name="olive",Hex="#808000"},
                     new ColorName {Strict=false,Name="olivedrab",Hex="#6b8e23"},
-                    new ColorName {Strict=true,Name="orange",Hex="#ffa500"},
+                    new ColorName {Strict=false,Name="orange",Hex="#ffa500"},
                     new ColorName {Strict=false,Name="orangered",Hex="#ff4500"},
                     new ColorName {Strict=false,Name="orchid",Hex="#da70d6"},
                     new ColorName {Strict=false,Name="palegoldenrod",Hex="#eee8aa"},
@@ -164,6 +170,7 @@ namespace Microsoft.Ajax.Utilities
                     new ColorName {Strict=false,Name="skyblue",Hex="#87ceeb"},
                     new ColorName {Strict=false,Name="slateblue",Hex="#6a5acd"},
                     new ColorName {Strict=false,Name="slategray",Hex="#708090"},
+                    new ColorName {Strict=false,Name="slategrey",Hex="#708090"},
                     new ColorName {Strict=false,Name="snow",Hex="#fffafa"},
                     new ColorName {Strict=false,Name="springgreen",Hex="#00ff7f"},
                     new ColorName {Strict=false,Name="steelblue",Hex="#4682b4"},
@@ -315,7 +322,8 @@ namespace Microsoft.Ajax.Utilities
                 Dictionary<string, string> results = new Dictionary<string, string>();
                 foreach (ColorName colorName in ColorNameData.ColorName)
                 {
-                    if (colorName.Strict && colorName.Hex.Length > colorName.Name.Length)
+                    if (colorName.Strict && colorName.Hex.Length > colorName.Name.Length
+                        && !results.ContainsKey(colorName.Hex))
                     {
                         results.Add(colorName.Hex, colorName.Name);
                     }
@@ -345,7 +353,8 @@ namespace Microsoft.Ajax.Utilities
                 Dictionary<string, string> results = new Dictionary<string, string>();
                 foreach (ColorName colorName in ColorNameData.ColorName)
                 {
-                    if (colorName.Hex.Length > colorName.Name.Length)
+                    if (colorName.Hex.Length > colorName.Name.Length
+                        && !results.ContainsKey(colorName.Hex))
                     {
                         results.Add(colorName.Hex, colorName.Name);
                     }
