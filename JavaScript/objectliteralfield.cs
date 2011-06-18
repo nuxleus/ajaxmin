@@ -42,7 +42,7 @@ namespace Microsoft.Ajax.Utilities
 
                 // if the raw value is safe to be an identifier, then go ahead and ditch the quotes and just output
                 // the raw value. Otherwise call ToCode to wrap the string in quotes.
-                return JSScanner.IsSafeIdentifier(rawValue) && !JSScanner.IsKeyword(rawValue) ? rawValue : base.ToCode(format);
+                return JSScanner.IsSafeIdentifier(rawValue) && !JSScanner.IsKeyword(rawValue, EnclosingScope.UseStrict) ? rawValue : base.ToCode(format);
             }
             else
             {

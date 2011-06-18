@@ -26,9 +26,11 @@ namespace Microsoft.Ajax.Utilities
 		public Block FinallyBlock { get; private set; }
 
         public string CatchVarName { get; private set; }
+        public Context CatchVarContext { get; private set; }
+
         private JSVariableField m_catchVariable;
 
-        public TryNode(Context context, JSParser parser, AstNode tryBlock, string catchVarName, AstNode catchBlock, AstNode finallyBlock)
+        public TryNode(Context context, JSParser parser, AstNode tryBlock, string catchVarName, Context catchVarContext, AstNode catchBlock, AstNode finallyBlock)
             : base(context, parser)
         {
             CatchVarName = catchVarName;
@@ -38,6 +40,8 @@ namespace Microsoft.Ajax.Utilities
             if (TryBlock != null) { TryBlock.Parent = this; }
             if (CatchBlock != null) { CatchBlock.Parent = this; }
             if (FinallyBlock != null) { FinallyBlock.Parent = this; }
+
+            CatchVarContext = catchVarContext;
         }
 
         public void SetCatchVariable(JSVariableField field)

@@ -282,8 +282,9 @@ namespace Microsoft.Ajax.Utilities
                 // append the key as the name, a colon to separate the name and value,
                 // and then the value
                 // must quote if not valid JS identifier format, or if it is, but it's a keyword
+                // (use strict mode just to be safe)
                 string propertyName = enumerator.Key.ToString();
-                if (!JSScanner.IsValidIdentifier(propertyName) || JSScanner.IsKeyword(propertyName))
+                if (!JSScanner.IsValidIdentifier(propertyName) || JSScanner.IsKeyword(propertyName, true))
                 {
                     sb.Append("\"");
                     // because we are using quotes for the delimiters, replace any instances

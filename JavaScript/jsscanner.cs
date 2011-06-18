@@ -136,7 +136,7 @@ namespace Microsoft.Ajax.Utilities
 
         public bool SkipDebugBlocks { get; set; }
 
-        public static bool IsKeyword(string name)
+        public static bool IsKeyword(string name, bool strictMode)
         {
             bool isKeyword = false;
 
@@ -154,8 +154,38 @@ namespace Microsoft.Ajax.Utilities
                     JSKeyword keyword = s_Keywords[name[0] - 'a'];
                     if (keyword != null)
                     {
-                        // and ask if the name is in the list
-                        isKeyword = keyword.Exists(name);
+                        // switch off the token
+                        switch (keyword.GetKeyword(name, 0, name.Length))
+                        {
+                            case JSToken.Get:
+                            case JSToken.Set:
+                            case JSToken.Identifier:
+                                // never considered keywords
+                                isKeyword = false;
+                                break;
+
+                            case JSToken.Implements:
+                            case JSToken.Interface:
+                            case JSToken.Let:
+                            case JSToken.Package:
+                            case JSToken.Private:
+                            case JSToken.Protected:
+                            case JSToken.Public:
+                            case JSToken.Static:
+                            case JSToken.Yield:
+                                // in strict mode, these ARE keywords, otherwise they are okay
+                                // to be identifiers
+                                isKeyword = strictMode;
+                                break;
+
+                            case JSToken.Native:
+                            default:
+                                // no other tokens can be identifiers.
+                                // apparently never allowed for Chrome, so we want to treat it
+                                // differently, too
+                                isKeyword = true;
+                                break;
+                        }
                     }
                 }
             }
@@ -399,12 +429,6 @@ namespace Microsoft.Ajax.Utilities
 
                     case ':':
                         token = JSToken.Colon;
-                        if (':' == GetChar(m_currentPos))
-                        {
-                            m_currentPos++;
-                            token = JSToken.DoubleColon;
-                        }
-
                         break;
 
                     case '.':
@@ -413,15 +437,6 @@ namespace Microsoft.Ajax.Utilities
                         if (JSScanner.IsDigit(c))
                         {
                             token = ScanNumber('.');
-                        }
-                        else if ('.' == c)
-                        {
-                            c = GetChar(m_currentPos + 1);
-                            if ('.' == c)
-                            {
-                                m_currentPos += 2;
-                                token = JSToken.ParameterArray;
-                            }
                         }
 
                         break;
@@ -702,6 +717,20 @@ namespace Microsoft.Ajax.Utilities
                                 else if (!RawTokens && c == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
                                 {
                                     // we got //@
+                                    // if we have not turned on conditional-compilation yet, then check to see if that's
+                                    // what we're trying to do now
+                                    if (!m_preProcessorOn)
+                                    {
+                                        // we are currently on the @ -- start peeking from there
+                                        if (!CheckSubstring(m_currentPos + 1, "cc_on"))
+                                        {
+                                            // we aren't turning on conditional comments. We need to ignore this comment
+                                            // as just another single-line comment
+                                            SkipSingleLineComment();
+                                            goto nextToken;
+                                        }
+                                    }
+
                                     // if the NEXT character is not an identifier character, then we need to skip
                                     // the @ character -- otherwise leave it there
                                     if (!IsValidIdentifierStart(GetChar(m_currentPos + 1)))
@@ -709,13 +738,8 @@ namespace Microsoft.Ajax.Utilities
                                         ++m_currentPos;
                                     }
 
-                                    if (CheckForTypeComments())
-                                    {
-                                        // this is a type-declaration style comment -- just skip it
-                                        SkipSingleLineComment();
-                                    }
                                     // if we aren't already in a conditional comment
-                                    else if (!m_inConditionalComment)
+                                    if (!m_inConditionalComment)
                                     {
                                         // we are now
                                         m_inConditionalComment = true;
@@ -768,6 +792,20 @@ namespace Microsoft.Ajax.Utilities
                                     if (GetChar(++m_currentPos) == '@' && !IgnoreConditionalCompilation && !m_peekModeOn)
                                     {
                                         // we have /*@
+                                        // if we have not turned on conditional-compilation yet, then let's peek to see if the next
+                                        // few characters are cc_on -- if so, turn it on.
+                                        if (!m_preProcessorOn)
+                                        {
+                                            // we are currently on the @ -- start peeking from there
+                                            if (!CheckSubstring(m_currentPos + 1, "cc_on"))
+                                            {
+                                                // we aren't turning on conditional comments. We need to ignore this comment
+                                                // as just another multi-line comment
+                                                SkipMultilineComment(false);
+                                                goto nextToken;
+                                            }
+                                        }
+                                            
                                         // if the NEXT character is not an identifier character, then we need to skip
                                         // the @ character -- otherwise leave it there
                                         if (!IsValidIdentifierStart(GetChar(m_currentPos + 1)))
@@ -775,12 +813,8 @@ namespace Microsoft.Ajax.Utilities
                                             ++m_currentPos;
                                         }
 
-                                        if (CheckForTypeComments())
-                                        {
-                                            SkipMultilineComment(false);
-                                        }
                                         // if we aren't already in a conditional comment
-                                        else if (!m_inConditionalComment)
+                                        if (!m_inConditionalComment)
                                         {
                                             // we are in one now
                                             m_inConditionalComment = true;
@@ -1261,22 +1295,6 @@ namespace Microsoft.Ajax.Utilities
 
             // if we got here, the strings match
             return true;
-        }
-
-        private bool CheckForTypeComments()
-        {
-            int pos = m_currentPos;
-
-            // skip the @ sign
-            if (GetChar(pos) == '@')
-            {
-                ++pos;
-            }
-
-            // check for "bind(" or "type(" or "returns("
-            return CheckSubstring(pos, "bind(")
-                || CheckSubstring(pos, "type(")
-                || CheckSubstring(pos, "returns(");
         }
 
         private char GetChar(int index)

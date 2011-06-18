@@ -195,7 +195,7 @@ namespace Microsoft.Ajax.Utilities
                                 // defined a local variable of the same name. Not good. Throw the 
                                 // error but keep them attached because the names have to be synced
                                 // to keep the same meaning in all browsers.
-                                Identifier.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, true);
+                                Identifier.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, false);
 
                                 // if we are preserving function names, then we need to mark this field
                                 // as not crunchable

@@ -64,12 +64,12 @@ namespace Microsoft.Ajax.Utilities
                         // yes, it is. Now see if the new name is safe to be converted to a dot-operation.
                         if (m_parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
                             && JSScanner.IsSafeIdentifier(newName)
-                            && !JSScanner.IsKeyword(newName))
+                            && !JSScanner.IsKeyword(newName, parentCall.EnclosingScope.UseStrict))
                         {
                             // we want to replace the call with operator with a new member dot operation, and
                             // since we won't be analyzing it (we're past the analyze phase, we're going to need
                             // to use the new string value
-                            Member replacementMember = new Member(parentCall.Context, m_parser, parentCall.Function, newName);
+                            Member replacementMember = new Member(parentCall.Context, m_parser, parentCall.Function, newName, parentCall.Arguments[0].Context);
                             parentCall.Parent.ReplaceChild(parentCall, replacementMember);
                             return true;
                         }
@@ -88,10 +88,10 @@ namespace Microsoft.Ajax.Utilities
                     {
                         // our parent is a call-bracket -- now we just need to see if the newly-combined
                         // string can be an identifier
-                        if (JSScanner.IsSafeIdentifier(combinedString) && !JSScanner.IsKeyword(combinedString))
+                        if (JSScanner.IsSafeIdentifier(combinedString) && !JSScanner.IsKeyword(combinedString, parentCall.EnclosingScope.UseStrict))
                         {
                             // yes -- replace the parent call with a new member node using the newly-combined string
-                            Member replacementMember = new Member(parentCall.Context, m_parser, parentCall.Function, combinedString);
+                            Member replacementMember = new Member(parentCall.Context, m_parser, parentCall.Function, combinedString, parentCall.Arguments[0].Context);
                             parentCall.Parent.ReplaceChild(parentCall, replacementMember);
                             return true;
                         }

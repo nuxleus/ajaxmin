@@ -24,11 +24,13 @@ namespace Microsoft.Ajax.Utilities
     {
         public AstNode Root { get; private set; }
         public string Name { get; set; }
+        public Context NameContext { get; private set; }
 
-        public Member(Context context, JSParser parser, AstNode rootObject, string memberName)
+        public Member(Context context, JSParser parser, AstNode rootObject, string memberName, Context idContext)
             : base(context, parser)
         {
             Name = memberName;
+            NameContext = idContext;
 
             Root = rootObject;
             if (Root != null) Root.Parent = this;

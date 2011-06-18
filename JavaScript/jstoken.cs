@@ -129,62 +129,40 @@ namespace Microsoft.Ajax.Utilities
         Case,
         Catch,
         Default,
-        Export,
-        Extends,
         Finally,
-        Get,
-        Implements,
-        Interface,
         New,
-        Set,
-        Super,
         RightParenthesis,               // )
         RightBracket,                   // ]
         PreprocessorConstant,           // entity defined defined during preprocessing
         Comment,                        // for authoring
         UnterminatedComment,            // for authoring
-        // js5, js8 and ECMA reserved words
-        Assert,
-        Boolean,
-        Byte,
-        Char,
-        Decimal,
-        Double,
-        DoubleColon,                      // ::
-        Enum,
-        Ensure,
-        Float,
-        GoTo,
-        Int,
-        Invariant,
-        Long,
-        Namespace,
-        Native,
-        Require,
-        SignedByte,
-        Short,
-        Synchronized,
-        Transient,
-        Throws,
-        ParameterArray,                 // ...
-        Volatile,
-        UnsignedShort,
-        UnsignedInt,
-        UnsignedLong,
-        Use,
 
+        // reserved words
+        Class,
+        Const,
+        Enum,
+        Export,
+        Extends,
+        Import,
+        Super,
+
+        // ECMA strict reserved words
+        Implements,
+        Interface,
+        Let,
         Package,
-        Internal,
-        Abstract,
-        Public,
-        Static,
         Private,
         Protected,
-        Final,
-        Event,
-        Const,
-        Class,
-        Import,
+        Public,
+        Static,
+        Yield,
+
+        // browser-specific don't uses
+        Native, // Chrome
+
+        // always okay for identifiers
+        Get,
+        Set,
 
         EndOfLine, // only returned if the RawTokens flag is set on the scanner, but also used in error-recovery
         WhiteSpace, // only returned if the RawTokens flag is set on the scanner

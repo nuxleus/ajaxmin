@@ -49,12 +49,7 @@ namespace Microsoft.Ajax.Utilities
             FunctionScope functionScope = parser != null ? parser.ScopeStack.Peek() as FunctionScope : null;
             if (functionScope != null)
             {
-                if (functionScope.NameTable.ContainsKey(m_name))
-                {
-                    //Only happens if there is another parameter declarations with the same name
-                    m_context.HandleError(JSError.DuplicateName, m_name, true);
-                }
-                else
+                if (!functionScope.NameTable.ContainsKey(m_name))
                 {
                     m_field = functionScope.AddNewArgumentField(m_name);
                     m_field.OriginalContext = m_context;

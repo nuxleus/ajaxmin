@@ -28,7 +28,7 @@ var a = window.obj["foo"].bar(); // should be var a=window.obj.foo.bar
 // but keywords that are okay to be identifiers *could* be convertable
 // to property access mode, but let's not do it. The developer for some reason
 // wanted it to be a bracket-call, so just leave it as-is
-alert(obj["get"]);
+alert(obj["enum"]);
 
 // some Unicode category characters, although okay in the ECMA-262 spec, cause
 // some browsers to throw a syntax error if they are in identifiers. Therefore we're

@@ -1,6 +1,6 @@
 ﻿// AnalyzeNodeVisitor.cs
 //
-// Copyright 2010 Microsoft Corporation
+// Copyright 2011 Microsoft Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -101,6 +101,19 @@ namespace Microsoft.Ajax.Utilities
                             node.Parent.ReplaceChild(
                                 node,
                                 new ConstantWrapper(node.OperatorToken == JSToken.StrictNotEqual, PrimitiveType.Boolean, node.Context, m_parser));
+                        }
+                    }
+                }
+                else if (node.IsAssign && ScopeStack.Peek().UseStrict)
+                {
+                    // strict mode cannot assign to lookup "eval" or "arguments"
+                    var lookup = node.Operand1 as Lookup;
+                    if (lookup != null)
+                    {
+                        if (lookup.VariableField is JSArgumentsField
+                            || (lookup.VariableField is JSPredefinedField && string.CompareOrdinal(lookup.Name, "eval") == 0))
+                        {
+                            node.Operand1.Context.HandleError(JSError.StrictModeInvalidAssign, true);
                         }
                     }
                 }
@@ -921,14 +934,14 @@ namespace Microsoft.Ajax.Utilities
                             // a new constant wrapper. Otherwise we'll just replace the operator with a new constant wrapper.
                             if (m_parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
                                 && JSScanner.IsSafeIdentifier(newName)
-                                && !JSScanner.IsKeyword(newName))
+                                && !JSScanner.IsKeyword(newName, node.EnclosingScope.UseStrict))
                             {
                                 // the new name is safe to convert to a member-dot operator.
                                 // but we don't want to convert the node to the NEW name, because we still need to Analyze the
                                 // new member node -- and it might convert the new name to something else. So instead we're
                                 // just going to convert this existing string to a member node WITH THE OLD STRING, 
                                 // and THEN analyze it (which will convert the old string to newName)
-                                Member replacementMember = new Member(node.Context, m_parser, node.Function, argText);
+                                Member replacementMember = new Member(node.Context, m_parser, node.Function, argText, node.Arguments[0].Context);
                                 node.Parent.ReplaceChild(node, replacementMember);
 
                                 // this analyze call will convert the old-name member to the newName value
@@ -945,11 +958,11 @@ namespace Microsoft.Ajax.Utilities
                         }
                         else if (m_parser.Settings.IsModificationAllowed(TreeModifications.BracketMemberToDotMember)
                             && JSScanner.IsSafeIdentifier(argText)
-                            && !JSScanner.IsKeyword(argText))
+                            && !JSScanner.IsKeyword(argText, node.EnclosingScope.UseStrict))
                         {
                             // not a replacement, but the string literal is a safe identifier. So we will
                             // replace this call node with a Member-dot operation
-                            Member replacementMember = new Member(node.Context, m_parser, node.Function, argText);
+                            Member replacementMember = new Member(node.Context, m_parser, node.Function, argText, node.Arguments[0].Context);
                             node.Parent.ReplaceChild(node, replacementMember);
                             replacementMember.Accept(this);
                             return;
@@ -1192,6 +1205,25 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public override void Visit(Delete node)
+        {
+            if (node != null)
+            {
+                base.Visit(node);
+
+                // strict mode has some restrictions
+                if (ScopeStack.Peek().UseStrict)
+                {
+                    // operand of a delete operator cannot be a variable name, argument name, or function name
+                    // which means it can't be a lookup
+                    if (node.Operand is Lookup)
+                    {
+                        node.Context.HandleError(JSError.StrictModeInvalidDelete, true);
+                    }
+                }
+            }
+        }
+
         public override void Visit(DoWhile node)
         {
             if (node != null)
@@ -1281,12 +1313,81 @@ namespace Microsoft.Ajax.Utilities
                 // and we don't need to analyze the parameters because they were fielded-up
                 // back when the function object was created, too
 
+                if (ScopeStack.Peek().UseStrict)
+                {
+                    // we need to make sure the function isn't named "eval" or "arguments"
+                    if (string.CompareOrdinal(node.Name, "eval") == 0
+                        || string.CompareOrdinal(node.Name, "arguments") == 0)
+                    {
+                        if (node.IdContext != null)
+                        {
+                            node.IdContext.HandleError(JSError.StrictModeFunctionName, true);
+                        }
+                        else if (node.Context != null)
+                        {
+                            node.Context.HandleError(JSError.StrictModeFunctionName, true);
+                        }
+                    }
+
+                    // we need to make sure:
+                    //  1. there are no duplicate argument names, and
+                    //  2. none of them are named "eval" or "arguments"
+                    // create map that we'll use to determine if there are any dups
+                    if (node.ParameterDeclarations != null
+                        && node.ParameterDeclarations.Count > 0)
+                    {
+                        var parameterMap = new Dictionary<string, string>(node.ParameterDeclarations.Count);
+                        foreach (var parameter in node.ParameterDeclarations)
+                        {
+                            // if it already exists in the map, then it's a dup
+                            if (parameterMap.ContainsKey(parameter.Name))
+                            {
+                                // already exists -- throw an error
+                                parameter.Context.HandleError(JSError.StrictModeDuplicateArgument, true);
+                            }
+                            else
+                            {
+                                // not in there, add it now
+                                parameterMap.Add(parameter.Name, parameter.Name);
+
+                                // now check to see if it's one of the two forbidden names
+                                if (string.CompareOrdinal(parameter.Name, "eval") == 0
+                                    || string.CompareOrdinal(parameter.Name, "arguments") == 0)
+                                {
+                                    parameter.Context.HandleError(JSError.StrictModeArgumentName, true);
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (node.ParameterDeclarations != null
+                    && node.ParameterDeclarations.Count > 0)
+                {
+                    // not strict
+                    // if there are duplicate parameter names, throw a warning
+                    var parameterMap = new Dictionary<string, string>(node.ParameterDeclarations.Count);
+                    foreach (var parameter in node.ParameterDeclarations)
+                    {
+                        // if it already exists in the map, then it's a dup
+                        if (parameterMap.ContainsKey(parameter.Name))
+                        {
+                            // already exists -- throw an error
+                            parameter.Context.HandleError(JSError.DuplicateName, false);
+                        }
+                        else
+                        {
+                            // not in there, add it now
+                            parameterMap.Add(parameter.Name, parameter.Name);
+                        }
+                    }
+                }
+
                 // push the stack and analyze the body
                 ScopeStack.Push(node.FunctionScope);
                 try
                 {
-                    // recurse
-                    base.Visit(node);
+                    // recurse the body
+                    node.Body.Accept(this);
                 }
                 finally
                 {
@@ -1496,7 +1597,13 @@ namespace Microsoft.Ajax.Utilities
                       );
                 }
 
+                // check the name of the variable for reserved words that aren't allowed
                 ActivationObject scope = ScopeStack.Peek();
+                if (JSScanner.IsKeyword(node.Name, scope.UseStrict))
+                {
+                    node.Context.HandleError(JSError.KeywordUsedAsIdentifier, true);
+                }
+
                 node.VariableField = scope.FindReference(node.Name);
                 if (node.VariableField == null)
                 {
@@ -1534,19 +1641,32 @@ namespace Microsoft.Ajax.Utilities
                     // function expression, then we need to throw an ambiguous named function expression
                     // error because this could cause problems.
                     // OR if the field is already marked as ambiguous, throw the error
-                    if (node.VariableField.NamedFunctionExpression != null
-                        || node.VariableField.IsAmbiguous)
+                    if (node.VariableField.IsAmbiguous)
                     {
-                        // mark it as a field that's referenced ambiguously
-                        node.VariableField.IsAmbiguous = true;
-                        // throw as an error
-                        node.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, true);
+                        // throw an error
+                        node.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, false);
 
                         // if we are preserving function names, then we need to mark this field
                         // as not crunchable
                         if (m_parser.Settings.PreserveFunctionNames)
                         {
                             node.VariableField.CanCrunch = false;
+                        }
+                    }
+                    else if (node.VariableField.NamedFunctionExpression != null)
+                    {
+                        // the field for this lookup is tied to a named function expression!
+                        // we really only care if this variable is being assigned something
+                        // OTHER than a function expression with the same name (which should
+                        // be the NamedFunctionExpression property.
+                        var binaryOperator = node.Parent as BinaryOperator;
+                        if (binaryOperator != null && binaryOperator.IsAssign)
+                        {
+                            // this is ambiguous cross-browser
+                            node.VariableField.IsAmbiguous = true;
+
+                            // throw an error
+                            node.Context.HandleError(JSError.AmbiguousNamedFunctionExpression, false);
                         }
                     }
 
@@ -1631,6 +1751,12 @@ namespace Microsoft.Ajax.Utilities
                     }
                 }
 
+                // check the name of the member for reserved words that aren't allowed
+                if (JSScanner.IsKeyword(node.Name, ScopeStack.Peek().UseStrict))
+                {
+                    node.NameContext.HandleError(JSError.KeywordUsedAsIdentifier, true);
+                }
+
                 // recurse
                 base.Visit(node);
             }
@@ -1685,6 +1811,88 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
+        public override void Visit(ObjectLiteral node)
+        {
+            if (node != null)
+            {
+                // recurse
+                base.Visit(node);
+
+                if (ScopeStack.Peek().UseStrict)
+                {
+                    // now strict-mode checks
+                    // go through all property names and make sure there are no duplicates.
+                    // use a map to remember which ones we already have.
+                    var nameMap = new Dictionary<string, string>(node.Count);
+                    for (var ndx = 0; ndx < node.Keys.Count; ++ndx)
+                    {
+                        // get the name and type of this property
+                        var propertyName = node.Keys[ndx].ToString();
+                        var propertyType = GetPropertyType(node.Values[ndx] as FunctionObject);
+
+                        // key name is the name plus the type. Can't just use the name because 
+                        // get and set will both have the same name (but different types)
+                        var keyName = propertyName + propertyType;
+
+                        string mappedType;
+                        if (propertyType == "data")
+                        {
+                            // can't have another data, get, or set
+                            if (nameMap.TryGetValue(keyName, out mappedType)
+                                || nameMap.TryGetValue(propertyName + "get", out mappedType)
+                                || nameMap.TryGetValue(propertyName + "set", out mappedType))
+                            {
+                                // throw the error
+                                node.Keys[ndx].Context.HandleError(JSError.StrictModeDuplicateProperty, true);
+
+                                // if the mapped type isn't data, then we can add this data name/type to the map
+                                // because that means the first tryget failed and we don't have a data already
+                                if (mappedType != propertyType)
+                                {
+                                    nameMap.Add(keyName, propertyType);
+                                }
+                            }
+                            else
+                            {
+                                // not in the map at all. Add it now.
+                                nameMap.Add(keyName, propertyType);
+                            }
+                        }
+                        else
+                        {
+                            // get can have a set, but can't have a data or another get
+                            // set can have a get, but can't have a data or another set
+                            if (nameMap.TryGetValue(keyName, out mappedType)
+                                || nameMap.TryGetValue(propertyName + "data", out mappedType))
+                            {
+                                // throw the error
+                                node.Keys[ndx].Context.HandleError(JSError.StrictModeDuplicateProperty, true);
+
+                                // if the mapped type isn't data, then we can add this data name/type to the map
+                                if (mappedType != propertyType)
+                                {
+                                    nameMap.Add(keyName, propertyType);
+                                }
+                            }
+                            else
+                            {
+                                // not in the map at all - add it now
+                                nameMap.Add(keyName, propertyType);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static string GetPropertyType(FunctionObject funcObj)
+        {
+            // should never be a function declaration....
+            return funcObj == null || funcObj.FunctionType == FunctionType.Expression
+                ? "data"
+                : funcObj.FunctionType == FunctionType.Getter ? "get" : "set";
+        }
+
         public override void Visit(ObjectLiteralField node)
         {
             if (node != null)
@@ -1703,6 +1911,32 @@ namespace Microsoft.Ajax.Utilities
                 // don't call the base -- we don't want to add the literal to
                 // the combination logic, which is what the ConstantWrapper (base class) does
                 //base.Visit(node);
+            }
+        }
+
+        public override void Visit(PostOrPrefixOperator node)
+        {
+            if (node != null)
+            {
+                base.Visit(node);
+
+                // strict mode has some restrictions we want to check now
+                if (ScopeStack.Peek().UseStrict)
+                {
+                    // the operator cannot be the eval function or arguments object.
+                    // that means the operator is a lookup, and the field for that lookup
+                    // is the arguments object or the predefined "eval" object.
+                    // could probably just check the names, since we can't create local variables
+                    // with those names anyways.
+                    var lookup = node.Operand as Lookup;
+                    if (lookup != null
+                        && (lookup.VariableField is JSArgumentsField
+                        || (lookup.VariableField is JSPredefinedField 
+                        && string.CompareOrdinal(lookup.Name, "eval") == 0)))
+                    {
+                        node.Operand.Context.HandleError(JSError.StrictModeInvalidPreOrPost, true);
+                    }
+                }
             }
         }
 
@@ -2003,6 +2237,17 @@ namespace Microsoft.Ajax.Utilities
                 {
                     node.ReplaceChild(node.FinallyBlock, null);
                 }
+
+                // check strict-mode restrictions
+                if (ScopeStack.Peek().UseStrict && !string.IsNullOrEmpty(node.CatchVarName))
+                {
+                    // catch variable cannot be named "eval" or "arguments"
+                    if (string.CompareOrdinal(node.CatchVarName, "eval") == 0
+                        || string.CompareOrdinal(node.CatchVarName, "arguments") == 0)
+                    {
+                        node.CatchVarContext.HandleError(JSError.StrictModeVariableName, true);
+                    }
+                }
             }
         }
 
@@ -2062,6 +2307,21 @@ namespace Microsoft.Ajax.Utilities
             {
                 base.Visit(node);
 
+                // check the name of the variable for reserved words that aren't allowed
+                if (JSScanner.IsKeyword(node.Identifier, ScopeStack.Peek().UseStrict))
+                {
+                    node.Context.HandleError(JSError.KeywordUsedAsIdentifier, true);
+                }
+                else if (ScopeStack.Peek().UseStrict 
+                    && (string.CompareOrdinal(node.Identifier, "eval") == 0
+                    || string.CompareOrdinal(node.Identifier, "arguments") == 0))
+                {
+                    // strict mode cannot declare variables named "eval" or "arguments"
+                    node.IdentifierContext.HandleError(JSError.StrictModeVariableName, true);
+                }
+
+                // if this is a special-case vardecl (var foo/*@cc_on=EXPR@*/), set the flag indicating
+                // we encountered a @cc_on statement if we found one
                 if (node.IsCCSpecialCase && m_parser.Settings.IsModificationAllowed(TreeModifications.RemoveUnnecessaryCCOnStatements))
                 {
                     node.UseCCOn = !m_encounteredCCOn;
@@ -2098,7 +2358,16 @@ namespace Microsoft.Ajax.Utilities
             if (node != null)
             {
                 // throw a warning discouraging the use of this statement
-                node.Context.HandleError(JSError.WithNotRecommended, false);
+                if (ScopeStack.Peek().UseStrict)
+                {
+                    // with-statements not allowed in strict code at all
+                    node.Context.HandleError(JSError.StrictModeNoWith, true);
+                }
+                else
+                {
+                    // not strict, but still not recommended
+                    node.Context.HandleError(JSError.WithNotRecommended, false);
+                }
 
                 // hold onto the with-scope in case we need to do something with it
                 BlockScope withScope = (node.Body == null ? null : node.Body.BlockScope);

@@ -66,8 +66,9 @@ namespace Microsoft.Ajax.Utilities
                 ++m_currentName;
                 name = CurrentName;
                 // keep advancing until we find one that isn't in the skip list or a keyword
+                // (use strict mode to be safe)
             }
-            while (m_skipNames.ContainsKey(name) || JSScanner.IsKeyword(name));
+            while (m_skipNames.ContainsKey(name) || JSScanner.IsKeyword(name, true));
             return name;
         }
 
@@ -82,6 +83,7 @@ namespace Microsoft.Ajax.Utilities
         public static string CrunchedLabel(int nestLevel)
         {
             // nestCount is 1-based, so subtract one to make the character index 0-based
+            // TODO: make sure the generated name isn't a keyword!
             return GenerateNameFromNumber(nestLevel - 1);
         }
 

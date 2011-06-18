@@ -85,6 +85,7 @@
     <Compile Include="Renaming.cs" />
     <Compile Include="ResourceMerge.cs" />
     <Compile Include="ScannerErrors.cs" />
+    <Compile Include="Strict.cs" />
     <Compile Include="Switch.cs" />
     <Compile Include="Syntax.cs" />
     <Compile Include="UnknownScope.cs" />
@@ -272,6 +273,12 @@
     <Content Include="TestData\JS\Expected\ScannerErrors\BadHexDigit.js" />
     <Content Include="TestData\JS\Expected\ScannerErrors\StringEOF.js" />
     <Content Include="TestData\JS\Expected\ScannerErrors\StringEOL.js" />
+    <Content Include="TestData\JS\Expected\Strict\DupArg.js" />
+    <Content Include="TestData\JS\Expected\Strict\DupProperty.js" />
+    <Content Include="TestData\JS\Expected\Strict\EvalArgsAssign.js" />
+    <Content Include="TestData\JS\Expected\Strict\InvalidDelete.js" />
+    <Content Include="TestData\JS\Expected\Strict\InvalidVarName.js" />
+    <Content Include="TestData\JS\Expected\Strict\With.js" />
     <Content Include="TestData\JS\Expected\Switch\EmptyDefault.js" />
     <Content Include="TestData\JS\Expected\Switch\EmptyDefault_h.js" />
     <Content Include="TestData\JS\Expected\Switch\MacQuirks.js" />
@@ -428,6 +435,12 @@
     <Content Include="TestData\JS\Input\ScannerErrors\BadHexDigit.js" />
     <Content Include="TestData\JS\Input\ScannerErrors\StringEOF.js" />
     <Content Include="TestData\JS\Input\ScannerErrors\StringEOL.js" />
+    <Content Include="TestData\JS\Input\Strict\DupArg.js" />
+    <Content Include="TestData\JS\Input\Strict\DupProperty.js" />
+    <Content Include="TestData\JS\Input\Strict\EvalArgsAssign.js" />
+    <Content Include="TestData\JS\Input\Strict\InvalidDelete.js" />
+    <Content Include="TestData\JS\Input\Strict\InvalidVarName.js" />
+    <Content Include="TestData\JS\Input\Strict\With.js" />
     <Content Include="TestData\JS\Input\Switch\EmptyDefault.js" />
     <Content Include="TestData\JS\Input\Switch\MacQuirks.js" />
     <Content Include="TestData\JS\Input\Switch\NoDefaultEmptyCases.js" />

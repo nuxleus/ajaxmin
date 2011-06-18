@@ -88,6 +88,15 @@ namespace Microsoft.Ajax.Utilities
         OctalLiteralsDeprecated = 1285, // octal literal encountered; possible cross-browser issues
         FunctionNameMustBeIdentifier = 1286, // function names must be a single identifier
         StrictComparisonIsAlwaysTrueOrFalse = 1287, // a strict comparison is always true or false
+        StrictModeNoWith = 1288, // strict mode does not allow with-statements
+        StrictModeDuplicateArgument = 1289, // strict mode does not allow duplicate argument names
+        StrictModeVariableName = 1290, // strict mode does not allow certain variable names
+        StrictModeFunctionName = 1291, // strict mode does not allow certain function names
+        StrictModeDuplicateProperty = 1292, // strict mode does not allow duplicate property names
+        StrictModeInvalidAssign = 1293, // strict mode does not allow assign operator to this variable
+        StrictModeInvalidPreOrPost = 1294, // strict mode does not allow prefix or postfix operators on certain references
+        StrictModeInvalidDelete = 1295, // strict mode does not allow certain delete operands
+        StrictModeArgumentName = 1296, // strict mode does not allow certain argument names
 
         //5000 - 6000 JScript errors that can occur during execution. Typically (also) used in "throw new JScriptException".
         IllegalAssignment = 5008, // "Illegal assignment"

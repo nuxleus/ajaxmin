@@ -24,7 +24,6 @@ function Func(p1)
     obj.foo = "bar";
 
     // this is NOT mozilla getter/setter. It should still parse properly.
-    // but because get and set are reserved words, they should always be quoted
     var b = 
     {
       get : 42,

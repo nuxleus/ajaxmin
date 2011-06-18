@@ -23,7 +23,10 @@ namespace Microsoft.Ajax.Utilities
     public sealed class VariableDeclaration : AstNode
     {
         public string Identifier { get; private set; }
+        public Context IdentifierContext { get; private set; }
+
         public AstNode Initializer { get; private set; }
+
         public JSVariableField Field { get; private set; }
         public bool IsCCSpecialCase { get; set; }
         public bool UseCCOn { get; set; }
@@ -53,6 +56,7 @@ namespace Microsoft.Ajax.Utilities
         {
             // identifier cannot be null
             Identifier = identifier;
+            IdentifierContext = idContext;
 
             // initializer may be null
             Initializer = initializer;
@@ -90,7 +94,7 @@ namespace Microsoft.Ajax.Utilities
                     {
                         idContext.HandleError(
                             JSError.AmbiguousNamedFunctionExpression,
-                            true
+                            false
                             );
                     }
                     else if (context != null)
@@ -99,7 +103,7 @@ namespace Microsoft.Ajax.Utilities
                         // if neither context is set, then we don't get an error!
                         context.HandleError(
                             JSError.AmbiguousNamedFunctionExpression,
-                            true
+                            false
                             );
                     }
 

@@ -316,8 +316,8 @@ namespace Microsoft.Ajax.Utilities
 
             if (scriptBlock != null && Settings.MinifyCode)
             {
-                // this visitor doesn't just reorder scopes. It also combines the adjacent var variables
-                // and unnests blocks. 
+                // this visitor doesn't just reorder scopes. It also combines the adjacent var variables,
+                // unnests blocks, identifies prologue directives, and sets the strict mode on scopes. 
                 ReorderScopeVisitor.Apply(scriptBlock, this);
 
                 // analyze the entire node tree (needed for hypercrunch)
@@ -625,10 +625,10 @@ namespace Microsoft.Ajax.Utilities
                         bool exprError = false;
                         try
                         {
-                            bool bAssign, canBeAttribute = true;
+                            bool bAssign;
                             // if this statement starts with a function within parens, we want to know now
                             bool parenFunction = (m_currentToken.Token == JSToken.LeftParenthesis && m_scanner.PeekToken() == JSToken.Function);
-                            statement = ParseUnaryExpression(out bAssign, ref canBeAttribute, false);
+                            statement = ParseUnaryExpression(out bAssign, false);
                             if (statement != null && parenFunction)
                             {
                                 FunctionObject functionObject = statement.LeftHandSide as FunctionObject;
@@ -637,54 +637,49 @@ namespace Microsoft.Ajax.Utilities
                                     functionObject.LeftHandFunctionExpression = true;
                                 }
                             }
-                            if (canBeAttribute)
+
+                            // look for labels
+                            if (statement is Lookup && JSToken.Colon == m_currentToken.Token)
                             {
-                                // look for labels
-                                if (statement is Lookup)
+                                // can be a label
+                                id = statement.ToString();
+                                if (m_labelTable.ContainsKey(id))
                                 {
-                                    if (JSToken.Colon == m_currentToken.Token)
+                                    // there is already a label with that name. Ignore the current label
+                                    ReportError(JSError.BadLabel, statement.Context.Clone(), true);
+                                    id = null;
+                                    GetNextToken(); // skip over ':'
+                                    return new Block(CurrentPositionContext(), this);
+                                }
+                                else
+                                {
+                                    GetNextToken();
+                                    int labelNestCount = m_labelTable.Count + 1;
+                                    m_labelTable.Add(id, new LabelInfo(m_blockType.Count, labelNestCount));
+                                    if (JSToken.EndOfFile != m_currentToken.Token)
                                     {
-                                        // can be a label
-                                        id = statement.ToString();
-                                        if (m_labelTable.ContainsKey(id))
-                                        {
-                                            // there is already a label with that name. Ignore the current label
-                                            ReportError(JSError.BadLabel, statement.Context.Clone(), true);
-                                            id = null;
-                                            GetNextToken(); // skip over ':'
-                                            return new Block(CurrentPositionContext(), this);
-                                        }
-                                        else
-                                        {
-                                            GetNextToken();
-                                            int labelNestCount = m_labelTable.Count + 1;
-                                            m_labelTable.Add(id, new LabelInfo(m_blockType.Count, labelNestCount));
-                                            if (JSToken.EndOfFile != m_currentToken.Token)
-                                            {
-                                                statement = new LabeledStatement(
-                                                  statement.Context.Clone(),
-                                                  this,
-                                                  id,
-                                                  labelNestCount,
-                                                  ParseStatement(fSourceElement)
-                                                  );
-                                            }
-                                            else
-                                            {
-                                                // end of the file!
-                                                //just pass null for the labeled statement
-                                                statement = new LabeledStatement(
-                                                  statement.Context.Clone(),
-                                                  this,
-                                                  id,
-                                                  labelNestCount,
-                                                  null
-                                                  );
-                                            }
-                                            m_labelTable.Remove(id);
-                                            return statement;
-                                        }
+                                        statement = new LabeledStatement(
+                                            statement.Context.Clone(),
+                                            this,
+                                            id,
+                                            labelNestCount,
+                                            ParseStatement(fSourceElement)
+                                            );
                                     }
+                                    else
+                                    {
+                                        // end of the file!
+                                        //just pass null for the labeled statement
+                                        statement = new LabeledStatement(
+                                            statement.Context.Clone(),
+                                            this,
+                                            id,
+                                            labelNestCount,
+                                            null
+                                            );
+                                    }
+                                    m_labelTable.Remove(id);
+                                    return statement;
                                 }
                             }
                             statement = ParseExpression(statement, false, bAssign, JSToken.None);
@@ -1066,7 +1061,6 @@ namespace Microsoft.Ajax.Utilities
                 String identifier = JSKeyword.CanBeIdentifier(m_currentToken.Token);
                 if (null != identifier)
                 {
-                    ForceReportInfo(JSError.KeywordUsedAsIdentifier);
                     variableName = identifier;
                 }
                 else
@@ -1848,10 +1842,11 @@ namespace Microsoft.Ajax.Utilities
             {
                 context.UpdateWith(m_currentToken);
                 // get the label block
-                if (null != label)
-                    ForceReportInfo(JSError.KeywordUsedAsIdentifier);
-                else
+                if (label == null)
+                {
                     label = m_scanner.GetIdentifier();
+                }
+
                 if (!m_labelTable.ContainsKey(label))
                 {
                     // the label does not exist. Continue anyway
@@ -1927,10 +1922,11 @@ namespace Microsoft.Ajax.Utilities
             {
                 context.UpdateWith(m_currentToken);
                 // get the label block
-                if (null != label)
-                    ForceReportInfo(JSError.KeywordUsedAsIdentifier);
-                else
+                if (label == null)
+                {
                     label = m_scanner.GetIdentifier();
+                }
+
                 if (!m_labelTable.ContainsKey(label))
                 {
                     // as if it was a non label case
@@ -2517,7 +2513,6 @@ namespace Microsoft.Ajax.Utilities
                             string identifier = JSKeyword.CanBeIdentifier(m_currentToken.Token);
                             if (null != identifier)
                             {
-                                ForceReportInfo(JSError.KeywordUsedAsIdentifier);
                                 idContext = m_currentToken.Clone();
                             }
                             else
@@ -2651,10 +2646,10 @@ namespace Microsoft.Ajax.Utilities
             string catchVariableName = idContext == null ? null : idContext.Code;
             if (excInFinally != null)
             {
-                excInFinally._partiallyComputedNode = new TryNode(tryCtx, this, body, catchVariableName, handler, finally_block);
+                excInFinally._partiallyComputedNode = new TryNode(tryCtx, this, body, catchVariableName, idContext, handler, finally_block);
                 throw excInFinally;
             }
-            return new TryNode(tryCtx, this, body, catchVariableName, handler, finally_block);
+            return new TryNode(tryCtx, this, body, catchVariableName, idContext, handler, finally_block);
         }
 
         //---------------------------------------------------------------------------------------
@@ -2692,7 +2687,6 @@ namespace Microsoft.Ajax.Utilities
                 string identifier = JSKeyword.CanBeIdentifier(m_currentToken.Token);
                 if (null != identifier)
                 {
-                    ForceReportInfo(JSError.KeywordUsedAsIdentifier, false);
                     name = new Lookup(identifier, m_currentToken.Clone(), this);
                     GetNextToken();
                 }
@@ -2787,12 +2781,7 @@ namespace Microsoft.Ajax.Utilities
                         m_noSkipTokenSet.Add(NoSkipTokenSet.s_FunctionDeclNoSkipTokenSet);
                         try
                         {
-                            if (JSToken.ParameterArray == m_currentToken.Token)
-                            {
-                                paramArrayContext = m_currentToken.Clone();
-                                GetNextToken();
-                            }
-                            else if (JSToken.Identifier != m_currentToken.Token && (id = JSKeyword.CanBeIdentifier(m_currentToken.Token)) == null)
+                            if (JSToken.Identifier != m_currentToken.Token && (id = JSKeyword.CanBeIdentifier(m_currentToken.Token)) == null)
                             {
                                 if (JSToken.LeftCurly == m_currentToken.Token)
                                 {
@@ -2815,9 +2804,10 @@ namespace Microsoft.Ajax.Utilities
                             else
                             {
                                 if (null == id)
+                                {
                                     id = m_scanner.GetIdentifier();
-                                else
-                                    ForceReportInfo(JSError.KeywordUsedAsIdentifier);
+                                }
+                                
                                 Context paramCtx = m_currentToken.Clone();
                                 GetNextToken();
 
@@ -3201,17 +3191,6 @@ namespace Microsoft.Ajax.Utilities
         //---------------------------------------------------------------------------------------
         private AstNode ParseUnaryExpression(out bool isLeftHandSideExpr, bool isMinus)
         {
-            bool canBeAttribute = false;
-            return ParseUnaryExpression(out isLeftHandSideExpr, ref canBeAttribute, isMinus, false);
-        }
-
-        private AstNode ParseUnaryExpression(out bool isLeftHandSideExpr, ref bool canBeAttribute, bool isMinus)
-        {
-            return ParseUnaryExpression(out isLeftHandSideExpr, ref canBeAttribute, isMinus, true);
-        }
-
-        private AstNode ParseUnaryExpression(out bool isLeftHandSideExpr, ref bool canBeAttribute, bool isMinus, bool warnForKeyword)
-        {
             AstNode ast = null;
             isLeftHandSideExpr = false;
             bool dummy = false;
@@ -3222,72 +3201,63 @@ namespace Microsoft.Ajax.Utilities
                 case JSToken.Void:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new VoidNode(exprCtx, this, expr);
                     break;
                 case JSToken.TypeOf:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new TypeOfNode(exprCtx, this, expr);
                     break;
                 case JSToken.Plus:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new NumericUnary(exprCtx, this, expr, JSToken.Plus);
                     break;
                 case JSToken.Minus:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, true);
+                    expr = ParseUnaryExpression(out dummy, true);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new NumericUnary(exprCtx, this, expr, JSToken.Minus);
                     break;
                 case JSToken.BitwiseNot:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new NumericUnary(exprCtx, this, expr, JSToken.BitwiseNot);
                     break;
                 case JSToken.LogicalNot:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new NumericUnary(exprCtx, this, expr, JSToken.LogicalNot);
                     break;
                 case JSToken.Delete:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new Delete(exprCtx, this, expr);
                     break;
                 case JSToken.Increment:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new PostOrPrefixOperator(exprCtx, this, expr, m_currentToken.Token, PostOrPrefix.PrefixIncrement);
                     break;
                 case JSToken.Decrement:
                     exprCtx = m_currentToken.Clone();
                     GetNextToken();
-                    canBeAttribute = false;
-                    expr = ParseUnaryExpression(out dummy, ref canBeAttribute, false);
+                    expr = ParseUnaryExpression(out dummy, false);
                     exprCtx.UpdateWith(expr.Context);
                     ast = new PostOrPrefixOperator(exprCtx, this, expr, m_currentToken.Token, PostOrPrefix.PrefixDecrement);
                     break;
@@ -3295,7 +3265,7 @@ namespace Microsoft.Ajax.Utilities
                     m_noSkipTokenSet.Add(NoSkipTokenSet.s_PostfixExpressionNoSkipTokenSet);
                     try
                     {
-                        ast = ParseLeftHandSideExpression(isMinus, ref canBeAttribute, warnForKeyword);
+                        ast = ParseLeftHandSideExpression(isMinus);
                     }
                     catch (RecoveryTokenException exc)
                     {
@@ -3315,7 +3285,7 @@ namespace Microsoft.Ajax.Utilities
                     {
                         m_noSkipTokenSet.Remove(NoSkipTokenSet.s_PostfixExpressionNoSkipTokenSet);
                     }
-                    ast = ParsePostfixExpression(ast, out isLeftHandSideExpr, ref canBeAttribute);
+                    ast = ParsePostfixExpression(ast, out isLeftHandSideExpr);
                     break;
             }
 
@@ -3331,7 +3301,7 @@ namespace Microsoft.Ajax.Utilities
         //    LeftHandSideExpression  '--'
         //
         //---------------------------------------------------------------------------------------
-        private AstNode ParsePostfixExpression(AstNode ast, out bool isLeftHandSideExpr, ref bool canBeAttribute)
+        private AstNode ParsePostfixExpression(AstNode ast, out bool isLeftHandSideExpr)
         {
             isLeftHandSideExpr = true;
             Context exprCtx = null;
@@ -3344,7 +3314,6 @@ namespace Microsoft.Ajax.Utilities
                         isLeftHandSideExpr = false;
                         exprCtx = ast.Context.Clone();
                         exprCtx.UpdateWith(m_currentToken);
-                        canBeAttribute = false;
                         ast = new PostOrPrefixOperator(exprCtx, this, ast, m_currentToken.Token, PostOrPrefix.PostfixIncrement);
                         GetNextToken();
                     }
@@ -3353,7 +3322,6 @@ namespace Microsoft.Ajax.Utilities
                         isLeftHandSideExpr = false;
                         exprCtx = ast.Context.Clone();
                         exprCtx.UpdateWith(m_currentToken);
-                        canBeAttribute = false;
                         ast = new PostOrPrefixOperator(exprCtx, this, ast, m_currentToken.Token, PostOrPrefix.PostfixDecrement);
                         GetNextToken();
                     }
@@ -3383,7 +3351,7 @@ namespace Microsoft.Ajax.Utilities
         //    <empty> |
         //    Identifier
         //---------------------------------------------------------------------------------------
-        private AstNode ParseLeftHandSideExpression(bool isMinus, ref bool canBeAttribute, bool warnForKeyword)
+        private AstNode ParseLeftHandSideExpression(bool isMinus)
         {
             AstNode ast = null;
             bool isFunction = false;
@@ -3462,19 +3430,16 @@ namespace Microsoft.Ajax.Utilities
                     break;
 
                 case JSToken.This:
-                    canBeAttribute = false;
                     ast = new ThisLiteral(m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.StringLiteral:
-                    canBeAttribute = false;
                     ast = new ConstantWrapper(m_scanner.StringLiteral, PrimitiveType.String, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.IntegerLiteral:
                 case JSToken.NumericLiteral:
                     {
-                        canBeAttribute = false;
                         Context numericContext = m_currentToken.Clone();
                         double doubleValue;
                         if (ConvertNumericLiteralToDouble(m_currentToken.Code, (token == JSToken.IntegerLiteral), out doubleValue))
@@ -3509,22 +3474,18 @@ namespace Microsoft.Ajax.Utilities
                     }
 
                 case JSToken.True:
-                    canBeAttribute = false;
                     ast = new ConstantWrapper(true, PrimitiveType.Boolean, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.False:
-                    canBeAttribute = false;
                     ast = new ConstantWrapper(false, PrimitiveType.Boolean, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.Null:
-                    canBeAttribute = false;
                     ast = new ConstantWrapper(null, PrimitiveType.Null, m_currentToken.Clone(), this);
                     break;
 
                 case JSToken.PreprocessorConstant:
-                    canBeAttribute = false;
                     ast = new ConstantWrapperPP(m_currentToken.Code, false, m_currentToken.Clone(), this);
                     break;
 
@@ -3535,7 +3496,6 @@ namespace Microsoft.Ajax.Utilities
                 // we can fail the parse.
 
                 case JSToken.Divide:
-                    canBeAttribute = false;
                     // could it be a regexp?
                     String source = m_scanner.ScanRegExp();
                     if (source != null)
@@ -3551,7 +3511,6 @@ namespace Microsoft.Ajax.Utilities
                 // expression
                 case JSToken.LeftParenthesis:
                     {
-                        canBeAttribute = false;
                         // save the current context reference
                         Context openParenContext = m_currentToken.Clone();
                         GetNextToken();
@@ -3591,7 +3550,6 @@ namespace Microsoft.Ajax.Utilities
 
                 // array initializer
                 case JSToken.LeftBracket:
-                    canBeAttribute = false;
                     Context listCtx = m_currentToken.Clone();
                     AstNodeList list = new AstNodeList(m_currentToken.Clone(), this);
                     GetNextToken();
@@ -3668,7 +3626,6 @@ namespace Microsoft.Ajax.Utilities
 
                 // object initializer
                 case JSToken.LeftCurly:
-                    canBeAttribute = false;
                     Context objCtx = m_currentToken.Clone();
                     GetNextToken();
 
@@ -3738,7 +3695,7 @@ namespace Microsoft.Ajax.Utilities
                                     }
                                     else
                                     {
-                                        // Mozilla-specific get/set property construct
+                                        // ecma-script get/set property construct
                                         getterSetter = true;
                                         bool isGet = (m_currentToken.Token == JSToken.Get);
                                         value = ParseFunction(
@@ -3873,7 +3830,6 @@ namespace Microsoft.Ajax.Utilities
 
                 // function expression
                 case JSToken.Function:
-                    canBeAttribute = false;
                     ast = ParseFunction(FunctionType.Expression, m_currentToken.Clone());
                     isFunction = true;
                     break;
@@ -3886,26 +3842,6 @@ namespace Microsoft.Ajax.Utilities
                     string identifier = JSKeyword.CanBeIdentifier(m_currentToken.Token);
                     if (null != identifier)
                     {
-                        if (warnForKeyword)
-                        {
-                            switch (m_currentToken.Token)
-                            {
-                                case JSToken.Boolean:
-                                case JSToken.Byte:
-                                case JSToken.Char:
-                                case JSToken.Double:
-                                case JSToken.Float:
-                                case JSToken.Int:
-                                case JSToken.Long:
-                                case JSToken.Short:
-                                case JSToken.Void:
-                                    break;
-                                default:
-                                    ForceReportInfo(JSError.KeywordUsedAsIdentifier);
-                                    break;
-                            }
-                        }
-                        canBeAttribute = false;
                         ast = new Lookup(identifier, m_currentToken.Clone(), this);
                     }
                     else
@@ -3920,7 +3856,7 @@ namespace Microsoft.Ajax.Utilities
             if (!isFunction)
                 GetNextToken();
 
-            return MemberExpression(ast, newContexts, ref canBeAttribute);
+            return MemberExpression(ast, newContexts);
         }
 
         /// <summary>
@@ -4039,16 +3975,8 @@ namespace Microsoft.Ajax.Utilities
         //  There is state in instance variable that is saved on the calling stack in some function
         //  (i.e ParseFunction and ParseClass) and you don't want to blow up the stack
         //---------------------------------------------------------------------------------------
-        private AstNode MemberExpression(AstNode expression, List<Context> newContexts, ref bool canBeAttribute)
+        private AstNode MemberExpression(AstNode expression, List<Context> newContexts)
         {
-            bool canBeQualid;
-            return MemberExpression(expression, newContexts, out canBeQualid, ref canBeAttribute);
-        }
-
-        private AstNode MemberExpression(AstNode expression, List<Context> newContexts, out bool canBeQualid, ref bool canBeAttribute)
-        {
-            bool noMoreForAttr = false;
-            canBeQualid = true;
             for (; ; )
             {
                 m_noSkipTokenSet.Add(NoSkipTokenSet.s_MemberExprNoSkipTokenSet);
@@ -4057,12 +3985,6 @@ namespace Microsoft.Ajax.Utilities
                     switch (m_currentToken.Token)
                     {
                         case JSToken.LeftParenthesis:
-                            if (noMoreForAttr)
-                                canBeAttribute = false;
-                            else
-                                noMoreForAttr = true;
-                            canBeQualid = false;
-
                             AstNodeList args = null;
                             RecoveryTokenException callError = null;
                             m_noSkipTokenSet.Add(NoSkipTokenSet.s_ParenToken);
@@ -4104,8 +4026,6 @@ namespace Microsoft.Ajax.Utilities
                             break;
 
                         case JSToken.LeftBracket:
-                            canBeQualid = false;
-                            canBeAttribute = false;
                             m_noSkipTokenSet.Add(NoSkipTokenSet.s_BracketToken);
                             try
                             {
@@ -4161,8 +4081,6 @@ namespace Microsoft.Ajax.Utilities
                             break;
 
                         case JSToken.AccessField:
-                            if (noMoreForAttr)
-                                canBeAttribute = false;
                             ConstantWrapper id = null;
                             GetNextToken();
                             if (JSToken.Identifier != m_currentToken.Token)
@@ -4195,7 +4113,7 @@ namespace Microsoft.Ajax.Utilities
                                 id = new ConstantWrapper(m_scanner.GetIdentifier(), PrimitiveType.String, m_currentToken.Clone(), this);
                             }
                             GetNextToken();
-                            expression = new Member(expression.Context.CombineWith(id.Context), this, expression, id.Context.Code);
+                            expression = new Member(expression.Context.CombineWith(id.Context), this, expression, id.Context.Code, id.Context);
                             break;
                         default:
                             if (null != newContexts)
@@ -4498,16 +4416,6 @@ namespace Microsoft.Ajax.Utilities
         {
             Debug.Assert(context != null);
             context.HandleError(errorId);
-        }
-
-        //---------------------------------------------------------------------------------------
-        // ForceReportInfo
-        //
-        //  Generate a parser error (info), does not change the error state in the parse
-        //---------------------------------------------------------------------------------------
-        private void ForceReportInfo(JSError errorId, bool treatAsError)
-        {
-            m_currentToken.Clone().HandleError(errorId, treatAsError);
         }
 
         //---------------------------------------------------------------------------------------

@@ -2,6 +2,9 @@ function Func(p1)
 {
     //Single-line Comment:
 
+    // turn on the conditional-compilation code
+    //@cc_on
+
     /*
     Multiline Comment:
     */
