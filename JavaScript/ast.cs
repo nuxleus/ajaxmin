@@ -86,14 +86,6 @@ namespace Microsoft.Ajax.Utilities
             return block;
         }
 
-        // call this function to return a logical-not version of itself
-        internal virtual AstNode LogicalNot()
-        {
-            // by default we return null, meaning that the logical not of this
-            // node isn't smaller or the same size as the current node
-            return null;
-        }
-
         internal virtual string GetFunctionGuess(AstNode target)
         {
             // most objects serived from AST return an empty string

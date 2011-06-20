@@ -2,8 +2,9 @@
 <TestSettings name="Local Test Run" id="b55e4160-610a-4fbe-b93a-ae47820c36b4" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
   <Description>This is a default test run configuration for a local test run.</Description>
   <Deployment>
-    <DeploymentItem filename="JSUnitTest\TestData\" />
     <DeploymentItem filename="CssUnitTest\TestData\" />
+    <DeploymentItem filename="DllUnitTest\TestData\" />
+    <DeploymentItem filename="JSUnitTest\TestData\" />
   </Deployment>
   <Execution>
     <Timeouts testTimeout="300000" />

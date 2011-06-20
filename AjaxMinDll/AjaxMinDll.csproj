@@ -313,6 +313,9 @@
     <Compile Include="..\JavaScript\labeledstatement.cs">
       <Link>JavaScript\labeledstatement.cs</Link>
     </Compile>
+    <Compile Include="..\JavaScript\LogicalNotVisitor.cs">
+      <Link>JavaScript\LogicalNotVisitor.cs</Link>
+    </Compile>
     <Compile Include="..\JavaScript\lookup.cs">
       <Link>JavaScript\lookup.cs</Link>
     </Compile>

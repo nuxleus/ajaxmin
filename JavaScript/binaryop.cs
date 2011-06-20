@@ -217,50 +217,6 @@ namespace Microsoft.Ajax.Utilities
             return Operand1.GetFunctionGuess(target);
         }
 
-        internal override AstNode LogicalNot()
-        {
-            // depending on the operator, we either can't logical-not this
-            // node at all, OR we can just tweak the operator and it's notted.
-            switch (OperatorToken)
-            {
-                case JSToken.Equal:
-                    OperatorToken = JSToken.NotEqual;
-                    return this;
-
-                case JSToken.NotEqual:
-                    OperatorToken = JSToken.Equal;
-                    return this;
-
-                case JSToken.StrictEqual:
-                    OperatorToken = JSToken.StrictNotEqual;
-                    return this;
-
-                case JSToken.StrictNotEqual:
-                    OperatorToken = JSToken.StrictEqual;
-                    return this;
-
-                case JSToken.LessThan:
-                    OperatorToken = JSToken.GreaterThanEqual;
-                    return this;
-
-                case JSToken.LessThanEqual:
-                    OperatorToken = JSToken.GreaterThan;
-                    return this;
-
-                case JSToken.GreaterThan:
-                    OperatorToken = JSToken.LessThanEqual;
-                    return this;
-
-                case JSToken.GreaterThanEqual:
-                    OperatorToken = JSToken.LessThan;
-                    return this;
-
-            }
-
-            // don't change anything else
-            return null;
-        }
-
         public override string ToCode(ToCodeFormat format)
         {
             string lhs = OptionalParens(Operand1, false, (format == ToCodeFormat.Preprocessor));

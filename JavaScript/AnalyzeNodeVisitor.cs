@@ -683,20 +683,15 @@ namespace Microsoft.Ajax.Utilities
                             {
                                 // transform: ...;return cond?void 0;expr} to ...;if(!cond)return expr}
                                 // (only works at the function level because of the implicit return)
-                                // get the logical-not of the condition
-                                var notCondition = conditional.Condition.LogicalNot();
-                                if (notCondition == null)
-                                {
-                                    notCondition = new NumericUnary(
-                                        null,
-                                        m_parser,
-                                        conditional.Condition,
-                                        JSToken.LogicalNot);
-                                }
+                                // get the logical-not of the conditional
+                                var logicalNot = new LogicalNot(conditional.Condition, m_parser);
+                                logicalNot.Apply();
 
+                                // create a new if-node based on the condition, with the branches swapped 
+                                // (true-expression goes to false-branch, false-expression goes to true-branch
                                 var ifNode = new IfNode(lastReturn.Context,
                                     m_parser,
-                                    notCondition,
+                                    conditional.Condition,
                                     new ReturnNode(null, m_parser, conditional.FalseExpression),
                                     null);
                                 node.ReplaceChild(lastReturn, ifNode);
@@ -1433,48 +1428,32 @@ namespace Microsoft.Ajax.Utilities
                 if (node.TrueBlock == null && node.FalseBlock != null
                     && m_parser.Settings.IsModificationAllowed(TreeModifications.IfConditionFalseToIfNotConditionTrue))
                 {
-                    // check to see if not-ing the condition produces a quick and easy
-                    // version first
-                    AstNode nottedCondition = node.Condition.LogicalNot();
-                    if (nottedCondition != null)
-                    {
-                        // it does -- use it
-                        node.ReplaceChild(node.Condition, nottedCondition);
-                    }
-                    else
-                    {
-                        // it doesn't. Just wrap it.
-                        node.ReplaceChild(node.Condition, new NumericUnary(
-                          null,
-                          m_parser,
-                          node.Condition,
-                          JSToken.LogicalNot));
-                    }
+                    // logical-not the condition
+                    var logicalNot = new LogicalNot(node.Condition, m_parser);
+                    logicalNot.Apply();
 
                     // and swap the branches
                     node.SwapBranches();
                 }
                 else if (node.TrueBlock != null && node.FalseBlock != null)
                 {
-                    // both branches are non-empty
-                    // check to see if the condition starts with a logical-not operator. If so, then
-                    // we can remove the not and swap the branches.
-                    NumericUnary unary = node.Condition as NumericUnary;
-                    if (unary != null && unary.OperatorToken == JSToken.LogicalNot
-                        && m_parser.Settings.IsModificationAllowed(TreeModifications.IfNotTrueFalseToIfFalseTrue))
+                    // see if logical-notting the condition produces something smaller
+                    var logicalNot = new LogicalNot(node.Condition, m_parser);
+                    if (logicalNot.Measure() < 0)
                     {
-                        // get rid of the logical not by replacing it with its operand
-                        if (node.ReplaceChild(node.Condition, unary.Operand))
-                        {
-                            // and swap the branches
-                            node.SwapBranches();
-                        }
+                        // it does -- not the condition and swap the branches
+                        logicalNot.Apply();
+                        node.SwapBranches();
                     }
-                    else if (node.TrueBlock.Count == 1 && node.FalseBlock.Count == 1)
+                    
+                    // see if the true- and false-branches each contain only a single statement
+                    if (node.TrueBlock.Count == 1 && node.FalseBlock.Count == 1)
                     {
+                        // they do -- see if the true-branch's statement is a return-statement
                         var trueReturn = node.TrueBlock[0] as ReturnNode;
                         if (trueReturn != null && trueReturn.Operand != null)
                         {
+                            // it is -- see if the false-branch is also a return statement
                             var falseReturn = node.FalseBlock[0] as ReturnNode;
                             if (falseReturn != null && falseReturn.Operand != null)
                             {
@@ -1534,12 +1513,29 @@ namespace Microsoft.Ajax.Utilities
                         // then we can simplify this to a conditional expression.
                         // because the blocks are expressions, we know they only have ONE statement in them,
                         // so we can just dereference them directly.
-                        var conditional = new Conditional(
-                            node.Context, 
-                            m_parser, 
-                            node.Condition, 
-                            node.TrueBlock[0], 
-                            node.FalseBlock[0]);
+                        Conditional conditional;
+                        var logicalNot = new LogicalNot(node.Condition, m_parser);
+                        if (logicalNot.Measure() < 0)
+                        {
+                            // applying a logical-not makes the condition smaller -- reverse the branches
+                            logicalNot.Apply();
+                            conditional = new Conditional(
+                                node.Context,
+                                m_parser,
+                                node.Condition,
+                                node.FalseBlock[0],
+                                node.TrueBlock[0]);
+                        }
+                        else
+                        {
+                            // regular order
+                            conditional = new Conditional(
+                                node.Context, 
+                                m_parser, 
+                                node.Condition, 
+                                node.TrueBlock[0], 
+                                node.FalseBlock[0]);
+                        }
 
                         node.Parent.ReplaceChild(
                             node,
@@ -1551,24 +1547,23 @@ namespace Microsoft.Ajax.Utilities
                         && m_parser.Settings.IsModificationAllowed(TreeModifications.IfConditionCallToConditionAndCall))
                     {
                         // but first -- which operator to use? if(a)b --> a&&b, and if(!a)b --> a||b
-                        // we'll go easy for now; so check the condition -- if it starts with a unary logical-not,
-                        // then we'll get rid ofthe not and use an or. Otherwise use an and.
+                        // so determine which one is smaller: a or !a
+                        // assume we'll use the logical-and, since that doesn't require changing the condition
                         var newOperator = JSToken.LogicalAnd;
-                        var leftHandSide = node.Condition;
-
-                        var unary = node.Condition as NumericUnary;
-                        if (unary != null && unary.OperatorToken == JSToken.LogicalNot)
+                        var logicalNot = new LogicalNot(node.Condition, m_parser);
+                        if (logicalNot.Measure() < 0)
                         {
-                            leftHandSide = unary.Operand;
+                            // !a is smaller, so apply it and use the logical-or operator
+                            logicalNot.Apply();
                             newOperator = JSToken.LogicalOr;
                         }
 
-                        // because the true block is an expressions, we know it must only have
+                        // because the true block is an expression, we know it must only have
                         // ONE statement in it, so we can just dereference it directly.
                         var binaryOp = new BinaryOperator(
                             node.Context,
                             m_parser,
-                            leftHandSide,
+                            node.Condition,
                             node.TrueBlock[0],
                             newOperator
                             );

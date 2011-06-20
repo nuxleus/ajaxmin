@@ -41,13 +41,6 @@ namespace Microsoft.Ajax.Utilities
             }
         }
 
-        internal override AstNode LogicalNot()
-        {
-            return (OperatorToken == JSToken.LogicalNot
-              ? Operand // the logical-not of a logical-not is just the operand
-              : null);
-        }
-
         public override bool IsEquivalentTo(AstNode otherNode)
         {
             var otherUnary = otherNode as NumericUnary;

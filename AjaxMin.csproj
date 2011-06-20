@@ -128,6 +128,7 @@
     <Compile Include="JavaScript\expr.cs" />
     <Compile Include="JavaScript\FinalPassVisitor.cs" />
     <Compile Include="JavaScript\IVisitor.cs" />
+    <Compile Include="JavaScript\LogicalNotVisitor.cs" />
     <Compile Include="JavaScript\ReorderScopeVisitor.cs" />
     <Compile Include="JavaScript\TreeVisitor.cs" />
     <Compile Include="Properties\ProductAssemblyInfo.cs" />
