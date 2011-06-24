@@ -291,6 +291,7 @@
     <Content Include="TestData\JS\Expected\Switch\PromoteBreak_h.js" />
     <Content Include="TestData\JS\Expected\Switch\SwitchLabels.js" />
     <Content Include="TestData\JS\Expected\Switch\SwitchLabels_h.js" />
+    <Content Include="TestData\JS\Expected\Switch\Unreachable.js" />
     <Content Include="TestData\JS\Expected\Syntax\NestedBlocks.js" />
     <Content Include="TestData\JS\Expected\UnknownScope\Eval.js" />
     <Content Include="TestData\JS\Expected\UnknownScope\Eval_Immediate.js" />
@@ -447,6 +448,7 @@
     <Content Include="TestData\JS\Input\Switch\PrettyPrint.js" />
     <Content Include="TestData\JS\Input\Switch\PromoteBreak.js" />
     <Content Include="TestData\JS\Input\Switch\SwitchLabels.js" />
+    <Content Include="TestData\JS\Input\Switch\Unreachable.js" />
     <Content Include="TestData\JS\Input\Syntax\NestedBlocks.js" />
     <Content Include="TestData\JS\Input\UnknownScope\Eval.js" />
     <Content Include="TestData\JS\Input\UnknownScope\WindowEval.js" />

@@ -271,11 +271,9 @@ namespace Microsoft.Ajax.Utilities
                     // go forward, and check the count each iteration because we might be ADDING statements to the block.
                     // let's look at all our if-statements. If a true-clause ends in a return, then we don't
                     // need the else-clause; we can pull its statements out and stick them after the if-statement.
-                    // also, if we encounter a return statement, we can axe everything after it
+                    // also, if we encounter a return-, break- or continue-statement, we can axe everything after it
                     for (var ndx = 0; ndx < node.Count; ++ndx)
                     {
-                        ReturnNode returnNode;
-
                         // see if it's an if-statement with both a true and a false block
                         var ifNode = node[ndx] as IfNode;
                         if (ifNode != null
@@ -294,10 +292,14 @@ namespace Microsoft.Ajax.Utilities
                                 ifNode.ReplaceChild(ifNode.FalseBlock, null);
                             }
                         }
-                        else if ((returnNode = node[ndx] as ReturnNode) != null)
+                        else if (node[ndx] is ReturnNode
+                            || node[ndx] is Break
+                            || node[ndx] is ContinueNode)
                         {
-                            // we have a return node -- just get rid of anything after it; it will never be executed.
+                            // we have a return node -- no statments afterwards will be executed, so clear them out.
                             // transform: {...;return;...} to {...;return}
+                            // transform: {...;break;...} to {...;break}
+                            // transform: {...;continue;...} to {...;continue}
                             // we've found a return statement, and it's not the last statement in the function.
                             // walk the rest of the statements and delete anything that isn't a function declaration
                             // or a var statement.

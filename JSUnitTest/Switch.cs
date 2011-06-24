@@ -93,7 +93,13 @@ namespace JSUnitTest
     [TestMethod]
     public void MacQuirks_M()
     {
-      TestHelper.Instance.RunTest();
+        TestHelper.Instance.RunTest();
+    }
+
+    [TestMethod]
+    public void Unreachable()
+    {
+        TestHelper.Instance.RunTest();
     }
   }
 }

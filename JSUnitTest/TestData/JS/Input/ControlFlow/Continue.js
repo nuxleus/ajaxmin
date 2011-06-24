@@ -15,6 +15,8 @@ function Func(p1)
         if (i == p1)
         {
             continue;
+            // this should get removed as unreachable
+            i *= p1;
         }
    }
    return(i);
