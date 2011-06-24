@@ -33,17 +33,15 @@ namespace Microsoft.Ajax.Utilities
             // define the Global object's properties, and methods
             m_globalObject = new GlobalObject(
               GlobalObjectInstance.GlobalObject,
-                //new string[] { "Infinity", "NaN", "undefined", "window" },
-              new string[] { "Infinity", "NaN", "undefined", "window", "Image", "Math", "XMLHttpRequest" },
-              new string[] { "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "isNaN", "isFinite", "parseFloat", "parseInt", "unescape", "ActiveXObject", "Array", "Boolean", "Date", "Error", "Function", "Number", "Object", "RegExp", "String", "HTMLElement" }
+              new string[] { "Infinity", "NaN", "undefined", "window", "Image", "Math", "XMLHttpRequest", "DOMParser", "Worker" },
+              new string[] { "decodeURI", "decodeURIComponent", "encodeURI", "encodeURIComponent", "escape", "eval", "importScripts", "isNaN", "isFinite", "parseFloat", "parseInt", "unescape", "ActiveXObject", "Array", "Boolean", "Date", "Error", "Function", "Number", "Object", "RegExp", "String", "HTMLElement" }
               );
 
             // define the Window object's properties, and methods
             m_windowObject = new GlobalObject(
               GlobalObjectInstance.WindowObject,
-                //null, 
-              new string[] { "frames", "clientInformation", "clipboardData", "document", "event", "external", "history", "location", "navigator", "screen", "closed", "name", "opener", "parent", "self", "status", "top" },
-              new string[] { "alert", "blur", "clearInterval", "clearTimeout", "close", "confirm", "createPopup", "execScript", "focus", "moveTo", "moveBy", "navigate", "open", "prompt", "realizeBy", "realizeTo", "scroll", "scrollBy", "scrollTo", "setActive", "setInterval", "setTimeout", "showModalDialog", "showModelessDialog" }
+              new string[] { "applicationCache", "clientInformation", "clipboardData", "closed", "document", "event", "external", "frameElement", "frames", "history", "length", "localStorage", "location", "name", "navigator", "opener", "parent", "screen", "self", "sessionStorage", "status", "top" },
+              new string[] { "addEventListener", "alert", "attachEvent", "blur", "clearInterval", "clearTimeout", "close", "confirm", "createPopup", "detachEvent", "dispatchEvent", "execScript", "focus", "getComputedStyle", "getSelection", "moveBy", "moveTo", "navigate", "open", "postMessage", "prompt", "removeEventListener", "resizeBy", "resizeTo", "scroll", "scrollBy", "scrollTo", "setActive", "setInterval", "setTimeout", "showModalDialog", "showModelessDialog" }
               );
         }
 
